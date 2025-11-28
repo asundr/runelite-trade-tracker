@@ -1,0 +1,85 @@
+/*
+ * Copyright (c) 2025, Arun <trade-tracker-plugin.acwel@dralias.com>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package org.asundr.trade;
+
+// contains data used to describe an item stack at the time of a trade
+public class TradeItemData
+{
+    private int id;
+    private int notedID = -1;
+    private final int quantity;
+    private int geValue = -1;       // this is the GE value at the time of the trade and should not be updated
+
+    TradeItemData(int id, int quantity, int value)
+    {
+        this.id = id;
+        this.quantity = quantity;
+        this.geValue = value;
+    }
+
+    public TradeItemData(int id, int quantity)
+    {
+        this(id, quantity, -1);
+    }
+
+    TradeItemData(TradeItemData other)
+    {
+        this.id = other.id;
+        this.quantity = other.quantity;
+        this.geValue = other.geValue;
+        this.notedID = other.notedID;
+    }
+
+    public boolean isNoted() { return notedID >= 0; }
+
+    public int getID() { return id; }
+
+    public int getQuantity() { return quantity; }
+
+    public int getGEValue() { return geValue; }
+
+    private void setGEValue(final int value, final boolean override)
+    {
+        if (geValue == -1 || override)
+        {
+            geValue = value;
+        }
+    }
+    public void setGEValue(final int value) { setGEValue(value, false); }
+
+    public int getNotedID() { return notedID; }
+
+    public void setOriginalID(final int originalID)
+    {
+        if (isNoted())
+        {
+            return;
+        }
+        this.notedID = id;
+        id = originalID;
+    }
+
+}

@@ -1,0 +1,362 @@
+/*
+ * Copyright (c) 2025, Arun <trade-tracker-plugin.acwel@dralias.com>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package org.asundr.trade;
+
+import net.runelite.api.ChatMessageType;
+import net.runelite.api.gameval.InventoryID;
+import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.WidgetClosed;
+import net.runelite.api.events.WidgetLoaded;
+import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
+import org.asundr.TradeUtils;
+import org.asundr.events.TradeHistoryProfileRestoredEvent;
+import org.asundr.recovery.ConfigKey;
+import org.asundr.recovery.SaveManager;
+import org.asundr.trade.events.*;
+
+import java.util.ArrayDeque;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+
+public class TradeManager
+{
+	public final static int MAX_HISTORY_COUNT = 512;
+
+	private static final String MESSAGE_ACCEPTED_TRADE = "Accepted trade.";
+	private static final String MESSAGE_DECLINED_TRADE = "Other player declined trade.";
+	private final static Pattern PATTERN_TRADE_USERNAME = Pattern.compile("^Trading With: (.*)$");
+	private final static int CHILD_TRADE_USERNAME = 31;
+
+	private static final class TradeMenuId
+	{
+		public static final int TRADE_MENU = 335;
+		public static final int TRADE_CONFIRMATION_MENU = 334;
+	}
+
+	private static final class TradeContainerId
+	{
+		public static final int GIVEN = InventoryID.TRADEOFFER;
+		public static final int RECEIVED = InventoryID.TRADEOFFER | 0x8000;
+	}
+
+	public enum TradeState
+	{
+		NOT_TRADING,
+		TRADING,
+		TRADE_CONFIRMATION,
+		TRADE_ACCEPTED
+	}
+
+	private final static TradeManager instance = new TradeManager();
+
+	private TradeData currentTrade = null;
+	private ArrayDeque<TradeData> tradeHistory = new ArrayDeque<>();
+	private TradeState tradeState = TradeState.NOT_TRADING;
+	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+	private ScheduledFuture<?> scheduledPurgeFuture = null;
+
+	@Subscribe
+	private void onWidgetLoaded(final WidgetLoaded event)
+	{
+		final int groupId = event.getGroupId();
+		if (groupId == TradeMenuId.TRADE_MENU)
+		{
+			if (currentTrade == null)
+			{
+				currentTrade = new TradeData();
+			}
+			setTradeState(TradeState.TRADING);
+			fetchTradedPlayerName();
+		}
+		else if (groupId == TradeMenuId.TRADE_CONFIRMATION_MENU)
+		{
+			setTradeState(TradeState.TRADE_CONFIRMATION);
+		}
+	}
+
+	@Subscribe
+	private void onWidgetClosed(final WidgetClosed event)
+	{
+		final int groupId = event.getGroupId();
+		if (groupId == TradeMenuId.TRADE_MENU)
+		{
+			TradeUtils.getClientThread().invokeLater(() -> {
+				if (tradeState != TradeState.TRADE_CONFIRMATION)
+				{
+					setTradeState(TradeState.NOT_TRADING);
+				}
+			});
+		}
+		else if (groupId == TradeMenuId.TRADE_CONFIRMATION_MENU)
+		{
+			setTradeState(TradeState.NOT_TRADING);
+		}
+	}
+
+	@Subscribe
+	private void onItemContainerChanged(ItemContainerChanged event)
+	{
+		int inventoryId = event.getContainerId();
+		if (inventoryId == TradeContainerId.GIVEN)
+		{
+			currentTrade.updateItems(true, TradeUtils.getItemContainer(inventoryId));
+		}
+		else if (inventoryId == TradeContainerId.RECEIVED)
+		{
+			currentTrade.updateItems(false, TradeUtils.getItemContainer(inventoryId));
+		}
+	}
+
+	@Subscribe
+	private void onChatMessage(ChatMessage chatMessage)
+	{
+		if (chatMessage.getType() != ChatMessageType.TRADE || currentTrade == null)
+		{
+			return;
+		}
+		switch (chatMessage.getMessage())
+		{
+			case MESSAGE_ACCEPTED_TRADE:
+				if (TradeUtils.getConfig().ignoreEmptyTrades() && currentTrade.isEmpty())
+				{
+					return;
+				}
+				currentTrade.tradeTime = chatMessage.getTimestamp();
+				addTradeRecord(currentTrade);
+				setTradeState(TradeState.TRADE_ACCEPTED);
+				break;
+			case MESSAGE_DECLINED_TRADE:
+				setTradeState(TradeState.NOT_TRADING);
+				break;
+			default:
+				return;
+		}
+		currentTrade = null;
+	}
+
+	@Subscribe
+	private void onConfigChanged(ConfigChanged configChanged)
+	{
+		if (configChanged.getGroup().equals(SaveManager.SAVE_GROUP))
+		{
+			if (configChanged.getKey().equals(ConfigKey.MAX_HISTORY))
+			{
+				removeOverflowRecords(0);
+			}
+		}
+	}
+
+	@Subscribe
+	private void onTradeHistoryProfileRestoredEvent(TradeHistoryProfileRestoredEvent e)
+	{
+		setTradeHistory(e.tradeHistory);
+		updateRemoveExpiredRecordTimer();
+	}
+
+	// Should be called when plugin shuts down to cancel potentially scheduled purge timers
+	public void shutdown()
+	{
+		scheduler.shutdown();
+	}
+
+	public static TradeManager getInstance()
+	{
+		return instance;
+	}
+
+	// returns a copy of the current trade history
+	public final ArrayDeque<TradeData> getTradeHistory() { return new ArrayDeque<>(tradeHistory); }
+
+	// Updates what stage of a trade the player is in, and fires relevant events
+	private void setTradeState(TradeState newState)
+	{
+		if (tradeState == newState)
+		{
+			return;
+		}
+		switch (newState)
+		{
+			case TRADE_ACCEPTED:
+				TradeUtils.getClientThread().invokeLater(() -> setTradeState(TradeState.NOT_TRADING));
+			case TRADING:
+				TradeUtils.postEvent(new BeginTradeEvent(currentTrade == null ? null : currentTrade.tradedPlayer));
+				break;
+			case NOT_TRADING:
+			if (tradeState != TradeState.TRADE_ACCEPTED)
+					TradeUtils.postEvent(new DeclinedTradeEvent(currentTrade == null ? null : currentTrade.tradedPlayer));
+				break;
+		}
+		//System.out.println(String.format("%s  --->  %s", tradeState, newState));
+		tradeState = newState;
+	}
+
+	// Repeatedly tries to find the name of the traded player in the trade window, then updates the current trade data
+	private void fetchTradedPlayerName()
+	{
+		if (tradeState != TradeState.NOT_TRADING && currentTrade != null && (currentTrade.tradedPlayer == null || !currentTrade.tradedPlayer.isValid()))
+		{
+			currentTrade.tradedPlayer =  new TradePlayerData(TradeUtils.extractPatternFromWidget(TradeMenuId.TRADE_MENU, CHILD_TRADE_USERNAME, PATTERN_TRADE_USERNAME));
+			if (!currentTrade.tradedPlayer.isValid())
+			{
+				TradeUtils.getClientThread().invokeLater(this::fetchTradedPlayerName);
+			}
+		}
+	}
+
+	// Adds passed trade data as new trade to history, fetching relevant data, removing overflow trades, firing traded added events and saving the updated history
+	// This is the function to call to add any new trades to the history
+	public void addTradeRecord(TradeData tradeData)
+	{
+		removeOverflowRecords(1);
+		tradeHistory.addLast(tradeData);
+		TradeUtils.getClientThread().invokeLater(() -> {
+			TradeUtils.fetchItemNames(tradeData.givenItems);
+			TradeUtils.fetchItemNames(tradeData.receivedItems);
+			TradeUtils.fetchGePrices(tradeData.givenItems);
+			TradeUtils.fetchGePrices(tradeData.receivedItems);
+			tradeData.calculateAggregateValues();
+			TradeUtils.postEvent(new TradeAddedEvent(tradeData));
+			SaveManager.requestTradeHistorySave();
+			if (tradeHistory.size() == 1)
+			{
+				updateRemoveExpiredRecordTimer();
+			}
+		});
+	}
+
+	// Removes the passed trade data if it is found inn the history, and fires a corresponding event
+	public void removeTradeRecord(TradeData tradeData)
+	{
+		tradeHistory.removeIf(e -> e.tradeTime == tradeData.tradeTime);
+		TradeUtils.postEvent(new TradeRemovedEvent(tradeData));
+		SaveManager.requestTradeHistorySave();
+		if (!tradeHistory.isEmpty())
+		{
+			updateRemoveExpiredRecordTimer();
+		}
+	}
+
+	// Removes all trades from the current history
+	public void clearAllTradeRecords()
+	{
+		tradeHistory.clear();
+		TradeUtils.postEvent(new ResetTradeHistoryEvent(tradeHistory));
+		SaveManager.requestTradeHistorySave();
+	}
+
+	// Overrides the current history
+	private void setTradeHistory(ArrayDeque<TradeData> tradeHistory)
+	{
+		this.tradeHistory = tradeHistory;
+		TradeUtils.postEvent(new ResetTradeHistoryEvent(tradeHistory));
+	}
+
+	// Removes the oldest trades in excess of the user-specified max history count
+	// extra param is useful to preemptively remove if you know you're going to add another record
+	private void removeOverflowRecords(int extra)
+	{
+		final int maxRecords = TradeUtils.clamp(TradeUtils.getConfig().maxHistoryCount(), 1, TradeManager.MAX_HISTORY_COUNT);
+		int overflow = Math.min(tradeHistory.size() - maxRecords + extra, Math.max(0, tradeHistory.size() - 1));
+		removeOldestRecords(overflow);
+	}
+
+	// Called whenever the timer to purge expired trades needs to be changed or cancelled
+	private void updateRemoveExpiredRecordTimer()
+	{
+		if (scheduledPurgeFuture != null && !scheduledPurgeFuture.isCancelled() && !scheduledPurgeFuture.isDone())
+		{
+			//System.out.println("Cancelled scheduled removal of expired trade.");
+			scheduledPurgeFuture.cancel(false);
+		}
+		if (tradeHistory.isEmpty())
+		{
+			//System.out.println("No trade set to expire.");
+			return;
+		}
+		if (!isPurgingExpiredTrades())
+		{
+			//System.out.println("Removing expired records currently disabled");
+			return;
+		}
+		final long lifetime = TradeUtils.getRecordLifetime();
+		if (lifetime <= 0L)
+		{
+			//System.out.println("No trade set to expire.");
+			return;
+		}
+		final long expireTime = tradeHistory.getFirst().tradeTime*1000L + lifetime;
+		final long destroyDelay = Math.max(1000, expireTime - System.currentTimeMillis());
+		scheduledPurgeFuture = scheduler.schedule(this::removeExpiredRecords, destroyDelay, TimeUnit.MILLISECONDS);
+		//System.out.println("Scheduled to remove expired trade at: " + TradeUtils.timeStampToString(expireTime/1000));
+	}
+
+	// Removes all trades from history that are older than the user-configured lifetime
+	private void removeExpiredRecords()
+	{
+		final long lifetime = TradeUtils.getRecordLifetime();
+		if (lifetime <= 0L)
+		{
+			return;
+		}
+		while (!tradeHistory.isEmpty() && tradeHistory.getFirst().isExpired())
+		{
+			removeOldestRecords(1);
+		}
+		updateRemoveExpiredRecordTimer();
+	}
+
+	// Removes the passed number of oldest trades from the history
+	private void removeOldestRecords(int count)
+	{
+		count = Math.min(count, tradeHistory.size());
+		while (count > 0)
+		{
+			TradeUtils.postEvent(new TradeRemovedEvent(tradeHistory.getFirst()));
+			tradeHistory.removeFirst();
+			--count;
+		}
+	}
+
+	// Returns true if expired trades are set to be auto-removed after they expire
+	public static boolean isPurgingExpiredTrades()
+	{
+		Boolean isPurging = SaveManager.restoreFromKey(ConfigKey.SCHEDULED_PURGE);
+		return isPurging != null && isPurging;
+	}
+
+	// Sets the active state of the auto-remove for expired trades, potentially starting or cancelling the timer
+	public static void setPurgingExpiredTrades(boolean enabled)
+	{
+		SaveManager.saveWithKey(ConfigKey.SCHEDULED_PURGE, enabled);
+		instance.updateRemoveExpiredRecordTimer();
+	}
+
+}
