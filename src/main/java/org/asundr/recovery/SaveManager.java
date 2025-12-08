@@ -26,7 +26,6 @@
 package org.asundr.recovery;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
@@ -133,7 +132,8 @@ public class SaveManager
     // serializes and saves common data
     private static void saveCommonData()
     {
-        Gson gson = new GsonBuilder().create();
+
+        Gson gson = TradeUtils.getGsonBuilder();
         String json = gson.toJson(getSaveDataCommon());
         configManager.setConfiguration(SAVE_GROUP, ConfigKey.COMMON, json);
     }
@@ -150,7 +150,7 @@ public class SaveManager
         {
             return null;
         }
-        final Gson gson = new GsonBuilder().create();
+        final Gson gson = TradeUtils.getGsonBuilder();
         final SaveData_Profile saveData = new SaveData_Profile(
                 SAVE_VERSION,
                 SaveManager.saveDataCommon.getActiveProfile().getKeyString(),
@@ -185,7 +185,7 @@ public class SaveManager
     // Reads the common save data from config and sets that as the active save data
     public static void restoreCommonData()
     {
-        final Gson gson = new GsonBuilder().create();
+        final Gson gson = TradeUtils.getGsonBuilder();
         final String json = configManager.getConfiguration(SAVE_GROUP, ConfigKey.COMMON);
         if (json == null || json.isBlank())
         {
@@ -209,7 +209,7 @@ public class SaveManager
     // Restores the trade history using a json string serialized from SaveData_Profile
     private static void restoreTradeHistoryData(final String json)
     {
-        final Gson gson = new GsonBuilder().create();
+        final Gson gson = TradeUtils.getGsonBuilder();
         if (json == null || json.equals(""))
         {
             return;
@@ -258,7 +258,7 @@ public class SaveManager
     // Saves to the plugin's default group with the passed key
     public static void saveWithKey(final String key, Object data)
     {
-        final Gson gson = new GsonBuilder().create();
+        final Gson gson = TradeUtils.getGsonBuilder();
         configManager.setConfiguration(SAVE_GROUP, key, gson.toJson(data));
     }
 
@@ -266,7 +266,7 @@ public class SaveManager
     // Return type matches that of the variable this function output is assigned to.
     public static <T> T restoreFromKey(final String key)
     {
-        final Gson gson = new GsonBuilder().create();
+        final Gson gson = TradeUtils.getGsonBuilder();
         final String value = configManager.getConfiguration(SAVE_GROUP, key);
         if (value == null)
         {

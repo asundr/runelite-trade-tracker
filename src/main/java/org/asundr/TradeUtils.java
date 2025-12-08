@@ -26,7 +26,7 @@
 package org.asundr;
 
 import com.google.common.base.Strings;
-import com.google.gson.GsonBuilder;
+import com.google.gson.Gson;
 import net.runelite.api.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
@@ -78,6 +78,7 @@ public class TradeUtils
     private static ChatboxPanelManager chatboxPanelManager;
     private static  EventBus eventBus;
     private static TradeManager tradeManager;
+    private static Gson gson;
 
     public static TradeTrackerConfig getConfig() { return config; }
     public static ClientThread getClientThread()
@@ -92,7 +93,7 @@ public class TradeUtils
 
 
     // Prepares the utility class with the various query class instances it needs to function
-    public static void initialize(ItemManager itemManager, TradeTrackerConfig config, Client client, ClientThread clientThread, TradeTrackerPlugin plugin, ChatboxPanelManager chatboxPanelManager, EventBus eventBus, TradeManager tradeManager)
+    public static void initialize(ItemManager itemManager, TradeTrackerConfig config, Client client, ClientThread clientThread, TradeTrackerPlugin plugin, ChatboxPanelManager chatboxPanelManager, EventBus eventBus, TradeManager tradeManager, Gson gson)
     {
         TradeUtils.itemManager = itemManager;
         TradeUtils.config = config;
@@ -101,6 +102,7 @@ public class TradeUtils
         TradeUtils.chatboxPanelManager = chatboxPanelManager;
         TradeUtils.eventBus = eventBus;
         TradeUtils.tradeManager = tradeManager;
+        TradeUtils.gson = gson;
 
         final BufferedImage iconImg = ImageUtil.loadImageResource(plugin.getClass(), "/net/runelite/client/plugins/friendnotes/note_icon.png");
         iconNote = new ImageIcon(iconImg.getScaledInstance(14,14, Image.SCALE_SMOOTH));
@@ -308,10 +310,15 @@ public class TradeUtils
             }).build();
     }
 
+    public static Gson getGsonBuilder()
+    {
+        return gson.newBuilder().create();
+    }
+
     // Converts the passed object to a json string
     public static <T> String stringify(T object)
     {
-        return new GsonBuilder().create().toJson(object);
+        return gson.newBuilder().create().toJson(object);
     }
 
     // Copies the passed String to the user's clipboard

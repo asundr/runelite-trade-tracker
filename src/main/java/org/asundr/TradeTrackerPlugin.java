@@ -25,6 +25,7 @@
 
 package org.asundr;
 
+import com.google.gson.Gson;
 import com.google.inject.Provides;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -75,6 +76,8 @@ public class TradeTrackerPlugin extends Plugin
 	private ChatboxPanelManager chatboxPanelManager;
 	@Inject
 	private EventBus eventBus;
+	@Inject
+	private Gson gson;
 
 	private final SaveManager saveManager = new SaveManager();
 	private NavigationButton navigationButton;
@@ -85,7 +88,7 @@ public class TradeTrackerPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
-		TradeUtils.initialize(itemManager, config, client, clientThread, this, chatboxPanelManager, eventBus, TradeManager.getInstance());
+		TradeUtils.initialize(itemManager, config, client, clientThread, this, chatboxPanelManager, eventBus, TradeManager.getInstance(), gson);
 		SaveManager.initialize(configManager);
 		SaveManager.restoreCommonData();
 		TradeTrackerPluginPanel mainPanel = new TradeTrackerPluginPanel();
@@ -97,6 +100,7 @@ public class TradeTrackerPlugin extends Plugin
 		}
 		SaveManager.restoreTradeHistoryData();
 		addNavigationButton(mainPanel);
+
 	}
 
 	@Override
