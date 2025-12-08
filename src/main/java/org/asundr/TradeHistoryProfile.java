@@ -25,11 +25,13 @@
 
 package org.asundr;
 
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.RuneScapeProfileType;
 
 import org.apache.commons.lang3.StringUtils;
 
 // Contains data identifying the player profile associated with a trade histories
+@Slf4j
 public class TradeHistoryProfile
 {
     private final long hash;
@@ -79,7 +81,7 @@ public class TradeHistoryProfile
         final String[] parts = s.split("\\+");
         if (s.length() != 2)
         {
-            System.out.print("ERROR: Parsed TradeHistoryProfile is missing name or type");
+            log.error("Parsed TradeHistoryProfile is missing name or type");
             return null;
         }
         return new TradeHistoryProfile(Long.valueOf(parts[0], 16), null, RuneScapeProfileType.valueOf(parts[1]));

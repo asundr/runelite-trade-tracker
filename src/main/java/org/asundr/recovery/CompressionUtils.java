@@ -25,11 +25,14 @@
 
 package org.asundr.recovery;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
+@Slf4j
 public class CompressionUtils
 {
     private final static int BUFFER_SIZE = 1024 * 32;
@@ -68,7 +71,7 @@ public class CompressionUtils
         }
         catch (Exception e)
         {
-            System.out.println("ERROR: failed to decompress trade history save data");
+            log.error("failed to decompress trade history save data");
         }
         finally
         {

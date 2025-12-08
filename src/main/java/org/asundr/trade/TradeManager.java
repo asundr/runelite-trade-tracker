@@ -25,6 +25,7 @@
 
 package org.asundr.trade;
 
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.events.ChatMessage;
@@ -46,6 +47,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+@Slf4j
 public class TradeManager
 {
 	public final static int MAX_HISTORY_COUNT = 512;
@@ -214,7 +216,7 @@ public class TradeManager
 					TradeUtils.postEvent(new DeclinedTradeEvent(currentTrade == null ? null : currentTrade.tradedPlayer));
 				break;
 		}
-		//System.out.println(String.format("%s  --->  %s", tradeState, newState));
+		//log.debug(String.format("%s  --->  %s", tradeState, newState));
 		tradeState = newState;
 	}
 
@@ -293,29 +295,29 @@ public class TradeManager
 	{
 		if (scheduledPurgeFuture != null && !scheduledPurgeFuture.isCancelled() && !scheduledPurgeFuture.isDone())
 		{
-			//System.out.println("Cancelled scheduled removal of expired trade.");
+			//log.debug("Cancelled scheduled removal of expired trade.");
 			scheduledPurgeFuture.cancel(false);
 		}
 		if (tradeHistory.isEmpty())
 		{
-			//System.out.println("No trade set to expire.");
+			//log.debug("No trade set to expire.");
 			return;
 		}
 		if (!isPurgingExpiredTrades())
 		{
-			//System.out.println("Removing expired records currently disabled");
+			//log.debug("Removing expired records currently disabled");
 			return;
 		}
 		final long lifetime = TradeUtils.getRecordLifetime();
 		if (lifetime <= 0L)
 		{
-			//System.out.println("No trade set to expire.");
+			//log.debug("No trade set to expire.");
 			return;
 		}
 		final long expireTime = tradeHistory.getFirst().tradeTime*1000L + lifetime;
 		final long destroyDelay = Math.max(1000, expireTime - System.currentTimeMillis());
 		scheduledPurgeFuture = scheduler.schedule(this::removeExpiredRecords, destroyDelay, TimeUnit.MILLISECONDS);
-		//System.out.println("Scheduled to remove expired trade at: " + TradeUtils.timeStampToString(expireTime/1000));
+		//log.debug("Scheduled to remove expired trade at: " + TradeUtils.timeStampToString(expireTime/1000));
 	}
 
 	// Removes all trades from history that are older than the user-configured lifetime

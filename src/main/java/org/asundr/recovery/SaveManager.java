@@ -27,6 +27,7 @@ package org.asundr.recovery;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.events.GameStateChanged;
@@ -43,6 +44,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Slf4j
 public class SaveManager
 {
     // used to schedule saves and prevent save operations from being interrupted
@@ -220,7 +222,7 @@ public class SaveManager
             final SaveData_Profile saveData = gson.fromJson(json, SaveData_Profile.class);
             if (saveData == null)
             {
-                System.out.println("ERROR: Failed to parse trade history json");
+                log.error("Failed to parse trade history json");
                 return;
             }
             final String profileKey = getSaveDataCommon().getActiveProfile() == null ? null : saveDataCommon.getActiveProfile().getKeyString();
@@ -231,7 +233,7 @@ public class SaveManager
         }
         catch (Exception e)
         {
-            System.out.println("ERROR: Failed to parse trade history json");
+            log.error("Failed to parse trade history json");
         }
     }
 

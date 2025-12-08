@@ -27,6 +27,7 @@ package org.asundr;
 
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
@@ -59,6 +60,7 @@ import java.util.regex.Pattern;
 
 
 // A static function library used for common functionality
+@Slf4j
 public class TradeUtils
 {
     public enum ItemID
@@ -290,7 +292,7 @@ public class TradeUtils
         }
         catch (Exception e)
         {
-            System.out.println("ERROR: Invalid item wiki url: " + WIKI_URL_PREFIX + name);
+            log.error("Invalid item wiki url: " + WIKI_URL_PREFIX + name);
         }
     }
 
