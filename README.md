@@ -14,7 +14,7 @@ Each logged trade specifies all items given and received along with the name of 
 
 
 
-Additionally, these trade records use the ge prices of the items traded to calculate aggregate values of a trade.
+Additionally, these trade records use the GE prices of the items traded to calculate aggregate values of a trade.
 
 
 
