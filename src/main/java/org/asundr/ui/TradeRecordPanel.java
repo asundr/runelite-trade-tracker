@@ -31,6 +31,7 @@ import org.asundr.recovery.SaveManager;
 import org.asundr.trade.SimpleTradeData;
 import org.asundr.trade.TradeData;
 import org.asundr.trade.TradeItemData;
+import org.asundr.utility.TimeUtils;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -79,7 +80,7 @@ class TradeRecordPanel extends CollapsiblePanel
             public void mouseEntered(MouseEvent e) {
                 super.mouseEntered(e);
                 final String timeString = TradeUtils.getConfig().use24HourTime() ? "HH:mm:ss" : "hh:mm:ss a";
-                tradeTimeLabel.setToolTipText(TradeUtils.timeStampToString(tradeData.tradeTime, "E dd LLL yyyy @ " +timeString+ " z"));
+                tradeTimeLabel.setToolTipText(TimeUtils.timestampToString(tradeData.tradeTime, "E dd LLL yyyy @ " +timeString+ " z"));
             }
             @Override
             public void mouseClicked(MouseEvent e)
@@ -288,7 +289,7 @@ class TradeRecordPanel extends CollapsiblePanel
     // Updates the text for the time label. Used when toggling the config for 24 hour time.
     public void updateTimeDisplay()
     {
-        tradeTimeLabel.setText(String.format(TRADE_TIME_TEMPLATE, TradeUtils.timeStampToStringTime(tradeData.tradeTime)));
+        tradeTimeLabel.setText(String.format(TRADE_TIME_TEMPLATE, TimeUtils.timestampToStringTime(tradeData.tradeTime)));
     }
 
     @Override

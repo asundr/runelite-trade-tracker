@@ -37,6 +37,7 @@ import org.asundr.trade.TradeManager;
 import org.asundr.trade.EventTradeResetHistory;
 import org.asundr.trade.EventTradeAdded;
 import org.asundr.trade.EventTradeRemoved;
+import org.asundr.utility.TimeUtils;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -117,8 +118,8 @@ public class TradeTrackerPluginPanel extends PluginPanel
         // Schedule recurring update for time labels at midnight
         scheduler.scheduleAtFixedRate(
                 () -> getTradeRecordPanels().forEach(TradeRecordPanel::updateTimeDisplay),
-                TradeUtils.getTimeUntilMidnight() + 1000L,
-                TradeUtils.MILLISECONDS_IN_DAY,
+                TimeUtils.getTimeUntilMidnight() + 1000L,
+                TimeUtils.MILLISECONDS_IN_DAY,
                 TimeUnit.MILLISECONDS);
     }
 
