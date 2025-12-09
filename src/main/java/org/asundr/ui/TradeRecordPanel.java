@@ -31,6 +31,7 @@ import org.asundr.recovery.SaveManager;
 import org.asundr.trade.SimpleTradeData;
 import org.asundr.trade.TradeData;
 import org.asundr.trade.TradeItemData;
+import org.asundr.utility.StringUtils;
 import org.asundr.utility.TimeUtils;
 
 import javax.swing.*;
@@ -310,7 +311,7 @@ class TradeRecordPanel extends CollapsiblePanel
         if (tradeData.note != null && !tradeData.note.isBlank())
         {
             final int noteLength = tradeData.note.length(), queryLength = query.length();
-            final HashMap<Character, ArrayList<Integer>> wordIndexes = TradeUtils.getIndexesOfFirstLetterOfWord(tradeData.note);
+            final HashMap<Character, ArrayList<Integer>> wordIndexes = StringUtils.getIndexesOfFirstLetterOfWord(tradeData.note);
             for (final char key : wordIndexes.keySet())
             {
                 for (final int index : wordIndexes.get(key))
@@ -333,7 +334,7 @@ class TradeRecordPanel extends CollapsiblePanel
                 return true;
         }
         // int/long numeric queries
-        if (TradeUtils.isStringLong(query) || query.equals("-"))
+        if (StringUtils.isStringLong(query) || query.equals("-"))
         {
             // searching for balance values
             if (Long.toString(tradeData.receivedTotalValueGE).startsWith(query))

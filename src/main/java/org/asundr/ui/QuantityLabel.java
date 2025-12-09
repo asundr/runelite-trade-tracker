@@ -26,7 +26,7 @@
 package org.asundr.ui;
 
 import net.runelite.client.util.QuantityFormatter;
-import org.asundr.TradeUtils;
+import org.asundr.utility.StringUtils;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
@@ -43,7 +43,7 @@ class QuantityLabel extends JLabel
 
     QuantityLabel(long quantity, final String template, final String tooltipFormat)
     {
-        super(String.format(template, TradeUtils.quantityToRSDecimalStackLong(quantity, true)));
+        super(String.format(template, StringUtils.quantityToRSDecimalStackLong(quantity, true)));
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -54,7 +54,7 @@ class QuantityLabel extends JLabel
                     {
                         menu = new JPopupMenu();
                         final JMenuItem copyValue = new JMenuItem(TEXT_MENU_ITEM_COPY);
-                        copyValue.addActionListener(evt -> TradeUtils.copyToClipboard(getActiveQuantityString()));
+                        copyValue.addActionListener(evt -> StringUtils.copyToClipboard(getActiveQuantityString()));
                         menu.add(copyValue);
                     }
                     activeQuantity = quantity;

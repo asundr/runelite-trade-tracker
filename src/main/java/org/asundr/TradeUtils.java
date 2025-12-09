@@ -26,7 +26,6 @@
 package org.asundr;
 
 import com.google.common.base.Strings;
-import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.widgets.Widget;
@@ -39,18 +38,15 @@ import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
 import org.asundr.trade.TradeItemData;
 import org.asundr.trade.TradeManager;
+import org.asundr.utility.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.datatransfer.StringSelection;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URI;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -75,7 +71,6 @@ public class TradeUtils
     private static ChatboxPanelManager chatboxPanelManager;
     private static  EventBus eventBus;
     private static TradeManager tradeManager;
-    private static Gson gson;
 
     public static TradeTrackerConfig getConfig() { return config; }
     public static ClientThread getClientThread()
@@ -90,7 +85,7 @@ public class TradeUtils
 
 
     // Prepares the utility class with the various query class instances it needs to function
-    public static void initialize(ItemManager itemManager, TradeTrackerConfig config, Client client, ClientThread clientThread, TradeTrackerPlugin plugin, ChatboxPanelManager chatboxPanelManager, EventBus eventBus, TradeManager tradeManager, Gson gson)
+    public static void initialize(ItemManager itemManager, TradeTrackerConfig config, Client client, ClientThread clientThread, TradeTrackerPlugin plugin, ChatboxPanelManager chatboxPanelManager, EventBus eventBus, TradeManager tradeManager)
     {
         TradeUtils.itemManager = itemManager;
         TradeUtils.config = config;
@@ -99,7 +94,6 @@ public class TradeUtils
         TradeUtils.chatboxPanelManager = chatboxPanelManager;
         TradeUtils.eventBus = eventBus;
         TradeUtils.tradeManager = tradeManager;
-        TradeUtils.gson = gson;
 
         final BufferedImage iconImg = ImageUtil.loadImageResource(plugin.getClass(), "/net/runelite/client/plugins/friendnotes/note_icon.png");
         iconNote = new ImageIcon(iconImg.getScaledInstance(14,14, Image.SCALE_SMOOTH));
@@ -121,12 +115,6 @@ public class TradeUtils
     public static AsyncBufferedImage getItemImage(final int itemId, final int quantity, final boolean stackable)
     {
         return itemManager.getImage(itemId, quantity, stackable);
-    }
-
-    // Removes all html tags from widget text
-    public static String sanitizeWidgetText(final String s)
-    {
-        return s.replaceAll("<[^>]*>", "").trim();
     }
 
     // Returns the price of the item with the passed ID
@@ -168,29 +156,6 @@ public class TradeUtils
         }
     }
 
-    // Note: from Quantity formatter
-    private static final NumberFormat DECIMAL_FORMATTER = new DecimalFormat(
-            "#,###.#",
-            DecimalFormatSymbols.getInstance(Locale.ENGLISH)
-    );
-    private static final NumberFormat PRECISE_DECIMAL_FORMATTER = new DecimalFormat(
-            "#,###.###",
-            DecimalFormatSymbols.getInstance(Locale.ENGLISH)
-    );
-    private static final String[] QUANTITY_SUFFIXES = {"", "K", "M", "B", "T", "Q", "Qt"}; // 2^32 * 2^32 * 28 = 5.165 quintillion.
-    // Returns an abbreviated string representation of the passed long in the style of QuantityFormatter but is capable of handling quantities up to Long.MAX_VALUE
-    public static String quantityToRSDecimalStackLong(long quantity, boolean precise)
-    {
-        final String quantityStr = String.valueOf(quantity);
-        if (quantityStr.length() <= 4 || (quantity < 0 && quantityStr.length() == 5))
-        {
-            return quantityStr;
-        }
-        final int power = (int) Math.log10(Math.abs(quantity));
-        final NumberFormat numberFormat = precise && power >= 6 ? PRECISE_DECIMAL_FORMATTER : DECIMAL_FORMATTER;
-        return numberFormat.format(quantity / (Math.pow(10, power - power%3))) + QUANTITY_SUFFIXES[power / 3];
-    }
-
     public static final String WIKI_URL_PREFIX = "https://oldschool.runescape.wiki/w/";
 
     // Given the name of an item, opens the corresponding wiki page
@@ -221,23 +186,6 @@ public class TradeUtils
                 content = Text.removeTags(content).trim();
                 response.accept(content);
             }).build();
-    }
-
-    public static Gson getGsonBuilder()
-    {
-        return gson.newBuilder().create();
-    }
-
-    // Converts the passed object to a json string
-    public static <T> String stringify(T object)
-    {
-        return gson.newBuilder().create().toJson(object);
-    }
-
-    // Copies the passed String to the user's clipboard
-    public static void copyToClipboard(final String content)
-    {
-        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(content), null);
     }
 
     // Returns an Icon given a filepath to an image, or null if no such image exists.
@@ -271,18 +219,6 @@ public class TradeUtils
     // Returns an Icon given a filepath to an image, or null if no such image exists
     public static ImageIcon getIconFromName(final String filename){ return getIconFromName(filename, -1, -1, 0); }
 
-    // Returns true if the passed String is a Long type
-    public static boolean isStringLong(final String str) {
-        try
-        {
-            Long.parseLong(str);
-        }
-        catch (NumberFormatException e)
-        {
-            return false;
-        }
-        return true;
-    }
 
     // Returns all enums that describe the current world
     public static EnumSet<WorldType> getWorldType()
@@ -343,7 +279,7 @@ public class TradeUtils
         {
             return null;
         }
-        final String widgetText = TradeUtils.sanitizeWidgetText(tradingWithWidget.getText());
+        final String widgetText = StringUtils.sanitizeWidgetText(tradingWithWidget.getText());
         final Matcher m = p.matcher(widgetText);
         if (m.find())
         {
@@ -356,30 +292,6 @@ public class TradeUtils
     public static ItemContainer getItemContainer(final int containerId)
     {
         return client.getItemContainer(containerId);
-    }
-
-    // Maps characters of to a list of all indexes where that character is the first letter of a word
-    // note: converts all to lower case
-    public static HashMap<Character, ArrayList<Integer>> getIndexesOfFirstLetterOfWord(final String str)
-    {
-        HashMap<Character, ArrayList<Integer>> indexMap = new HashMap<>();
-        boolean addNextChar = true;
-        final char[] characters = str.trim().toLowerCase().toCharArray();
-        for (int i = 0; i < characters.length; ++i)
-        {
-            final char c = characters[i];
-            if (Character.isWhitespace(c))
-            {
-                addNextChar = true;
-            }
-            else if (addNextChar)
-            {
-                indexMap.putIfAbsent(c, new ArrayList<>());
-                indexMap.get(c).add(i);
-                addNextChar = false;
-            }
-        }
-        return indexMap;
     }
 
     // Returns a map of item IDs to the aggregate quantity of items with that id in the passed collection

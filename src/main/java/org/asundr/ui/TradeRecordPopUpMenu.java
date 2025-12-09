@@ -27,6 +27,7 @@ package org.asundr.ui;
 
 import net.runelite.api.GameState;
 import org.asundr.TradeUtils;
+import org.asundr.utility.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -57,7 +58,7 @@ class TradeRecordPopUpMenu extends JPopupMenu
         });
         add(editNote);
 
-        copyTrade.addActionListener( e -> { if (tradeRecordPanel != null) TradeUtils.copyToClipboard(TradeUtils.stringify(tradeRecordPanel.getTradeData())); });
+        copyTrade.addActionListener( e -> { if (tradeRecordPanel != null) StringUtils.copyToClipboard(StringUtils.stringify(tradeRecordPanel.getTradeData())); });
         add(copyTrade);
 
         final JMenuItem deleteItem = new JMenuItem(TEXT_DELETE_ITEM);
