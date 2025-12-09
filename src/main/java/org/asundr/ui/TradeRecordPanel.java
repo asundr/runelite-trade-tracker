@@ -387,7 +387,7 @@ class TradeRecordPanel extends CollapsiblePanel
             {
                 for (final TradeItemData item : list)
                 {
-                    final String itemName = TradeUtils.getOrDefaultStoredItemName(item.getID(), null);
+                    final String itemName = TradeUtils.getOrDefaultCachedItemName(item.getID(), null);
                     if (itemName != null && itemName.toLowerCase().contains(query))
                     {
                         return true;

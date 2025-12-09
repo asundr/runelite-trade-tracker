@@ -91,7 +91,7 @@ public class TradeUtils
     public static TradeManager getTradeManager() { return tradeManager; }
 
     public static ImageIcon iconNote = null;
-    private final static HashMap<Integer, String> itemNameMap = new HashMap<>();
+    private final static HashMap<Integer, String> itemNameCache = new HashMap<>();
 
 
     // Prepares the utility class with the various query class instances it needs to function
@@ -112,12 +112,9 @@ public class TradeUtils
 
     public static String getStoredItemName(final int id)
     {
-        return itemNameMap.get(id);
+        return itemNameCache.get(id);
     }
-    public static String getOrDefaultStoredItemName(final int id, final String defaultValue)
-    {
-        return itemNameMap.getOrDefault(id, defaultValue);
-    }
+    public static String getOrDefaultCachedItemName(final int id, final String defaultValue) { return itemNameCache.getOrDefault(id, defaultValue); }
 
     // Forwards the passed event to the event bus
     public static void postEvent(@Nonnull Object event)
@@ -129,18 +126,6 @@ public class TradeUtils
     public static AsyncBufferedImage getItemImage(final int itemId, final int quantity, final boolean stackable)
     {
         return itemManager.getImage(itemId, quantity, stackable);
-    }
-
-    // Returns the value limited to be no lower than  min or larger than max
-    public static <T extends Comparable<T>> T clamp(T val, T min, T max)
-    {
-        return val.compareTo(min) < 0 ? min : val.compareTo(max) > 0 ? max : val;
-    }
-
-    // Returns true if the passed value is inclusively within the range of [min, max]
-    public static <T extends Comparable<T>> boolean inRange(T val, T min, T max)
-    {
-        return val.compareTo(min) >= 0 && val.compareTo(max) <= 0;
     }
 
     // Returns a string representation of the timestamp using the passed pattern
@@ -241,18 +226,18 @@ public class TradeUtils
     {
         for (final TradeItemData itemData : itemDataList)
         {
-            if (!itemNameMap.containsKey(itemData.getID()))
+            if (!itemNameCache.containsKey(itemData.getID()))
             {
                 final ItemComposition comp = itemManager.getItemComposition(itemData.getID());
                 if (comp.getNote() != -1)
                 {
                     itemData.setOriginalID(comp.getLinkedNoteId());
-                    if (itemNameMap.containsKey(itemData.getID()))
+                    if (itemNameCache.containsKey(itemData.getID()))
                     {
                         continue;
                     }
                 }
-                itemNameMap.put(itemData.getID(), comp.getMembersName());
+                itemNameCache.put(itemData.getID(), comp.getMembersName());
             }
         }
     }

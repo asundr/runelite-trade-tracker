@@ -62,7 +62,7 @@ class ItemLabel extends JLabel
                 ToolTipManager.sharedInstance().setEnabled(true);
                 final String tipStr = String.format(
                         ITEM_TOOLTIP_TEMPLATE,
-                        TradeUtils.getOrDefaultStoredItemName(itemData.getID(), "Item"),
+                        TradeUtils.getOrDefaultCachedItemName(itemData.getID(), "Item"),
                         QuantityFormatter.formatNumber(GetTrueQuantity()),
                         QuantityFormatter.formatNumber(itemData.getGEValue()),
                         QuantityFormatter.formatNumber((long)itemData.getGEValue() * GetTrueQuantity())

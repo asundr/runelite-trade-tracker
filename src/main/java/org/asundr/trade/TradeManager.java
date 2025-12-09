@@ -39,6 +39,7 @@ import org.asundr.events.TradeHistoryProfileRestoredEvent;
 import org.asundr.recovery.ConfigKey;
 import org.asundr.recovery.SaveManager;
 import org.asundr.trade.events.*;
+import org.asundr.utility.MathUtils;
 
 import java.util.ArrayDeque;
 import java.util.concurrent.Executors;
@@ -285,7 +286,7 @@ public class TradeManager
 	// extra param is useful to preemptively remove if you know you're going to add another record
 	private void removeOverflowRecords(int extra)
 	{
-		final int maxRecords = TradeUtils.clamp(TradeUtils.getConfig().maxHistoryCount(), 1, TradeManager.MAX_HISTORY_COUNT);
+		final int maxRecords = MathUtils.clamp(TradeUtils.getConfig().maxHistoryCount(), 1, TradeManager.MAX_HISTORY_COUNT);
 		int overflow = Math.min(tradeHistory.size() - maxRecords + extra, Math.max(0, tradeHistory.size() - 1));
 		removeOldestRecords(overflow);
 	}
