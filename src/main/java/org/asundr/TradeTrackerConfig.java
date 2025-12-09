@@ -40,28 +40,41 @@ public interface TradeTrackerConfig extends Config
 	{
 		public static final String DEBUG = "Debug";
 		public static final String HISTORY_LIMITS = "historyLimits";
+		public static final String DISPLAY = "display";
+		public static final String GENERAL = "general";
 	}
 
 	@ConfigItem(
 			keyName = ConfigKey.AUTOLOAD_LAST_PROFILE,
 			name = "Auto-load profile on launch",
-			description = "If enabled, the last trade profile will be visible on the login screen when RuneLite is launched"
+			description = "If enabled, the last trade profile will be visible on the login screen when RuneLite is launched",
+			section = Section.GENERAL
 	)
 	default boolean getAutoLoadLastProfile() { return true; }
 
 	@ConfigItem(
 			keyName = ConfigKey.USE_24_HOUR_TIME,
 			name = "Display 24-hour time",
-			description = "If enabled, displays 13:00 instead of 1:00 pm"
+			description = "If enabled, displays 13:00 instead of 1:00 pm",
+			section = Section.DISPLAY
 	)
 	default boolean use24HourTime() { return false; }
 
 	@ConfigItem(
 			keyName = ConfigKey.IGNORE_EMPTY_TRADES,
-			name = " Ignore empty trades",
-			description = "<html><span>If enabled, accepted trades with no items given or received are not tracked.</span><br><span>Setting to false does not clear exiting empty trades.</span>"
+			name = "Ignore empty trades",
+			description = "<html><span>If enabled, accepted trades with no items given or received are not tracked.</span><br><span>Setting to false does not clear exiting empty trades.</span>",
+			section = Section.GENERAL
 	)
 	default boolean ignoreEmptyTrades() { return false; }
+
+	@ConfigItem(
+			keyName = ConfigKey.FILTER_ITEM_ID,
+			name = "Filter matches for Item ID",
+			description = "When filtering the trade history, item IDs will also be checked for a match",
+			section = Section.DEBUG
+	)
+	default boolean filterMatchItemId() { return false; }
 
 	@ConfigItem(
 			keyName = ConfigKey.COPY_TRADE_DATE_MENU,

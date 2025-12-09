@@ -355,13 +355,18 @@ class TradeRecordPanel extends CollapsiblePanel
             }
 
             // query properties on given and received items
-            for (var list : new ArrayList<>(Arrays.asList(tradeData.givenItems, tradeData.receivedItems))) {
+            for (var list : new ArrayList<>(Arrays.asList(tradeData.givenItems, tradeData.receivedItems)))
+            {
                 // query individual item counts and values
-                for (final TradeItemData item : list) {
-//                    if (Integer.toString(item.getID()).startsWith(query))
-//                        return true;
-//                    if (item.isNoted() && Integer.toString(item.getNotedID()).startsWith(query))
-//                        return true;
+                for (final TradeItemData item : list)
+                {
+                    if (CommonUtils.getConfig().filterMatchItemId())
+                    {
+                        if (Integer.toString(item.getID()).startsWith(query))
+                            return true;
+                        if (item.isNoted() && Integer.toString(item.getNotedID()).startsWith(query))
+                            return true;
+                    }
                     if (Integer.toString(item.getQuantity()).startsWith(query))
                         return true;
                     if (Integer.toString(item.getGEValue()).startsWith(query))
