@@ -23,13 +23,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.asundr.trade.events;
+package org.asundr.trade;
 
-import org.asundr.trade.TradePlayerData;
-
-// Event fired when a trade begins
-public class BeginTradeEvent
+// Event fired when a trade is removed from the history. Listened to by the UI.
+final public class EventTradeRemoved
 {
-    final public TradePlayerData tradePlayer;
-    public BeginTradeEvent(final TradePlayerData tradePlayer) { this.tradePlayer = tradePlayer; }
+    public final TradeData tradeData;
+    EventTradeRemoved(final TradeData tradeData)
+    {
+        this.tradeData = tradeData;
+    }
 }

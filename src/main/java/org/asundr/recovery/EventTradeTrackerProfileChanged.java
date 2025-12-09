@@ -23,16 +23,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.asundr.trade.events;
+package org.asundr.recovery;
 
-import org.asundr.trade.TradeData;
+import org.asundr.TradeHistoryProfile;
 
-// Event fired when a trade is removed from the history. Listened to by the UI.
-public class TradeRemovedEvent
+// Fires when the active player profile changes
+final public class EventTradeTrackerProfileChanged
 {
-    public final TradeData tradeData;
-    public TradeRemovedEvent(final TradeData tradeData)
+    public final TradeHistoryProfile oldProfile;
+    public final TradeHistoryProfile newProfile;
+
+    EventTradeTrackerProfileChanged(TradeHistoryProfile oldProfile, TradeHistoryProfile newProfile)
     {
-        this.tradeData = tradeData;
+        this.oldProfile = oldProfile;
+        this.newProfile = newProfile;
     }
+
 }

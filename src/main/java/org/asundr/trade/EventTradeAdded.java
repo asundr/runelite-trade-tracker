@@ -23,19 +23,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.asundr.trade.events;
+package org.asundr.trade;
 
-import org.asundr.trade.TradeData;
-
-import java.util.Collection;
-
-// Event fired when the trade history is completely replaced. Listened to by the UI.
-public class ResetTradeHistoryEvent
+// Event fired when a new trade is added (typically as a result of accepting a trade). Listened to by the UI.
+final public class EventTradeAdded
 {
-    public final Collection<TradeData> newTradeHistory;
+    public final TradeData tradeData;
 
-    public ResetTradeHistoryEvent(final Collection<TradeData> newTradeHistory)
+    EventTradeAdded(final TradeData tradeData)
     {
-        this.newTradeHistory = newTradeHistory;
+        this.tradeData = tradeData;
     }
 }

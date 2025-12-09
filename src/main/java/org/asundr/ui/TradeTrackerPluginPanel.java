@@ -29,14 +29,14 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.ui.PluginPanel;
 import org.asundr.*;
-import org.asundr.events.TradeTrackerProfileChanged;
+import org.asundr.recovery.EventTradeTrackerProfileChanged;
 import org.asundr.recovery.ConfigKey;
 import org.asundr.recovery.SaveManager;
 import org.asundr.trade.TradeData;
 import org.asundr.trade.TradeManager;
-import org.asundr.trade.events.ResetTradeHistoryEvent;
-import org.asundr.trade.events.TradeAddedEvent;
-import org.asundr.trade.events.TradeRemovedEvent;
+import org.asundr.trade.EventTradeResetHistory;
+import org.asundr.trade.EventTradeAdded;
+import org.asundr.trade.EventTradeRemoved;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -123,7 +123,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
     }
 
     @Subscribe
-    private void onTradeTrackerProfileChanged(TradeTrackerProfileChanged evt)
+    private void onEventTradeTrackerProfileChanged(EventTradeTrackerProfileChanged evt)
     {
         profileNameLabel.setVisible(evt.newProfile != null);
         if (evt.newProfile != null)
@@ -160,19 +160,19 @@ public class TradeTrackerPluginPanel extends PluginPanel
     }
 
     @Subscribe
-    private void onTradeAddedEvent(TradeAddedEvent e)
+    private void onEventTradeAdded(EventTradeAdded e)
     {
         addTradeRecord(e.tradeData);
     }
 
     @Subscribe
-    private void onTradeRemovedEvent(TradeRemovedEvent e)
+    private void onEventTradeRemoved(EventTradeRemoved e)
     {
         removeTradeRecord(e.tradeData);
     }
 
     @Subscribe
-    private void onResetTradeHistoryEvent(ResetTradeHistoryEvent e)
+    private void onEventTradeResetHistory(EventTradeResetHistory e)
     {
         replaceAllTradeRecords(e.newTradeHistory);
     }

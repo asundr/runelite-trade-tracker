@@ -34,8 +34,6 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.RuneScapeProfileType;
 import net.runelite.client.eventbus.Subscribe;
-import org.asundr.events.TradeHistoryProfileRestoredEvent;
-import org.asundr.events.TradeTrackerProfileChanged;
 import org.asundr.trade.TradeData;
 import org.asundr.TradeHistoryProfile;
 import org.asundr.TradeUtils;
@@ -102,7 +100,7 @@ public class SaveManager
         final SaveData_Common saveData = getSaveDataCommon();
         final TradeHistoryProfile oldProfile = saveData.getActiveProfile();
         saveData.setActiveProfile(profile);
-        TradeUtils.postEvent(new TradeTrackerProfileChanged(oldProfile, profile));
+        TradeUtils.postEvent(new EventTradeTrackerProfileChanged(oldProfile, profile));
         SaveManager.restoreTradeHistoryData();
         SaveManager.saveCommonData();
     }
@@ -226,7 +224,7 @@ public class SaveManager
                 return;
             }
             final String profileKey = getSaveDataCommon().getActiveProfile() == null ? null : saveDataCommon.getActiveProfile().getKeyString();
-            TradeUtils.postEvent(new TradeHistoryProfileRestoredEvent(
+            TradeUtils.postEvent(new EventTradeHistoryProfileRestored(
                     profileKey,
                     gson.fromJson(CompressionUtils.decompressFromEncode(saveData.encodedTradeHistory), dequeType)
             ));

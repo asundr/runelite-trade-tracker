@@ -23,17 +23,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.asundr.trade.events;
+package org.asundr.trade;
 
-import org.asundr.trade.TradeData;
-
-// Event fired when a new trade is added (typically as a result of accepting a trade). Listened to by the UI.
-public class TradeAddedEvent
+// Fired when a trade is declined
+final public class EventTradeDeclined
 {
-    public final TradeData tradeData;
-
-    public TradeAddedEvent(final TradeData tradeData)
-    {
-        this.tradeData = tradeData;
-    }
+    final public TradePlayerData tradePlayer;
+    EventTradeDeclined(final TradePlayerData tradePlayer) { this.tradePlayer = tradePlayer; }
 }

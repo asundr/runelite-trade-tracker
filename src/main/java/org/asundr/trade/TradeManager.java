@@ -35,10 +35,9 @@ import net.runelite.api.events.WidgetLoaded;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import org.asundr.TradeUtils;
-import org.asundr.events.TradeHistoryProfileRestoredEvent;
+import org.asundr.recovery.EventTradeHistoryProfileRestored;
 import org.asundr.recovery.ConfigKey;
 import org.asundr.recovery.SaveManager;
-import org.asundr.trade.events.*;
 import org.asundr.utility.MathUtils;
 
 import java.util.ArrayDeque;
@@ -178,7 +177,7 @@ public class TradeManager
 	}
 
 	@Subscribe
-	private void onTradeHistoryProfileRestoredEvent(TradeHistoryProfileRestoredEvent e)
+	private void onEventTradeHistoryProfileRestored(EventTradeHistoryProfileRestored e)
 	{
 		setTradeHistory(e.tradeHistory);
 		updateRemoveExpiredRecordTimer();
@@ -210,11 +209,11 @@ public class TradeManager
 			case TRADE_ACCEPTED:
 				TradeUtils.getClientThread().invokeLater(() -> setTradeState(TradeState.NOT_TRADING));
 			case TRADING:
-				TradeUtils.postEvent(new BeginTradeEvent(currentTrade == null ? null : currentTrade.tradedPlayer));
+				TradeUtils.postEvent(new EventTradeBegan(currentTrade == null ? null : currentTrade.tradedPlayer));
 				break;
 			case NOT_TRADING:
 			if (tradeState != TradeState.TRADE_ACCEPTED)
-					TradeUtils.postEvent(new DeclinedTradeEvent(currentTrade == null ? null : currentTrade.tradedPlayer));
+					TradeUtils.postEvent(new EventTradeDeclined(currentTrade == null ? null : currentTrade.tradedPlayer));
 				break;
 		}
 		//log.debug(String.format("%s  --->  %s", tradeState, newState));
@@ -246,7 +245,7 @@ public class TradeManager
 			TradeUtils.fetchGePrices(tradeData.givenItems);
 			TradeUtils.fetchGePrices(tradeData.receivedItems);
 			tradeData.calculateAggregateValues();
-			TradeUtils.postEvent(new TradeAddedEvent(tradeData));
+			TradeUtils.postEvent(new EventTradeAdded(tradeData));
 			SaveManager.requestTradeHistorySave();
 			if (tradeHistory.size() == 1)
 			{
@@ -259,7 +258,7 @@ public class TradeManager
 	public void removeTradeRecord(TradeData tradeData)
 	{
 		tradeHistory.removeIf(e -> e.tradeTime == tradeData.tradeTime);
-		TradeUtils.postEvent(new TradeRemovedEvent(tradeData));
+		TradeUtils.postEvent(new EventTradeRemoved(tradeData));
 		SaveManager.requestTradeHistorySave();
 		if (!tradeHistory.isEmpty())
 		{
@@ -271,7 +270,7 @@ public class TradeManager
 	public void clearAllTradeRecords()
 	{
 		tradeHistory.clear();
-		TradeUtils.postEvent(new ResetTradeHistoryEvent(tradeHistory));
+		TradeUtils.postEvent(new EventTradeResetHistory(tradeHistory));
 		SaveManager.requestTradeHistorySave();
 	}
 
@@ -279,7 +278,7 @@ public class TradeManager
 	private void setTradeHistory(ArrayDeque<TradeData> tradeHistory)
 	{
 		this.tradeHistory = tradeHistory;
-		TradeUtils.postEvent(new ResetTradeHistoryEvent(tradeHistory));
+		TradeUtils.postEvent(new EventTradeResetHistory(tradeHistory));
 	}
 
 	// Removes the oldest trades in excess of the user-specified max history count
@@ -342,7 +341,7 @@ public class TradeManager
 		count = Math.min(count, tradeHistory.size());
 		while (count > 0)
 		{
-			TradeUtils.postEvent(new TradeRemovedEvent(tradeHistory.getFirst()));
+			TradeUtils.postEvent(new EventTradeRemoved(tradeHistory.getFirst()));
 			tradeHistory.removeFirst();
 			--count;
 		}

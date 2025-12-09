@@ -23,13 +23,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.asundr.trade.events;
+package org.asundr.trade;
 
-import org.asundr.trade.TradePlayerData;
-
-// Fired when a trade is declined
-public class DeclinedTradeEvent
+// Event fired when a trade begins
+final public class EventTradeBegan
 {
     final public TradePlayerData tradePlayer;
-    public DeclinedTradeEvent(final TradePlayerData tradePlayer) { this.tradePlayer = tradePlayer; }
+    EventTradeBegan(final TradePlayerData tradePlayer) { this.tradePlayer = tradePlayer; }
 }

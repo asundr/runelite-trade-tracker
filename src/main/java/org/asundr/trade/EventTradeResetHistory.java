@@ -23,20 +23,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.asundr.events;
+package org.asundr.trade;
 
-import org.asundr.TradeHistoryProfile;
+import java.util.Collection;
 
-// Fires when the active player profile changes
-public class TradeTrackerProfileChanged
+// Event fired when the trade history is completely replaced. Listened to by the UI.
+final public class EventTradeResetHistory
 {
-    public final TradeHistoryProfile oldProfile;
-    public final TradeHistoryProfile newProfile;
+    public final Collection<TradeData> newTradeHistory;
 
-    public TradeTrackerProfileChanged(TradeHistoryProfile oldProfile, TradeHistoryProfile newProfile)
+    EventTradeResetHistory(final Collection<TradeData> newTradeHistory)
     {
-        this.oldProfile = oldProfile;
-        this.newProfile = newProfile;
+        this.newTradeHistory = newTradeHistory;
     }
-
 }
