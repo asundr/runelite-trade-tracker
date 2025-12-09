@@ -26,11 +26,12 @@
 package org.asundr.ui;
 
 import net.runelite.client.util.QuantityFormatter;
-import org.asundr.*;
 import org.asundr.recovery.SaveManager;
 import org.asundr.trade.SimpleTradeData;
 import org.asundr.trade.TradeData;
 import org.asundr.trade.TradeItemData;
+import org.asundr.trade.TradeUtils;
+import org.asundr.utility.CommonUtils;
 import org.asundr.utility.StringUtils;
 import org.asundr.utility.TimeUtils;
 
@@ -80,7 +81,7 @@ class TradeRecordPanel extends CollapsiblePanel
             @Override
             public void mouseEntered(MouseEvent e) {
                 super.mouseEntered(e);
-                final String timeString = TradeUtils.getConfig().use24HourTime() ? "HH:mm:ss" : "hh:mm:ss a";
+                final String timeString = CommonUtils.getConfig().use24HourTime() ? "HH:mm:ss" : "hh:mm:ss a";
                 tradeTimeLabel.setToolTipText(TimeUtils.timestampToString(tradeData.tradeTime, "E dd LLL yyyy @ " +timeString+ " z"));
             }
             @Override
@@ -272,7 +273,7 @@ class TradeRecordPanel extends CollapsiblePanel
             if (noteIconLabel == null)
             {
                 noteIconLabel = new JLabel();
-                noteIconLabel.setIcon(TradeUtils.iconNote);
+                noteIconLabel.setIcon(CommonUtils.iconNote);
                 noteIconLabel.setSize(new Dimension(6 , 7));
                 toggleButton.add(noteIconLabel, BorderLayout.WEST);
             }

@@ -28,7 +28,8 @@ package org.asundr.ui;
 import net.runelite.client.util.AsyncBufferedImage;
 import net.runelite.client.util.QuantityFormatter;
 import org.asundr.trade.TradeItemData;
-import org.asundr.TradeUtils;
+import org.asundr.trade.TradeUtils;
+import org.asundr.utility.CommonUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -82,7 +83,7 @@ class ItemLabel extends JLabel
                         {
                             popupMenu = new JPopupMenu();
                             final JMenuItem openWiki = new JMenuItem("Open in Wiki");
-                            openWiki.addActionListener(evt -> TradeUtils.openItemWiki(getCurrentItemName()));
+                            openWiki.addActionListener(evt -> CommonUtils.openItemWiki(getCurrentItemName()));
                             popupMenu.add(openWiki);
                         }
                         popupMenu.show(e.getComponent(),e.getX(),e.getY());

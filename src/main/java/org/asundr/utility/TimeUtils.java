@@ -1,7 +1,5 @@
 package org.asundr.utility;
 
-import org.asundr.TradeUtils;
-
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 
@@ -34,7 +32,7 @@ final public class TimeUtils
     {
         if (isInCurrentDay(timestamp * 1000))
         {
-            return timestampToString(timestamp, TradeUtils.getConfig().use24HourTime() ? "H:mm" : "h:mm a");
+            return timestampToString(timestamp, CommonUtils.getConfig().use24HourTime() ? "H:mm" : "h:mm a");
         }
         else if (isInCurrentDay((timestamp + SECONDS_IN_DAY) * 1000))
         {

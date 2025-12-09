@@ -32,11 +32,8 @@ import org.asundr.*;
 import org.asundr.recovery.EventTradeTrackerProfileChanged;
 import org.asundr.recovery.ConfigKey;
 import org.asundr.recovery.SaveManager;
-import org.asundr.trade.TradeData;
-import org.asundr.trade.TradeManager;
-import org.asundr.trade.EventTradeResetHistory;
-import org.asundr.trade.EventTradeAdded;
-import org.asundr.trade.EventTradeRemoved;
+import org.asundr.trade.*;
+import org.asundr.utility.CommonUtils;
 import org.asundr.utility.TimeUtils;
 
 import javax.swing.*;
@@ -212,7 +209,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
         // Create subtitle panel and setup popup events
         final JPanel subtitleWrapper = new JPanel();
         profileNameLabel.setVisible(false);
-        if (SaveManager.getActiveProfile() != null && TradeUtils.getConfig().getAutoLoadLastProfile())
+        if (SaveManager.getActiveProfile() != null && CommonUtils.getConfig().getAutoLoadLastProfile())
         {
             profileNameLabel.setText(String.format(TEMPLATE_SUBTITLE, SaveManager.getActiveProfile().getPlayerName(), SaveManager.getActiveProfile().getTypeString()));
             profileNameLabel.setVisible(true);
@@ -265,7 +262,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
             );
             if (response == JOptionPane.YES_OPTION)
             {
-                TradeUtils.getTradeManager().clearAllTradeRecords();
+                CommonUtils.getTradeManager().clearAllTradeRecords();
             }
         });
         gbc.gridy = 1;
@@ -282,7 +279,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
             {
                 return true;
             }
-            if(TradeUtils.getConfig().getPurgeHistoryType() == TradeTrackerConfig.PurgeHistoryType.NEVER)
+            if(CommonUtils.getConfig().getPurgeHistoryType() == TradeTrackerConfig.PurgeHistoryType.NEVER)
             {
                 JOptionPane.showMessageDialog(
                         btnSchedulePurge,
@@ -356,7 +353,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
     // Adds new trade panel to the history in response to new trade being added
     private void addTradeRecord(TradeData tradeData)
     {
-        TradeUtils.getClientThread().invokeLater(() -> {
+        CommonUtils.getClientThread().invokeLater(() -> {
             final TradeRecordPanel tradeRecordPanel = new TradeRecordPanel(tradeData);
             tradeRecordPanel.paddingStrut = Box.createVerticalStrut(TRADE_RECORD_PADDING);
             tradeHistoryPanel.add(tradeRecordPanel.paddingStrut, 0);
@@ -407,7 +404,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
         {
             return;
         }
-        TradeUtils.getClientThread().invokeLater(() ->
+        CommonUtils.getClientThread().invokeLater(() ->
         {
             tradeHistoryPanel.setVisible(false);
             for (final TradeData tradeData : tradeHistory)

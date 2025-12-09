@@ -25,8 +25,6 @@
 
 package org.asundr.trade;
 
-import org.asundr.TradeUtils;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;

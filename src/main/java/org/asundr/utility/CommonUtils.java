@@ -23,7 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.asundr;
+package org.asundr.utility;
 
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
@@ -31,14 +31,12 @@ import net.runelite.api.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.EventBus;
-import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.chatbox.ChatboxPanelManager;
-import net.runelite.client.util.AsyncBufferedImage;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
-import org.asundr.trade.TradeItemData;
+import org.asundr.TradeTrackerConfig;
+import org.asundr.TradeTrackerPlugin;
 import org.asundr.trade.TradeManager;
-import org.asundr.utility.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
@@ -54,18 +52,9 @@ import java.util.regex.Pattern;
 
 // A static function library used for common functionality
 @Slf4j
-public class TradeUtils
+public class CommonUtils
 {
-    public enum ItemID
-    {
-        COINS(995),
-        PLATINUM(13204);
-        public final int id;
-        ItemID(int id) {this.id = id;}
-    }
-
     private static TradeTrackerConfig config;
-    private static ItemManager itemManager;
     private static Client client;
     private static ClientThread clientThread;
     private static ChatboxPanelManager chatboxPanelManager;
@@ -81,79 +70,26 @@ public class TradeUtils
     public static TradeManager getTradeManager() { return tradeManager; }
 
     public static ImageIcon iconNote = null;
-    private final static HashMap<Integer, String> itemNameCache = new HashMap<>();
 
 
     // Prepares the utility class with the various query class instances it needs to function
-    public static void initialize(ItemManager itemManager, TradeTrackerConfig config, Client client, ClientThread clientThread, TradeTrackerPlugin plugin, ChatboxPanelManager chatboxPanelManager, EventBus eventBus, TradeManager tradeManager)
+    public static void initialize(TradeTrackerConfig config, Client client, ClientThread clientThread, TradeTrackerPlugin plugin, ChatboxPanelManager chatboxPanelManager, EventBus eventBus, TradeManager tradeManager)
     {
-        TradeUtils.itemManager = itemManager;
-        TradeUtils.config = config;
-        TradeUtils.client = client;
-        TradeUtils.clientThread = clientThread;
-        TradeUtils.chatboxPanelManager = chatboxPanelManager;
-        TradeUtils.eventBus = eventBus;
-        TradeUtils.tradeManager = tradeManager;
+        CommonUtils.config = config;
+        CommonUtils.client = client;
+        CommonUtils.clientThread = clientThread;
+        CommonUtils.chatboxPanelManager = chatboxPanelManager;
+        CommonUtils.eventBus = eventBus;
+        CommonUtils.tradeManager = tradeManager;
 
         final BufferedImage iconImg = ImageUtil.loadImageResource(plugin.getClass(), "/net/runelite/client/plugins/friendnotes/note_icon.png");
         iconNote = new ImageIcon(iconImg.getScaledInstance(14,14, Image.SCALE_SMOOTH));
     }
 
-    public static String getStoredItemName(final int id)
-    {
-        return itemNameCache.get(id);
-    }
-    public static String getOrDefaultCachedItemName(final int id, final String defaultValue) { return itemNameCache.getOrDefault(id, defaultValue); }
-
     // Forwards the passed event to the event bus
     public static void postEvent(@Nonnull Object event)
     {
         eventBus.post(event);
-    }
-
-    // Returns the image for the passed item with the quantity count
-    public static AsyncBufferedImage getItemImage(final int itemId, final int quantity, final boolean stackable)
-    {
-        return itemManager.getImage(itemId, quantity, stackable);
-    }
-
-    // Returns the price of the item with the passed ID
-    // Note: Should be called via clientThread.invokeLater()
-    public static int getItemPrice(int itemID)
-    {
-        return itemManager.getItemPrice(itemID);
-    }
-
-    // Fetches and assigns the Grand Exchange prices of the passed items
-    // Note: Should be called via clientThread.invokeLater()
-    public static void fetchGePrices(final Collection<TradeItemData> itemDataList)
-    {
-        for (TradeItemData itemData : itemDataList)
-        {
-            itemData.setGEValue(getItemPrice(itemData.getID()));
-        }
-    }
-
-    // Fetches item names and will update the id of noted items
-    // Note: Should be called via clientThread.invokeLater()
-    public static void fetchItemNames(final Collection<TradeItemData> itemDataList)
-    {
-        for (final TradeItemData itemData : itemDataList)
-        {
-            if (!itemNameCache.containsKey(itemData.getID()))
-            {
-                final ItemComposition comp = itemManager.getItemComposition(itemData.getID());
-                if (comp.getNote() != -1)
-                {
-                    itemData.setOriginalID(comp.getLinkedNoteId());
-                    if (itemNameCache.containsKey(itemData.getID()))
-                    {
-                        continue;
-                    }
-                }
-                itemNameCache.put(itemData.getID(), comp.getMembersName());
-            }
-        }
     }
 
     public static final String WIKI_URL_PREFIX = "https://oldschool.runescape.wiki/w/";
@@ -219,56 +155,10 @@ public class TradeUtils
     // Returns an Icon given a filepath to an image, or null if no such image exists
     public static ImageIcon getIconFromName(final String filename){ return getIconFromName(filename, -1, -1, 0); }
 
-
     // Returns all enums that describe the current world
     public static EnumSet<WorldType> getWorldType()
     {
         return client.getWorldType();
-    }
-
-    // Returns the aggregate quantity of all items with the specified ID in the passed item collection
-    public static long getTotalItemQuantity(final Collection<TradeItemData> items, int id)
-    {
-        return items.stream().filter(i->i.getID() == id).reduce(0L, (a, i) -> a + i.getQuantity(), Long::sum);
-    }
-
-    // Evaluates the aggregate Grand Exchange value of all passed item stacks
-    public static long totalGEValue(final Collection<TradeItemData> items)
-    {
-        return items.stream().reduce(0L, (Acc, item) -> Acc + (item.getGEValue() * (long)item.getQuantity()), Long::sum);
-    }
-
-    // Returns true if the only items in the passed collection currency such as coins or platinum
-    public static boolean isOnlyCurrency(final Collection<TradeItemData> items)
-    {
-        for (TradeItemData itemData : items)
-        {
-            if (itemData.getID() != ItemID.PLATINUM.id && itemData.getID() != ItemID.COINS.id)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // Returns true if all items in the passed collection have the same ID.
-    // Empty collections return true.
-    public static boolean hasOnlyOneTypeOfItem(final Collection<TradeItemData> items)
-    {
-        if (items.isEmpty())
-        {
-            return true;
-        }
-        Iterator<TradeItemData> itr = items.iterator();
-        final int id = itr.next().getID();
-        while (itr.hasNext())
-        {
-            if (id != itr.next().getID())
-            {
-                return false;
-            }
-        }
-        return true;
     }
 
     // Returns a string matching the passed pattern if that pattern finds a match in the widget represented by the group and child IDs
@@ -292,19 +182,6 @@ public class TradeUtils
     public static ItemContainer getItemContainer(final int containerId)
     {
         return client.getItemContainer(containerId);
-    }
-
-    // Returns a map of item IDs to the aggregate quantity of items with that id in the passed collection
-    public static HashMap<Integer, Long> getItemCounts(final Collection<TradeItemData> items)
-    {
-        HashMap<Integer, Long> counts = new HashMap<>();
-        for (final TradeItemData item : items)
-        {
-            final int id = item.getID();
-            Long count = counts.getOrDefault(id, 0L);
-            counts.put(id, count + item.getQuantity());
-        }
-        return counts;
     }
 
     // Returns the lifetime in milliseconds of a trade before it is auto-removed

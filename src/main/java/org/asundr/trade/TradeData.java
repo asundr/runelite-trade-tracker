@@ -29,7 +29,7 @@ import java.util.ArrayList;
 
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
-import org.asundr.TradeUtils;
+import org.asundr.utility.CommonUtils;
 
 // Contains all data to describe a trade between players
 public class TradeData
@@ -75,11 +75,11 @@ public class TradeData
 
     public final boolean isExpired()
     {
-        if (!TradeUtils.isValidPurgeConfig())
+        if (!CommonUtils.isValidPurgeConfig())
         {
             return false;
         }
-        return tradeTime*1000L + TradeUtils.getRecordLifetime() < System.currentTimeMillis();
+        return tradeTime*1000L + CommonUtils.getRecordLifetime() < System.currentTimeMillis();
     }
 
 }

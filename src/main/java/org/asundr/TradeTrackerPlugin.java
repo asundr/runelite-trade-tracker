@@ -42,6 +42,8 @@ import net.runelite.client.ui.NavigationButton;
 import org.asundr.recovery.SaveManager;
 import org.asundr.trade.TradeManager;
 import org.asundr.ui.TradeTrackerPluginPanel;
+import org.asundr.trade.TradeUtils;
+import org.asundr.utility.CommonUtils;
 import org.asundr.utility.StringUtils;
 
 import java.awt.image.BufferedImage;
@@ -89,9 +91,10 @@ public class TradeTrackerPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
+		CommonUtils.initialize(config, client, clientThread, this, chatboxPanelManager, eventBus, TradeManager.getInstance());
 		StringUtils.initialize(gson);
-		TradeUtils.initialize(itemManager, config, client, clientThread, this, chatboxPanelManager, eventBus, TradeManager.getInstance());
 		SaveManager.initialize(configManager);
+		TradeUtils.initialize(itemManager);
 		SaveManager.restoreCommonData();
 		TradeTrackerPluginPanel mainPanel = new TradeTrackerPluginPanel();
 		eventSubscribers = Arrays.asList(mainPanel, TradeManager.getInstance(), saveManager);

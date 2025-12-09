@@ -34,7 +34,7 @@ import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
-import org.asundr.TradeUtils;
+import org.asundr.utility.CommonUtils;
 import org.asundr.recovery.EventTradeHistoryProfileRestored;
 import org.asundr.recovery.ConfigKey;
 import org.asundr.recovery.SaveManager;
@@ -110,7 +110,7 @@ public class TradeManager
 		final int groupId = event.getGroupId();
 		if (groupId == TradeMenuId.TRADE_MENU)
 		{
-			TradeUtils.getClientThread().invokeLater(() -> {
+			CommonUtils.getClientThread().invokeLater(() -> {
 				if (tradeState != TradeState.TRADE_CONFIRMATION)
 				{
 					setTradeState(TradeState.NOT_TRADING);
@@ -129,11 +129,11 @@ public class TradeManager
 		int inventoryId = event.getContainerId();
 		if (inventoryId == TradeContainerId.GIVEN)
 		{
-			currentTrade.updateItems(true, TradeUtils.getItemContainer(inventoryId));
+			currentTrade.updateItems(true, CommonUtils.getItemContainer(inventoryId));
 		}
 		else if (inventoryId == TradeContainerId.RECEIVED)
 		{
-			currentTrade.updateItems(false, TradeUtils.getItemContainer(inventoryId));
+			currentTrade.updateItems(false, CommonUtils.getItemContainer(inventoryId));
 		}
 	}
 
@@ -147,7 +147,7 @@ public class TradeManager
 		switch (chatMessage.getMessage())
 		{
 			case MESSAGE_ACCEPTED_TRADE:
-				if (TradeUtils.getConfig().ignoreEmptyTrades() && currentTrade.isEmpty())
+				if (CommonUtils.getConfig().ignoreEmptyTrades() && currentTrade.isEmpty())
 				{
 					return;
 				}
@@ -195,7 +195,7 @@ public class TradeManager
 	}
 
 	// returns a copy of the current trade history
-	public final ArrayDeque<TradeData> getTradeHistory() { return new ArrayDeque<>(tradeHistory); }
+	public static final ArrayDeque<TradeData> getTradeHistory() { return new ArrayDeque<>(instance.tradeHistory); }
 
 	// Updates what stage of a trade the player is in, and fires relevant events
 	private void setTradeState(TradeState newState)
@@ -207,13 +207,13 @@ public class TradeManager
 		switch (newState)
 		{
 			case TRADE_ACCEPTED:
-				TradeUtils.getClientThread().invokeLater(() -> setTradeState(TradeState.NOT_TRADING));
+				CommonUtils.getClientThread().invokeLater(() -> setTradeState(TradeState.NOT_TRADING));
 			case TRADING:
-				TradeUtils.postEvent(new EventTradeBegan(currentTrade == null ? null : currentTrade.tradedPlayer));
+				CommonUtils.postEvent(new EventTradeBegan(currentTrade == null ? null : currentTrade.tradedPlayer));
 				break;
 			case NOT_TRADING:
 			if (tradeState != TradeState.TRADE_ACCEPTED)
-					TradeUtils.postEvent(new EventTradeDeclined(currentTrade == null ? null : currentTrade.tradedPlayer));
+					CommonUtils.postEvent(new EventTradeDeclined(currentTrade == null ? null : currentTrade.tradedPlayer));
 				break;
 		}
 		//log.debug(String.format("%s  --->  %s", tradeState, newState));
@@ -225,10 +225,10 @@ public class TradeManager
 	{
 		if (tradeState != TradeState.NOT_TRADING && currentTrade != null && (currentTrade.tradedPlayer == null || !currentTrade.tradedPlayer.isValid()))
 		{
-			currentTrade.tradedPlayer =  new TradePlayerData(TradeUtils.extractPatternFromWidget(TradeMenuId.TRADE_MENU, CHILD_TRADE_USERNAME, PATTERN_TRADE_USERNAME));
+			currentTrade.tradedPlayer =  new TradePlayerData(CommonUtils.extractPatternFromWidget(TradeMenuId.TRADE_MENU, CHILD_TRADE_USERNAME, PATTERN_TRADE_USERNAME));
 			if (!currentTrade.tradedPlayer.isValid())
 			{
-				TradeUtils.getClientThread().invokeLater(this::fetchTradedPlayerName);
+				CommonUtils.getClientThread().invokeLater(this::fetchTradedPlayerName);
 			}
 		}
 	}
@@ -239,13 +239,13 @@ public class TradeManager
 	{
 		removeOverflowRecords(1);
 		tradeHistory.addLast(tradeData);
-		TradeUtils.getClientThread().invokeLater(() -> {
+		CommonUtils.getClientThread().invokeLater(() -> {
 			TradeUtils.fetchItemNames(tradeData.givenItems);
 			TradeUtils.fetchItemNames(tradeData.receivedItems);
 			TradeUtils.fetchGePrices(tradeData.givenItems);
 			TradeUtils.fetchGePrices(tradeData.receivedItems);
 			tradeData.calculateAggregateValues();
-			TradeUtils.postEvent(new EventTradeAdded(tradeData));
+			CommonUtils.postEvent(new EventTradeAdded(tradeData));
 			SaveManager.requestTradeHistorySave();
 			if (tradeHistory.size() == 1)
 			{
@@ -258,7 +258,7 @@ public class TradeManager
 	public void removeTradeRecord(TradeData tradeData)
 	{
 		tradeHistory.removeIf(e -> e.tradeTime == tradeData.tradeTime);
-		TradeUtils.postEvent(new EventTradeRemoved(tradeData));
+		CommonUtils.postEvent(new EventTradeRemoved(tradeData));
 		SaveManager.requestTradeHistorySave();
 		if (!tradeHistory.isEmpty())
 		{
@@ -270,7 +270,7 @@ public class TradeManager
 	public void clearAllTradeRecords()
 	{
 		tradeHistory.clear();
-		TradeUtils.postEvent(new EventTradeResetHistory(tradeHistory));
+		CommonUtils.postEvent(new EventTradeResetHistory(tradeHistory));
 		SaveManager.requestTradeHistorySave();
 	}
 
@@ -278,14 +278,14 @@ public class TradeManager
 	private void setTradeHistory(ArrayDeque<TradeData> tradeHistory)
 	{
 		this.tradeHistory = tradeHistory;
-		TradeUtils.postEvent(new EventTradeResetHistory(tradeHistory));
+		CommonUtils.postEvent(new EventTradeResetHistory(tradeHistory));
 	}
 
 	// Removes the oldest trades in excess of the user-specified max history count
 	// extra param is useful to preemptively remove if you know you're going to add another record
 	private void removeOverflowRecords(int extra)
 	{
-		final int maxRecords = MathUtils.clamp(TradeUtils.getConfig().maxHistoryCount(), 1, TradeManager.MAX_HISTORY_COUNT);
+		final int maxRecords = MathUtils.clamp(CommonUtils.getConfig().maxHistoryCount(), 1, TradeManager.MAX_HISTORY_COUNT);
 		int overflow = Math.min(tradeHistory.size() - maxRecords + extra, Math.max(0, tradeHistory.size() - 1));
 		removeOldestRecords(overflow);
 	}
@@ -308,7 +308,7 @@ public class TradeManager
 			//log.debug("Removing expired records currently disabled");
 			return;
 		}
-		final long lifetime = TradeUtils.getRecordLifetime();
+		final long lifetime = CommonUtils.getRecordLifetime();
 		if (lifetime <= 0L)
 		{
 			//log.debug("No trade set to expire.");
@@ -323,7 +323,7 @@ public class TradeManager
 	// Removes all trades from history that are older than the user-configured lifetime
 	private void removeExpiredRecords()
 	{
-		final long lifetime = TradeUtils.getRecordLifetime();
+		final long lifetime = CommonUtils.getRecordLifetime();
 		if (lifetime <= 0L)
 		{
 			return;
@@ -341,7 +341,7 @@ public class TradeManager
 		count = Math.min(count, tradeHistory.size());
 		while (count > 0)
 		{
-			TradeUtils.postEvent(new EventTradeRemoved(tradeHistory.getFirst()));
+			CommonUtils.postEvent(new EventTradeRemoved(tradeHistory.getFirst()));
 			tradeHistory.removeFirst();
 			--count;
 		}

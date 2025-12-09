@@ -25,7 +25,7 @@
 
 package org.asundr.ui;
 
-import org.asundr.TradeUtils;
+import org.asundr.utility.CommonUtils;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -52,8 +52,8 @@ class ToolbarButton extends JButton
         super();
         this.active = startActive;
         this.onToggledActive = onToggledActive;
-        this.iconEnabled = TradeUtils.getIconFromName(enabledIconPath, HEADER_ICON_SIZE, HEADER_ICON_SIZE, Image.SCALE_SMOOTH);
-        this.iconDisabled = disabledIconPath == null ? this.iconEnabled : TradeUtils.getIconFromName(disabledIconPath, HEADER_ICON_SIZE, HEADER_ICON_SIZE, Image.SCALE_SMOOTH);
+        this.iconEnabled = CommonUtils.getIconFromName(enabledIconPath, HEADER_ICON_SIZE, HEADER_ICON_SIZE, Image.SCALE_SMOOTH);
+        this.iconDisabled = disabledIconPath == null ? this.iconEnabled : CommonUtils.getIconFromName(disabledIconPath, HEADER_ICON_SIZE, HEADER_ICON_SIZE, Image.SCALE_SMOOTH);
         setBackground(COLOR_TOOLBAR_BUTTON_BACKGROUND);
         setBorder(BORDER_TOOLBAR_BUTTON);
         setIcon(active ? iconEnabled : iconDisabled);

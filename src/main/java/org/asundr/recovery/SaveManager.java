@@ -36,7 +36,8 @@ import net.runelite.client.config.RuneScapeProfileType;
 import net.runelite.client.eventbus.Subscribe;
 import org.asundr.trade.TradeData;
 import org.asundr.TradeHistoryProfile;
-import org.asundr.TradeUtils;
+import org.asundr.trade.TradeManager;
+import org.asundr.utility.CommonUtils;
 import org.asundr.utility.StringUtils;
 
 import java.lang.reflect.Type;
@@ -75,7 +76,7 @@ public class SaveManager
     // repeatedly tries to get the player, then sets the active profile
     private void attemptGetPlayer()
     {
-        final Client client = TradeUtils.getClient();
+        final Client client = CommonUtils.getClient();
         if (client.getGameState() != GameState.LOGGED_IN)
         {
             return;
@@ -83,7 +84,7 @@ public class SaveManager
         final String playerName = client.getLocalPlayer().getName();
         if (playerName == null)
         {
-            TradeUtils.getClientThread().invokeLater(this::attemptGetPlayer);
+            CommonUtils.getClientThread().invokeLater(this::attemptGetPlayer);
         }
         else
         {
@@ -101,7 +102,7 @@ public class SaveManager
         final SaveData_Common saveData = getSaveDataCommon();
         final TradeHistoryProfile oldProfile = saveData.getActiveProfile();
         saveData.setActiveProfile(profile);
-        TradeUtils.postEvent(new EventTradeTrackerProfileChanged(oldProfile, profile));
+        CommonUtils.postEvent(new EventTradeTrackerProfileChanged(oldProfile, profile));
         SaveManager.restoreTradeHistoryData();
         SaveManager.saveCommonData();
     }
@@ -146,7 +147,7 @@ public class SaveManager
         {
             return null;
         }
-        final ArrayDeque<TradeData> tradeHistory = TradeUtils.getTradeManager().getTradeHistory();
+        final ArrayDeque<TradeData> tradeHistory = TradeManager.getTradeHistory();
         if (tradeHistory.isEmpty())
         {
             return null;
@@ -225,7 +226,7 @@ public class SaveManager
                 return;
             }
             final String profileKey = getSaveDataCommon().getActiveProfile() == null ? null : saveDataCommon.getActiveProfile().getKeyString();
-            TradeUtils.postEvent(new EventTradeHistoryProfileRestored(
+            CommonUtils.postEvent(new EventTradeHistoryProfileRestored(
                     profileKey,
                     gson.fromJson(CompressionUtils.decompressFromEncode(saveData.encodedTradeHistory), dequeType)
             ));
@@ -245,7 +246,7 @@ public class SaveManager
         }
         if ((tradeHistorySaveState.get() & SaveState.REQUESTED) > 0)
         {
-            TradeUtils.getClientThread().invokeLater(SaveManager::scheduleSave);
+            CommonUtils.getClientThread().invokeLater(SaveManager::scheduleSave);
         }
     }
 
@@ -253,7 +254,7 @@ public class SaveManager
     public static void requestTradeHistorySave()
     {
         tradeHistorySaveState.set(tradeHistorySaveState.get() | SaveState.REQUESTED);
-        TradeUtils.getClientThread().invokeLater(SaveManager::scheduleSave);
+        CommonUtils.getClientThread().invokeLater(SaveManager::scheduleSave);
     }
 
     // Saves to the plugin's default group with the passed key

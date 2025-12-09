@@ -26,7 +26,7 @@
 package org.asundr.ui;
 
 import net.runelite.api.GameState;
-import org.asundr.TradeUtils;
+import org.asundr.utility.CommonUtils;
 import org.asundr.utility.StringUtils;
 
 import javax.swing.*;
@@ -50,7 +50,7 @@ class TradeRecordPopUpMenu extends JPopupMenu
         editNote.addActionListener(e -> {
             if (tradeRecordPanel == null)
                 return;
-            TradeUtils.promptTextEntry(
+            CommonUtils.promptTextEntry(
                     String.format(TEMPLATE_EDIT_NOTE, tradeRecordPanel.getTradeData().tradedPlayer.tradeName),
                     tradeRecordPanel.getNote(),
                     input -> { if (tradeRecordPanel != null ) tradeRecordPanel.setNote(input); }
@@ -62,7 +62,7 @@ class TradeRecordPopUpMenu extends JPopupMenu
         add(copyTrade);
 
         final JMenuItem deleteItem = new JMenuItem(TEXT_DELETE_ITEM);
-        deleteItem.addActionListener(e -> { if (tradeRecordPanel != null) TradeUtils.getTradeManager().removeTradeRecord(tradeRecordPanel.getTradeData()); });
+        deleteItem.addActionListener(e -> { if (tradeRecordPanel != null) CommonUtils.getTradeManager().removeTradeRecord(tradeRecordPanel.getTradeData()); });
         add(deleteItem);
     }
 
@@ -74,8 +74,8 @@ class TradeRecordPopUpMenu extends JPopupMenu
     @Override
     public void show(Component invoker, int x, int y)
     {
-        copyTrade.setVisible(TradeUtils.getConfig().canCopyTradeData());
-        editNote.setVisible(TradeUtils.getClient().getGameState() == GameState.LOGGED_IN);
+        copyTrade.setVisible(CommonUtils.getConfig().canCopyTradeData());
+        editNote.setVisible(CommonUtils.getClient().getGameState() == GameState.LOGGED_IN);
         super.show(invoker, x, y);
     }
 
