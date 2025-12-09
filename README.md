@@ -24,7 +24,7 @@ For trades that are simply the exchange of coins for a single type of item, the 
 
 
 
-#### Additional features
+### Additional features
 
 
 
