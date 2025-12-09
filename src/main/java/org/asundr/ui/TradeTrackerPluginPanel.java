@@ -262,7 +262,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
             );
             if (response == JOptionPane.YES_OPTION)
             {
-                CommonUtils.getTradeManager().clearAllTradeRecords();
+                TradeManager.requestClearAllTradeRecords();
             }
         });
         gbc.gridy = 1;

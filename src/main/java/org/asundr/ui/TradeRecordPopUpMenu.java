@@ -26,6 +26,7 @@
 package org.asundr.ui;
 
 import net.runelite.api.GameState;
+import org.asundr.trade.TradeManager;
 import org.asundr.utility.CommonUtils;
 import org.asundr.utility.StringUtils;
 
@@ -62,7 +63,7 @@ class TradeRecordPopUpMenu extends JPopupMenu
         add(copyTrade);
 
         final JMenuItem deleteItem = new JMenuItem(TEXT_DELETE_ITEM);
-        deleteItem.addActionListener(e -> { if (tradeRecordPanel != null) CommonUtils.getTradeManager().removeTradeRecord(tradeRecordPanel.getTradeData()); });
+        deleteItem.addActionListener(e -> { if (tradeRecordPanel != null) TradeManager.requestRemoveTradeRecord(tradeRecordPanel.getTradeData()); });
         add(deleteItem);
     }
 

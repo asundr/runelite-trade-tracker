@@ -91,7 +91,7 @@ public class TradeTrackerPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
-		CommonUtils.initialize(config, client, clientThread, this, chatboxPanelManager, eventBus, TradeManager.getInstance());
+		CommonUtils.initialize(config, client, clientThread, this, chatboxPanelManager, eventBus);
 		StringUtils.initialize(gson);
 		SaveManager.initialize(configManager);
 		TradeUtils.initialize(itemManager);

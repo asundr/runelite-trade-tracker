@@ -36,7 +36,6 @@ import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
 import org.asundr.TradeTrackerConfig;
 import org.asundr.TradeTrackerPlugin;
-import org.asundr.trade.TradeManager;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
@@ -59,28 +58,22 @@ public class CommonUtils
     private static ClientThread clientThread;
     private static ChatboxPanelManager chatboxPanelManager;
     private static  EventBus eventBus;
-    private static TradeManager tradeManager;
 
     public static TradeTrackerConfig getConfig() { return config; }
-    public static ClientThread getClientThread()
-    {
-        return clientThread;
-    }
+    public static ClientThread getClientThread() { return clientThread; }
     public static Client getClient() { return client; }
-    public static TradeManager getTradeManager() { return tradeManager; }
 
     public static ImageIcon iconNote = null;
 
 
     // Prepares the utility class with the various query class instances it needs to function
-    public static void initialize(TradeTrackerConfig config, Client client, ClientThread clientThread, TradeTrackerPlugin plugin, ChatboxPanelManager chatboxPanelManager, EventBus eventBus, TradeManager tradeManager)
+    public static void initialize(TradeTrackerConfig config, Client client, ClientThread clientThread, TradeTrackerPlugin plugin, ChatboxPanelManager chatboxPanelManager, EventBus eventBus)
     {
         CommonUtils.config = config;
         CommonUtils.client = client;
         CommonUtils.clientThread = clientThread;
         CommonUtils.chatboxPanelManager = chatboxPanelManager;
         CommonUtils.eventBus = eventBus;
-        CommonUtils.tradeManager = tradeManager;
 
         final BufferedImage iconImg = ImageUtil.loadImageResource(plugin.getClass(), "/net/runelite/client/plugins/friendnotes/note_icon.png");
         iconNote = new ImageIcon(iconImg.getScaledInstance(14,14, Image.SCALE_SMOOTH));

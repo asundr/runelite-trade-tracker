@@ -235,7 +235,7 @@ public class TradeManager
 
 	// Adds passed trade data as new trade to history, fetching relevant data, removing overflow trades, firing traded added events and saving the updated history
 	// This is the function to call to add any new trades to the history
-	public void addTradeRecord(TradeData tradeData)
+	private void addTradeRecord(TradeData tradeData)
 	{
 		removeOverflowRecords(1);
 		tradeHistory.addLast(tradeData);
@@ -255,7 +255,7 @@ public class TradeManager
 	}
 
 	// Removes the passed trade data if it is found inn the history, and fires a corresponding event
-	public void removeTradeRecord(TradeData tradeData)
+	private void removeTradeRecord(TradeData tradeData)
 	{
 		tradeHistory.removeIf(e -> e.tradeTime == tradeData.tradeTime);
 		CommonUtils.postEvent(new EventTradeRemoved(tradeData));
@@ -266,13 +266,17 @@ public class TradeManager
 		}
 	}
 
+	public static void requestRemoveTradeRecord(TradeData tradeData) { instance.removeTradeRecord(tradeData); }
+
 	// Removes all trades from the current history
-	public void clearAllTradeRecords()
+	private void clearAllTradeRecords()
 	{
 		tradeHistory.clear();
 		CommonUtils.postEvent(new EventTradeResetHistory(tradeHistory));
 		SaveManager.requestTradeHistorySave();
 	}
+
+	public static void requestClearAllTradeRecords() { instance.clearAllTradeRecords();}
 
 	// Overrides the current history
 	private void setTradeHistory(ArrayDeque<TradeData> tradeHistory)
