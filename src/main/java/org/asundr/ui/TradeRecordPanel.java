@@ -146,7 +146,7 @@ class TradeRecordPanel extends CollapsiblePanel
             summaryPanel.add(imgLabel);
             final String pricePerString = simpleData.getPricePerItem() < 100f
                     ? Float.toString(Math.round(1000*simpleData.getPricePerItem())/1000.f)
-                    : QuantityFormatter.quantityToRSDecimalStack((int)simpleData.getPricePerItem(),true);
+                    : StringUtils.quantityToRSDecimalStackLong((int)simpleData.getPricePerItem(),true);
             JLabel pricePerLabel = new JLabel(String.format(TRADE_PRICE_PER_TEMPLATE, pricePerString));
             pricePerLabel.setToolTipText(QuantityFormatter.formatNumber(simpleData.getPricePerItem()) + " gp each");
             pricePerLabel.addMouseListener(new MouseAdapter() {

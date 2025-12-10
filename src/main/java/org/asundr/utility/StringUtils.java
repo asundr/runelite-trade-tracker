@@ -31,7 +31,7 @@ public class StringUtils
             return quantityStr;
         }
         final int power = (int) Math.log10(Math.abs(quantity));
-        final NumberFormat numberFormat = precise && power >= 6 ? PRECISE_DECIMAL_FORMATTER : DECIMAL_FORMATTER;
+        final NumberFormat numberFormat = precise && power >= 3 ? PRECISE_DECIMAL_FORMATTER : DECIMAL_FORMATTER;
         return numberFormat.format(quantity / (Math.pow(10, power - power%3))) + QUANTITY_SUFFIXES[power / 3];
     }
 
