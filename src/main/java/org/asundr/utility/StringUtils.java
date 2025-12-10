@@ -1,6 +1,7 @@
 package org.asundr.utility;
 
 import com.google.gson.Gson;
+import net.runelite.client.util.QuantityFormatter;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
@@ -25,13 +26,13 @@ public class StringUtils
     // Returns an abbreviated string representation of the passed long in the style of QuantityFormatter but is capable of handling quantities up to Long.MAX_VALUE
     public static String quantityToRSDecimalStackLong(long quantity, boolean precise)
     {
-        final String quantityStr = String.valueOf(quantity);
-        if (quantityStr.length() <= 4 || (quantity < 0 && quantityStr.length() == 5))
+        final String quantityStr = QuantityFormatter.formatNumber(quantity);
+        if (quantityStr.length() <= 6 || (quantity < 0 && quantityStr.length() == 7))
         {
             return quantityStr;
         }
         final int power = (int) Math.log10(Math.abs(quantity));
-        final NumberFormat numberFormat = precise && power >= 3 ? PRECISE_DECIMAL_FORMATTER : DECIMAL_FORMATTER;
+        final NumberFormat numberFormat = precise && power >= 6 ? PRECISE_DECIMAL_FORMATTER : DECIMAL_FORMATTER;
         return numberFormat.format(quantity / (Math.pow(10, power - power%3))) + QUANTITY_SUFFIXES[power / 3];
     }
 
