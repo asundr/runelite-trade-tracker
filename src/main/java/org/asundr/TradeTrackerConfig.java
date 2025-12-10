@@ -28,6 +28,7 @@ package org.asundr;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.Range;
 import org.asundr.recovery.ConfigKey;
 
 import static org.asundr.trade.TradeManager.MAX_HISTORY_COUNT;
@@ -84,6 +85,9 @@ public interface TradeTrackerConfig extends Config
 	)
 	default boolean canCopyTradeData() { return false; }
 
+	@Range (
+			min = 1, max = MAX_HISTORY_COUNT
+	)
 	@ConfigItem(
 			keyName = ConfigKey.MAX_HISTORY,
 			name = "Maximum trade history",
@@ -110,6 +114,9 @@ public interface TradeTrackerConfig extends Config
 	)
 	default PurgeHistoryType getPurgeHistoryType() { return PurgeHistoryType.YEAR; }
 
+	@Range (
+			min = 0, max = Integer.MAX_VALUE
+	)
 	@ConfigItem(
 			keyName = ConfigKey.PURGE_HISTORY_MAGNITUDE,
 			name = "Auto-remove length",
