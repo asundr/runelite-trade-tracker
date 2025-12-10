@@ -25,10 +25,7 @@
 
 package org.asundr;
 
-import net.runelite.client.config.Config;
-import net.runelite.client.config.ConfigGroup;
-import net.runelite.client.config.ConfigItem;
-import net.runelite.client.config.Range;
+import net.runelite.client.config.*;
 import org.asundr.recovery.ConfigKey;
 
 import static org.asundr.trade.TradeManager.MAX_HISTORY_COUNT;
@@ -37,19 +34,41 @@ import static org.asundr.recovery.SaveManager.SAVE_GROUP;
 @ConfigGroup(SAVE_GROUP)
 public interface TradeTrackerConfig extends Config
 {
-	final class Section
-	{
-		public static final String DEBUG = "Debug";
-		public static final String HISTORY_LIMITS = "historyLimits";
-		public static final String DISPLAY = "display";
-		public static final String GENERAL = "general";
-	}
+	@ConfigSection(
+			name = "General",
+			description = "General settings",
+			position = 0
+	)
+	String SECTION_GENERAL = "general";
+
+	@ConfigSection(
+			name = "Display",
+			description = "How should the plugin display",
+			position = 1
+	)
+	String SECTION_DISPLAY = "display";
+
+	@ConfigSection(
+			name = "History Limits",
+			description = "Settings to manage when the trade history culls old trades",
+			position = 2
+	)
+	String SECTION_HISTORY_LIMITS = "historyLimits";
+
+	@ConfigSection(
+			name = "Debug",
+			description = "Probably not useful unless you're a developer or submitting a bug report",
+			position = 3,
+			closedByDefault = true
+	)
+	String SECTION_DEBUG = "Debug";
+
 
 	@ConfigItem(
 			keyName = ConfigKey.AUTOLOAD_LAST_PROFILE,
 			name = "Auto-load profile on launch",
 			description = "If enabled, the last trade profile will be visible on the login screen when RuneLite is launched",
-			section = Section.GENERAL
+			section = SECTION_GENERAL
 	)
 	default boolean getAutoLoadLastProfile() { return true; }
 
@@ -57,7 +76,7 @@ public interface TradeTrackerConfig extends Config
 			keyName = ConfigKey.USE_24_HOUR_TIME,
 			name = "Display 24-hour time",
 			description = "If enabled, displays 13:00 instead of 1:00 pm",
-			section = Section.DISPLAY
+			section = SECTION_DISPLAY
 	)
 	default boolean use24HourTime() { return false; }
 
@@ -65,7 +84,7 @@ public interface TradeTrackerConfig extends Config
 			keyName = ConfigKey.IGNORE_EMPTY_TRADES,
 			name = "Ignore empty trades",
 			description = "<html><span>If enabled, accepted trades with no items given or received are not tracked.</span><br><span>Setting to false does not clear exiting empty trades.</span>",
-			section = Section.GENERAL
+			section = SECTION_GENERAL
 	)
 	default boolean ignoreEmptyTrades() { return false; }
 
@@ -73,7 +92,7 @@ public interface TradeTrackerConfig extends Config
 			keyName = ConfigKey.FILTER_ITEM_ID,
 			name = "Filter matches for Item ID",
 			description = "When filtering the trade history, item IDs will also be checked for a match",
-			section = Section.DEBUG
+			section = SECTION_DEBUG
 	)
 	default boolean filterMatchItemId() { return false; }
 
@@ -81,7 +100,7 @@ public interface TradeTrackerConfig extends Config
 			keyName = ConfigKey.COPY_TRADE_DATE_MENU,
 			name = "Enable copy trade data",
 			description = "<html><span>Adds ability to copy trade data by right clicking on trade record</span><br><span>May require restarting RuneLite</span>",
-			section = Section.DEBUG
+			section = SECTION_DEBUG
 	)
 	default boolean canCopyTradeData() { return false; }
 
@@ -92,7 +111,8 @@ public interface TradeTrackerConfig extends Config
 			keyName = ConfigKey.MAX_HISTORY,
 			name = "Maximum trade history",
 			description = "<html><span>Maximum number of trade records before the oldest is deleted</span><br><span>Valid range: [1, " + MAX_HISTORY_COUNT+ "]",
-			section = Section.HISTORY_LIMITS
+			section = SECTION_HISTORY_LIMITS,
+			position = 1
 	)
 	default int maxHistoryCount() { return 256; }
 
@@ -110,18 +130,20 @@ public interface TradeTrackerConfig extends Config
 			keyName = ConfigKey.PURGE_HISTORY_TYPE,
 			name = "Auto-remove type",
 			description = "When should older trades be removed from the history?",
-			section = Section.HISTORY_LIMITS
+			section = SECTION_HISTORY_LIMITS,
+			position = 2
 	)
 	default PurgeHistoryType getPurgeHistoryType() { return PurgeHistoryType.YEAR; }
 
 	@Range (
-			min = 0, max = Integer.MAX_VALUE
+			min = 0
 	)
 	@ConfigItem(
 			keyName = ConfigKey.PURGE_HISTORY_MAGNITUDE,
 			name = "Auto-remove length",
 			description = "After how many of the 'Auto-remove type' should old trades be removed?",
-			section =  Section.HISTORY_LIMITS
+			section =  SECTION_HISTORY_LIMITS,
+			position = 3
 	)
 	default int getPurgeHistoryMagnitude() { return 1; }
 }
