@@ -307,8 +307,6 @@ public class TradeTrackerPluginPanel extends PluginPanel
             );
             return response == JOptionPane.YES_OPTION;
         });
-        gbc.gridx += 2;
-        toolbarPanel.add(btnSchedulePurge, gbc);
         btnSchedulePurge.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -324,6 +322,8 @@ public class TradeTrackerPluginPanel extends PluginPanel
                 );
             }
         });
+        gbc.gridx += 2;
+        toolbarPanel.add(btnSchedulePurge, gbc);
 
         // Adding button to collapse / expand trade panels
         ToolbarButton btnToggleCollapseAll = new ToolbarButton(
