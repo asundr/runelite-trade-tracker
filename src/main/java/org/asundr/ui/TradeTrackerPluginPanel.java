@@ -34,6 +34,7 @@ import org.asundr.recovery.ConfigKey;
 import org.asundr.recovery.SaveManager;
 import org.asundr.trade.*;
 import org.asundr.utility.CommonUtils;
+import org.asundr.utility.StringUtils;
 import org.asundr.utility.TimeUtils;
 
 import javax.swing.*;
@@ -63,6 +64,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
     private final static String TEMPLATE_EMPTY_LIST = "<html><body style='text-align:center'><span style='font-size:12px;color:white'>%s</span><br><span style='font-size:10px;color:#939393'>%s</span></body></html>";
     private final static String TEMPLATE_SUBTITLE = "<html><span style='font-size:13;color:white'><nobr>%s <span style='color:#909090'>%s</span></nobr></span><html>";
     private final static String TEMPLATE_PURGE_TOOLTIP = "<html><span>%s auto-remove old trades</span></html>";
+    private final static String TEMPLATE_PURGE_TOOLTIP_AUTO = "<html><span>%s auto-remove old trades</span><br><span>Lifetime: %s %s</span></html>";
     private final static Border BORDER_EMPTY = BorderFactory.createEmptyBorder(0, 0, 0, 0);
     private final static Border BORDER_FILTER_TEXT = BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(90,90,30), 1), BorderFactory.createEmptyBorder(0, 5, 0, 5));
     private final static Border BORDER_HISTORY_PANEL = BorderFactory.createEmptyBorder(4, 2, 2, 3);
@@ -307,6 +309,21 @@ public class TradeTrackerPluginPanel extends PluginPanel
         });
         gbc.gridx += 2;
         toolbarPanel.add(btnSchedulePurge, gbc);
+        btnSchedulePurge.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                super.mouseEntered(e);
+                var purgeType = CommonUtils.getConfig().getPurgeHistoryType();
+                final int purgeMag = CommonUtils.getConfig().getPurgeHistoryMagnitude();
+                final boolean isNever = purgeType == TradeTrackerConfig.PurgeHistoryType.NEVER || purgeMag < 1;
+                if (isNever) purgeType = TradeTrackerConfig.PurgeHistoryType.NEVER;
+                btnSchedulePurge.setToolTipText(String.format(TEMPLATE_PURGE_TOOLTIP_AUTO,
+                        btnSchedulePurge.isActive() ? "Disable" : "Enable",
+                        isNever ? "" : purgeMag,
+                        StringUtils.formatEnum(purgeType, isNever) + (!isNever && purgeMag > 1 ? "s" : ""))
+                );
+            }
+        });
 
         // Adding button to collapse / expand trade panels
         ToolbarButton btnToggleCollapseAll = new ToolbarButton(

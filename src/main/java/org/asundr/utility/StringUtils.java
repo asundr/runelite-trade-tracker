@@ -101,4 +101,14 @@ public class StringUtils
         return (includeHash?"#":"") + String.format("%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
     }
 
+    public static String capitalize(final String str)
+    {
+        return org.apache.commons.lang3.StringUtils.capitalize(str.toLowerCase());
+    }
+
+    public static String formatEnum(Enum enumValue, boolean capitalized)
+    {
+        return (capitalized ? capitalize(enumValue.toString()) : enumValue.toString().toLowerCase()).replace("_"," ");
+    }
+
 }
