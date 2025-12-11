@@ -32,6 +32,7 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.game.chatbox.ChatboxPanelManager;
+import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
 import org.asundr.TradeTrackerConfig;
@@ -57,23 +58,26 @@ public class CommonUtils
     private static Client client;
     private static ClientThread clientThread;
     private static ChatboxPanelManager chatboxPanelManager;
-    private static  EventBus eventBus;
+    private static EventBus eventBus;
+    private static OverlayManager overlayManager;
 
     public static TradeTrackerConfig getConfig() { return config; }
     public static ClientThread getClientThread() { return clientThread; }
     public static Client getClient() { return client; }
+    public static OverlayManager getOverlayManager() { return overlayManager;}
 
     public static ImageIcon iconNote = null;
 
 
     // Prepares the utility class with the various query class instances it needs to function
-    public static void initialize(TradeTrackerConfig config, Client client, ClientThread clientThread, TradeTrackerPlugin plugin, ChatboxPanelManager chatboxPanelManager, EventBus eventBus)
+    public static void initialize(TradeTrackerConfig config, Client client, ClientThread clientThread, TradeTrackerPlugin plugin, ChatboxPanelManager chatboxPanelManager, EventBus eventBus, OverlayManager overlayManager)
     {
         CommonUtils.config = config;
         CommonUtils.client = client;
         CommonUtils.clientThread = clientThread;
         CommonUtils.chatboxPanelManager = chatboxPanelManager;
         CommonUtils.eventBus = eventBus;
+        CommonUtils.overlayManager = overlayManager;
 
         final BufferedImage iconImg = ImageUtil.loadImageResource(plugin.getClass(), "/net/runelite/client/plugins/friendnotes/note_icon.png");
         iconNote = new ImageIcon(iconImg.getScaledInstance(14,14, Image.SCALE_SMOOTH));
@@ -84,6 +88,8 @@ public class CommonUtils
     {
         eventBus.post(event);
     }
+    public static void registerForEvents(@Nonnull Object object) { eventBus.register(object);}
+    public static void unregisterForEvents(@Nonnull Object object) { eventBus.unregister(object);}
 
     public static final String WIKI_URL_PREFIX = "https://oldschool.runescape.wiki/w/";
 

@@ -254,7 +254,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
         // Adding button to clear all trades
         final ToolbarButton btnClearAll = new ToolbarButton(
                 "resources/clear_all.png", null,
-                "Clear trade history", null,
+                "Clear trade history", "Clear trade history",
                 false, null);
         btnClearAll.setOnToggledActive(active -> {
             final int response = JOptionPane.showConfirmDialog(

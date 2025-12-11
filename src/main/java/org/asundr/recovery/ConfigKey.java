@@ -31,6 +31,10 @@ public final class ConfigKey
     public static final String AUTOLOAD_LAST_PROFILE = "autoLoadLastProfile";
     public static final String MAX_HISTORY = "maxHistoryCount";
     public static final String USE_24_HOUR_TIME = "use24HourTime";
+    public static final String PLAYER_HIGHLIGHT_COLOR = "playerHighlightColor";
+    public static final String PLAYER_HIGHLIGHT_DURATION = "playerHighlightDuration";
+    public static final String PLAYER_HIGHLIGHT_SHOW_LINE = "playerHighlightShowLine";
+    public static final String PLAYER_HIGHLIGHT_SHOW_MINIMAP = "playerHighlightShowMinimap";
     public static final String IGNORE_EMPTY_TRADES = "ignoreEmptyTrades";
     public static final String FILTER_ITEM_ID = "filterItemID";
     public static final String COPY_TRADE_DATE_MENU = "debugCopyTradeData";

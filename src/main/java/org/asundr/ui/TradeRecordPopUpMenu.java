@@ -26,9 +26,12 @@
 package org.asundr.ui;
 
 import net.runelite.api.GameState;
+import org.asundr.overlay.HighlightPlayerOverlay;
 import org.asundr.trade.TradeManager;
 import org.asundr.utility.CommonUtils;
 import org.asundr.utility.StringUtils;
+
+import net.runelite.api.Player;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,15 +41,29 @@ class TradeRecordPopUpMenu extends JPopupMenu
     private static final String TEXT_TOGGLE_COLLAPSE = "Toggle collapsed";
     private static final String TEXT_DELETE_ITEM = "<html><body style='color:red'>Delete</style></html>";
     private static final String TEMPLATE_EDIT_NOTE = "Edit note for trade with %s";
+    private static final HighlightPlayerOverlay highlightPlayerOverlay = new HighlightPlayerOverlay();
     private TradeRecordPanel tradeRecordPanel;
     private final JMenuItem editNote = new JMenuItem("Edit note");
     private final JMenuItem copyTrade = new JMenuItem("Copy trade data");
+    private final JMenuItem highlightPlayer = new JMenuItem("Highlight player");
 
     TradeRecordPopUpMenu()
     {
         final JMenuItem toggleCollapse = new JMenuItem(TEXT_TOGGLE_COLLAPSE);
         toggleCollapse.addActionListener(e -> { if (tradeRecordPanel != null) tradeRecordPanel.toggleCollapsed(); });
         add(toggleCollapse);
+
+        highlightPlayer.addActionListener( e -> {
+            for (final Player p : CommonUtils.getClient().getPlayers())
+            {
+                if (p.getName().equals(tradeRecordPanel.getTradeData().tradedPlayer.tradeName))
+                {
+                    highlightPlayerOverlay.setTargetPlayer(p);
+                    return;
+                }
+            }
+        });
+        add(highlightPlayer);
 
         editNote.addActionListener(e -> {
             if (tradeRecordPanel == null)
@@ -77,6 +94,7 @@ class TradeRecordPopUpMenu extends JPopupMenu
     {
         copyTrade.setVisible(CommonUtils.getConfig().canCopyTradeData());
         editNote.setVisible(CommonUtils.getClient().getGameState() == GameState.LOGGED_IN);
+        highlightPlayer.setVisible(CommonUtils.getClient().getGameState() == GameState.LOGGED_IN);
         super.show(invoker, x, y);
     }
 

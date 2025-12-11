@@ -28,6 +28,8 @@ package org.asundr;
 import net.runelite.client.config.*;
 import org.asundr.recovery.ConfigKey;
 
+import java.awt.*;
+
 import static org.asundr.trade.TradeManager.MAX_HISTORY_COUNT;
 import static org.asundr.recovery.SaveManager.SAVE_GROUP;
 
@@ -43,7 +45,7 @@ public interface TradeTrackerConfig extends Config
 
 	@ConfigSection(
 			name = "Display",
-			description = "How should the plugin display",
+			description = "Change the plugin's visuals",
 			position = 1
 	)
 	String SECTION_DISPLAY = "display";
@@ -57,12 +59,13 @@ public interface TradeTrackerConfig extends Config
 
 	@ConfigSection(
 			name = "Debug",
-			description = "Probably not useful unless you're a developer or submitting a bug report",
+			description = "For advanced users or submitting bug reports",
 			position = 3,
 			closedByDefault = true
 	)
 	String SECTION_DEBUG = "Debug";
 
+///////////////////////////////
 
 	@ConfigItem(
 			keyName = ConfigKey.AUTOLOAD_LAST_PROFILE,
@@ -79,6 +82,39 @@ public interface TradeTrackerConfig extends Config
 			section = SECTION_DISPLAY
 	)
 	default boolean use24HourTime() { return false; }
+
+	@ConfigItem(
+			keyName = ConfigKey.PLAYER_HIGHLIGHT_COLOR,
+			name = "Player highlight color",
+			description = "What color should the player be highlighted",
+			section = SECTION_DISPLAY
+	)
+	default Color playerHighlightColor() { return Color.WHITE; }
+
+	@Range(min = 0, max = 3600 * 6)
+	@ConfigItem(
+			keyName = ConfigKey.PLAYER_HIGHLIGHT_DURATION,
+			name = "Player highlight duration",
+			description = "How many seconds should the player remained highlighted",
+			section = SECTION_DISPLAY
+	)
+	default int playerHighlightDuration() { return 30; }
+
+	@ConfigItem(
+			keyName = ConfigKey.PLAYER_HIGHLIGHT_SHOW_LINE,
+			name = "Player highlight enable line",
+			description = "How many seconds should the player remained highlighted",
+			section = SECTION_DISPLAY
+	)
+	default boolean playerHighlightShowLine() { return true; }
+
+	@ConfigItem(
+			keyName = ConfigKey.PLAYER_HIGHLIGHT_SHOW_MINIMAP,
+			name = "Player highlight on minimap",
+			description = "Highlighted player dot on minimap is set to config color",
+			section = SECTION_DISPLAY
+	)
+	default boolean playerHighlightShowMinimap() { return true; }
 
 	@ConfigItem(
 			keyName = ConfigKey.IGNORE_EMPTY_TRADES,

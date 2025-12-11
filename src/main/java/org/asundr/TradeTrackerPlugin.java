@@ -39,6 +39,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.ui.overlay.OverlayManager;
 import org.asundr.recovery.SaveManager;
 import org.asundr.trade.TradeManager;
 import org.asundr.ui.TradeTrackerPluginPanel;
@@ -74,6 +75,8 @@ public class TradeTrackerPlugin extends Plugin
 	@Inject
 	private ClientThread clientThread;
 	@Inject
+	private OverlayManager overlayManager;
+	@Inject
 	private ConfigManager configManager;
 	@Inject
 	private ChatboxPanelManager chatboxPanelManager;
@@ -91,7 +94,7 @@ public class TradeTrackerPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
-		CommonUtils.initialize(config, client, clientThread, this, chatboxPanelManager, eventBus);
+		CommonUtils.initialize(config, client, clientThread, this, chatboxPanelManager, eventBus, overlayManager);
 		StringUtils.initialize(gson);
 		SaveManager.initialize(configManager);
 		TradeUtils.initialize(itemManager);
@@ -105,7 +108,6 @@ public class TradeTrackerPlugin extends Plugin
 		}
 		SaveManager.restoreTradeHistoryData();
 		addNavigationButton(mainPanel);
-
 	}
 
 	@Override

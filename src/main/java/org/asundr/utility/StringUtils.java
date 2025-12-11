@@ -96,4 +96,9 @@ public class StringUtils
         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(content), null);
     }
 
+    public static String colorToHexString(final Color color, final boolean includeHash)
+    {
+        return (includeHash?"#":"") + String.format("%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
+    }
+
 }
