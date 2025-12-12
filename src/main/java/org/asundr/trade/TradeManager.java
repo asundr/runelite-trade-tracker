@@ -127,7 +127,6 @@ public class TradeManager
 	@Subscribe
 	private void onItemContainerChanged(ItemContainerChanged event)
 	{
-		int inventoryId = event.getContainerId();
 		if (currentTrade == null)
 		{
 			return;
