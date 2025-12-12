@@ -127,6 +127,11 @@ public class TradeManager
 	private void onItemContainerChanged(ItemContainerChanged event)
 	{
 		int inventoryId = event.getContainerId();
+		if (currentTrade == null)
+		{
+			return;
+		}
+		final int inventoryId = event.getContainerId();
 		if (inventoryId == TradeContainerId.GIVEN)
 		{
 			currentTrade.updateItems(true, CommonUtils.getItemContainer(inventoryId));
