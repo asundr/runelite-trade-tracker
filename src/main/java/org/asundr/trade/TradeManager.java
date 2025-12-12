@@ -54,8 +54,9 @@ public class TradeManager
 
 	private static final String MESSAGE_ACCEPTED_TRADE = "Accepted trade.";
 	private static final String MESSAGE_DECLINED_TRADE = "Other player declined trade.";
-	private final static Pattern PATTERN_TRADE_USERNAME = Pattern.compile("^Trading With: (.*)$");
+	private final static Pattern PATTERN_TRADE_USERNAME = Pattern.compile("^Trading [Ww]ith:\\s*(.*)$");
 	private final static int CHILD_TRADE_USERNAME = 31;
+	private final static int CHILD_TRADE_CONFIRMATION_USERNAME = 30;
 
 	private static final class TradeMenuId
 	{
@@ -230,7 +231,14 @@ public class TradeManager
 	{
 		if (tradeState != TradeState.NOT_TRADING && currentTrade != null && (currentTrade.tradedPlayer == null || !currentTrade.tradedPlayer.isValid()))
 		{
-			currentTrade.tradedPlayer =  new TradePlayerData(CommonUtils.extractPatternFromWidget(TradeMenuId.TRADE_MENU, CHILD_TRADE_USERNAME, PATTERN_TRADE_USERNAME));
+			if (tradeState == TradeState.TRADING)
+			{
+				currentTrade.tradedPlayer =  new TradePlayerData(CommonUtils.extractPatternFromWidget(TradeMenuId.TRADE_MENU, CHILD_TRADE_USERNAME, PATTERN_TRADE_USERNAME));
+			}
+			else
+			{
+				currentTrade.tradedPlayer =  new TradePlayerData(CommonUtils.extractPatternFromWidget(TradeMenuId.TRADE_CONFIRMATION_MENU, CHILD_TRADE_CONFIRMATION_USERNAME, PATTERN_TRADE_USERNAME));
+			}
 			if (!currentTrade.tradedPlayer.isValid())
 			{
 				CommonUtils.getClientThread().invokeLater(this::fetchTradedPlayerName);
