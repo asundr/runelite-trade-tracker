@@ -255,7 +255,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
 
         // Adding button to clear all trades
         final ToolbarButton btnClearAll = new ToolbarButton(
-                "resources/clear_all.png", null,
+                "clear_all.png", null,
                 "Clear trade history", "Clear trade history",
                 false, null);
         btnClearAll.setOnToggledActive(active -> {
@@ -276,7 +276,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
         // Adding button to toggle auto-removing expired trades
         final boolean isPurgingExpired = TradeManager.isPurgingExpiredTrades();
         btnSchedulePurge = new ToolbarButton(
-                "resources/schedule_purge_on.png", "resources/schedule_purge_off.png",
+                "schedule_purge_on.png", "schedule_purge_off.png",
                 String.format(TEMPLATE_PURGE_TOOLTIP, "Disable"), String.format(TEMPLATE_PURGE_TOOLTIP, "Enable"),
                 isPurgingExpired, TradeManager::setPurgingExpiredTrades);
         btnSchedulePurge.setOnToggledValidate(active -> {
@@ -327,7 +327,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
 
         // Adding button to collapse / expand trade panels
         ToolbarButton btnToggleCollapseAll = new ToolbarButton(
-                "resources/expand_all.png", "resources/collapse_all.png",
+                "expand_all.png", "collapse_all.png",
                 "Collapse all", "Expand all", false, null);
         btnToggleCollapseAll.setOnToggledActive(active ->  getTradeRecordPanels().forEach(panel -> panel.setCollapsed(!active)) );
         gbc.gridx += 2;
@@ -352,7 +352,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
 
         // Setting up button for toggling the filter
         btnFilter = new ToolbarButton(
-                "resources/filter_on.png", "resources/filter_off.png",
+                "filter_on.png", "filter_off.png",
                 "Disable filter", "Enable filter", false, active -> {
             filterText.setVisible(active);
             final int headerHeight = active ? HEADER_HEIGHT_FILTERING : HEADER_HEIGHT_DEFAULT;

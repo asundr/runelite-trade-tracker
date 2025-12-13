@@ -47,13 +47,9 @@ import org.asundr.trade.TradeUtils;
 import org.asundr.utility.CommonUtils;
 import org.asundr.utility.StringUtils;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-
-import javax.imageio.ImageIO;
-import java.io.File;
 
 @Slf4j
 @PluginDescriptor(
@@ -120,12 +116,9 @@ public class TradeTrackerPlugin extends Plugin
 
 	private void addNavigationButton(final TradeTrackerPluginPanel mainPanel) throws IOException
 	{
-		BufferedImage icon;
-		File iconFile = new File("resources/nav_icon.png");
-		icon = ImageIO.read(iconFile);
 		navigationButton = NavigationButton.builder()
 				.tooltip("Trade Tracker")
-				.icon(icon)
+				.icon(CommonUtils.getImageFromName("nav_icon.png"))
 				.priority(3)
 				.panel(mainPanel)
 				.build();

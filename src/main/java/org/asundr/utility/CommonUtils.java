@@ -33,7 +33,6 @@ import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.game.chatbox.ChatboxPanelManager;
 import net.runelite.client.ui.overlay.OverlayManager;
-import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
 import org.asundr.TradeTrackerConfig;
 import org.asundr.TradeTrackerPlugin;
@@ -43,7 +42,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.*;
 import java.util.function.Consumer;
@@ -66,8 +65,6 @@ public class CommonUtils
     public static Client getClient() { return client; }
     public static OverlayManager getOverlayManager() { return overlayManager;}
 
-    public static ImageIcon iconNote = null;
-
 
     // Prepares the utility class with the various query class instances it needs to function
     public static void initialize(TradeTrackerConfig config, Client client, ClientThread clientThread, TradeTrackerPlugin plugin, ChatboxPanelManager chatboxPanelManager, EventBus eventBus, OverlayManager overlayManager)
@@ -78,9 +75,6 @@ public class CommonUtils
         CommonUtils.chatboxPanelManager = chatboxPanelManager;
         CommonUtils.eventBus = eventBus;
         CommonUtils.overlayManager = overlayManager;
-
-        final BufferedImage iconImg = ImageUtil.loadImageResource(plugin.getClass(), "/net/runelite/client/plugins/friendnotes/note_icon.png");
-        iconNote = new ImageIcon(iconImg.getScaledInstance(14,14, Image.SCALE_SMOOTH));
     }
 
     // Forwards the passed event to the event bus
@@ -127,32 +121,43 @@ public class CommonUtils
     // Image will be resized to the specified dimensions using the passed hint as the algorithm.
     public static ImageIcon getIconFromName(final String filename, int width, int height, final int hints)
     {
-        File iconFile = new File(filename);
+        BufferedImage iconImg = getImageFromName(filename);
+        if (iconImg == null)
+        {
+            return null;
+        }
+        if (width == -1 && height == -1)
+        {
+            return new ImageIcon(iconImg);
+        }
+        if (width == -1)
+        {
+            width = height;
+        }
+        if (height == -1)
+        {
+            height = width;
+        }
+        return new ImageIcon(iconImg.getScaledInstance(width, height, hints));
+    }
+
+    // Returns an Icon given a filepath to an image, or null if no such image exists
+    public static BufferedImage getImageFromName(final String filename)
+    {
+        final InputStream inputStream = ClassLoader.getSystemResourceAsStream( filename);
+        if (inputStream == null)
+        {
+            return null;
+        }
         try
         {
-            BufferedImage iconImg = ImageIO.read(iconFile);
-            if (width == -1 && height == -1)
-            {
-                return new ImageIcon(iconImg);
-            }
-            if (width == -1)
-            {
-                width = height;
-            }
-            if (height == -1)
-            {
-                height = width;
-            }
-            return new ImageIcon(iconImg.getScaledInstance(width,height, hints));
+            return ImageIO.read(inputStream);
         }
         catch (Exception e)
         {
             return null;
         }
     }
-
-    // Returns an Icon given a filepath to an image, or null if no such image exists
-    public static ImageIcon getIconFromName(final String filename){ return getIconFromName(filename, -1, -1, 0); }
 
     // Returns all enums that describe the current world
     public static EnumSet<WorldType> getWorldType()
