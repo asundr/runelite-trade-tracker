@@ -47,7 +47,7 @@ import java.util.HashMap;
 class TradeRecordPanel extends CollapsiblePanel
 {
     private static final ImageIcon ICON_NOTE = CommonUtils.getIconFromName("note_icon.png", 14, 14, Image.SCALE_SMOOTH);
-    private static final String TRADE_NAME_TEMPLATE = "<html><body style='color:#A0A0FF;font-size:13px;translate:-100px 0'><b>%s</b></body></html>";
+    private static final String TRADE_NAME_TEMPLATE = "<html><body style='color:#A0A0EE;font-size:13px;translate:-100px 0'><b>%s</b></body></html>";
     private static final String TRADE_TIME_TEMPLATE = "<html><body style='color:yellow'>%s</body></html>";
     private static final String TEMPLATE_TRADE_TOTAL = "<html><body style='color:white'><nobr>%s: (<span style='color:%s'> GE: %s </nobr></span>)</body></html>";
     private static final String TRADE_PRICE_PER_TEMPLATE = "<html><span style=''>@</span> %s<span style=''> ea</span></html>";
