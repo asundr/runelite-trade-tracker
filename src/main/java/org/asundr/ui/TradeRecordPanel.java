@@ -143,29 +143,41 @@ class TradeRecordPanel extends CollapsiblePanel
             }, simpleData.getQuantity());
             summaryPanel.setBackground(COLOR_BUTTON_BACKGROUND);
             summaryPanel.setOpaque(false);
-            summaryPanel.add(new JLabel(simpleData.isType(SimpleTradeData.Type.Sold_Item) ? "Sold " : "Bought "));
+            String Descriptor = "";
+            final SimpleTradeData.Type tradeType = simpleData.getTradeType();
+            switch(tradeType)
+            {
+                case Sold_Item: Descriptor = "Sold"; break;
+                case Bought_Item: Descriptor = "Bought"; break;
+                case Gift_Giving: Descriptor = "Gave away gift of"; break;
+                case Gift_Receiving: Descriptor = "Received gift of"; break;
+            }
+            summaryPanel.add(new JLabel(Descriptor));
             summaryPanel.add(imgLabel);
-            final String pricePerString = simpleData.getPricePerItem() < 100f
-                    ? Float.toString(Math.round(1000*simpleData.getPricePerItem())/1000.f)
-                    : StringUtils.quantityToRSDecimalStackLong((int)simpleData.getPricePerItem(),true);
-            JLabel pricePerLabel = new JLabel(String.format(TRADE_PRICE_PER_TEMPLATE, pricePerString));
-            pricePerLabel.setToolTipText(QuantityFormatter.formatNumber(simpleData.getPricePerItem()) + " gp each");
-            pricePerLabel.addMouseListener(new MouseAdapter() {
-                @Override public void mouseClicked(MouseEvent e) // spoof mouse events since icon is blocking due to tooltip
-                {
-                    super.mouseClicked(e);
-                    if (e.getButton() == MouseEvent.BUTTON1)
+            if (tradeType == SimpleTradeData.Type.Sold_Item || simpleData.getTradeType() == SimpleTradeData.Type.Bought_Item)
+            {
+                final String pricePerString = simpleData.getPricePerItem() < 100f
+                        ? Float.toString(Math.round(1000*simpleData.getPricePerItem())/1000.f)
+                        : StringUtils.quantityToRSDecimalStackLong((int)simpleData.getPricePerItem(),true);
+                JLabel pricePerLabel = new JLabel(String.format(TRADE_PRICE_PER_TEMPLATE, pricePerString));
+                pricePerLabel.setToolTipText(QuantityFormatter.formatNumber(simpleData.getPricePerItem()) + " gp each");
+                pricePerLabel.addMouseListener(new MouseAdapter() {
+                    @Override public void mouseClicked(MouseEvent e) // spoof mouse events since icon is blocking due to tooltip
                     {
-                        toggleButton.doClick(100);
+                        super.mouseClicked(e);
+                        if (e.getButton() == MouseEvent.BUTTON1)
+                        {
+                            toggleButton.doClick(100);
+                        }
+                        else if (e.getButton() == MouseEvent.BUTTON3)
+                        {
+                            buttonPopup.setTradeRecordPanel(TradeRecordPanel.this);
+                            buttonPopup.show(e.getComponent(), e.getX(), e.getY());
+                        }
                     }
-                    else if (e.getButton() == MouseEvent.BUTTON3)
-                    {
-                        buttonPopup.setTradeRecordPanel(TradeRecordPanel.this);
-                        buttonPopup.show(e.getComponent(), e.getX(), e.getY());
-                    }
-                }
-            });
-            summaryPanel.add(pricePerLabel);
+                });
+                summaryPanel.add(pricePerLabel);
+            }
             toggleButton.add(summaryPanel, BorderLayout.SOUTH);
         }
 

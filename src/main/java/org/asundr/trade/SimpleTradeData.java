@@ -25,6 +25,8 @@
 
 package org.asundr.trade;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
@@ -36,9 +38,12 @@ public class SimpleTradeData
     {
         Invalid,        // This is not a simple trade
         Bought_Item,    // A single type of item bought by the player for currency
-        Sold_Item       // A single type of item sold by the player for currency
+        Sold_Item,       // A single type of item sold by the player for currency
+        Gift_Giving,    // Giving single type of item or currency and receiving nothing
+        Gift_Receiving; // Giving nothing and receiving single type of item or currency
     }
 
+    @Getter
     private final Type tradeType;
     private TradeItemData item = null;
     private long quantity = 0;
@@ -54,6 +59,12 @@ public class SimpleTradeData
                 break;
             case Sold_Item:
                 calculateTradeData(tradeData.givenItems, tradeData.receivedTotalValueGE);
+                break;
+            case Gift_Giving:
+                calculateTradeData(tradeData.givenItems, 0);
+                break;
+            case Gift_Receiving:
+                calculateTradeData(tradeData.receivedItems, 0);
                 break;
             case Invalid: default:
                 return;
@@ -74,12 +85,27 @@ public class SimpleTradeData
 
     private Type determineTradeType(final ArrayList<TradeItemData> given, final ArrayList<TradeItemData> received)
     {
-        final boolean isGivenCurrency = TradeUtils.isOnlyCurrency(given), isReceivedCurrency = TradeUtils.isOnlyCurrency(received);
-        if (isGivenCurrency && !isReceivedCurrency && TradeUtils.hasOnlyOneTypeOfItem(received))
+        if (given.isEmpty() && received.isEmpty())
+        {
+            return Type.Invalid;
+        }
+        final boolean isReceivingOneTypeOfItem = TradeUtils.hasOnlyOneTypeOfItem(received);
+        if (given.isEmpty() && isReceivingOneTypeOfItem)
+        {
+            return Type.Gift_Receiving;
+        }
+        final boolean isGivingOneTypeOfItem = TradeUtils.hasOnlyOneTypeOfItem(given);
+        if (received.isEmpty() && isGivingOneTypeOfItem)
+        {
+            return Type.Gift_Giving;
+        }
+        final boolean isGivingCurrency = TradeUtils.isOnlyCurrency(given);
+        if (isGivingCurrency && isReceivingOneTypeOfItem)
         {
             return Type.Bought_Item;
         }
-        else if (isReceivedCurrency && !isGivenCurrency && TradeUtils.hasOnlyOneTypeOfItem(given))
+        final boolean isReceivingCurrency = TradeUtils.isOnlyCurrency(received);
+        if (isReceivingCurrency && isGivingOneTypeOfItem)
         {
             return Type.Sold_Item;
         }

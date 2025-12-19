@@ -93,6 +93,10 @@ final public class TradeUtils
     // Returns true if the only items in the passed collection currency such as coins or platinum
     public static boolean isOnlyCurrency(final Collection<TradeItemData> items)
     {
+        if (items.isEmpty())
+        {
+            return false;
+        }
         for (TradeItemData itemData : items)
         {
             if (itemData.getID() != ItemID.PLATINUM.id && itemData.getID() != ItemID.COINS.id)
@@ -104,12 +108,11 @@ final public class TradeUtils
     }
 
     // Returns true if all items in the passed collection have the same ID.
-    // Empty collections return true.
     public static boolean hasOnlyOneTypeOfItem(final Collection<TradeItemData> items)
     {
         if (items.isEmpty())
         {
-            return true;
+            return false;
         }
         Iterator<TradeItemData> itr = items.iterator();
         final int id = itr.next().getID();
