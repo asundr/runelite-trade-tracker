@@ -38,8 +38,8 @@ public class TradeData
     public TradePlayerData tradedPlayer = new TradePlayerData();    // Data from the other player such as name at time of trade
     public ArrayList<TradeItemData> givenItems =  new ArrayList<>();
     public ArrayList<TradeItemData> receivedItems = new ArrayList<>();
-    public long givenTotalValueGE = 0L;                             // aggregate grand exchange value of given items in coins at the time of trade
-    public long receivedTotalValueGE = 0L;                          // aggregate grand exchange value of received items in coins at the time of trade
+    transient public long givenTotalValueGE = 0L;                             // aggregate grand exchange value of given items in coins at the time of trade
+    transient public long receivedTotalValueGE = 0L;                          // aggregate grand exchange value of received items in coins at the time of trade
     public String note = "";                                        // player-authored note
 
     // Refreshes the tracked items of this player, or the traded player by querying their respective trade container

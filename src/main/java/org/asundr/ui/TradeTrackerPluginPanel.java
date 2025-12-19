@@ -431,6 +431,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
             {
                 TradeUtils.fetchItemNames(tradeData.givenItems);
                 TradeUtils.fetchItemNames(tradeData.receivedItems);
+                tradeData.calculateAggregateValues();
             }
             for (final TradeData tradeData : tradeHistory)
             {
