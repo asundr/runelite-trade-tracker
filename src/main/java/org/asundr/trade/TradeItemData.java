@@ -28,16 +28,16 @@ package org.asundr.trade;
 // contains data used to describe an item stack at the time of a trade
 public class TradeItemData
 {
-    private final int id;   // original id (may be noted)
-    private transient int unnotedId = 0; // Dwarf remains (id=0) can never be noted so this should be ok
-    private final int quantity;
-    private int geValue = -1;       // this is the GE value at the time of the trade and should not be updated
+    private final int id;                   // original id (may be noted)
+    private transient int unnotedId = 0;    // Optional unnoted id if this.id is noted. Dwarf remains (id=0) can never be noted so this should be ok
+    private final int num;                  // the item quantity
+    private int ge = -1;                    // this is the GE value at the time of the trade and should not be updated
 
     TradeItemData(int id, int quantity, int value)
     {
         this.id = id;
-        this.quantity = quantity;
-        this.geValue = value;
+        this.num = quantity;
+        this.ge = value;
     }
 
     public TradeItemData(int id, int quantity)
@@ -48,8 +48,8 @@ public class TradeItemData
     TradeItemData(TradeItemData other)
     {
         this.id = other.id;
-        this.quantity = other.quantity;
-        this.geValue = other.geValue;
+        this.num = other.num;
+        this.ge = other.ge;
         this.unnotedId = other.unnotedId;
     }
 
@@ -61,15 +61,15 @@ public class TradeItemData
 
     //public final int getNotedID() { return id; }
 
-    public final int getQuantity() { return quantity; }
+    public final int getQuantity() { return num; }
 
-    public final int getGEValue() { return geValue; }
+    public final int getGEValue() { return ge; }
 
     private void setGEValue(final int value, final boolean override)
     {
-        if (geValue == -1 || override)
+        if (ge == -1 || override)
         {
-            geValue = value;
+            ge = value;
         }
     }
     public void setGEValue(final int value) { setGEValue(value, false); }

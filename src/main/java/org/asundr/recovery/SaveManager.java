@@ -47,16 +47,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class SaveManager
 {
-    // used to schedule saves and prevent save operations from being interrupted
+    public final static String REGEX_EMPTY_NOTES = ",\"note\":(?:null|\"\")";
 
+    // used to schedule saves and prevent save operations from being interrupted
     private static final class SaveState
     {
         static final int INACTIVE = 0;
         static final int REQUESTED = 1;
         static final int ACTIVE = 1 << 1;
         static final int ACTIVE_REQUESTED = REQUESTED | ACTIVE;
-    }
 
+    }
     public final static int SAVE_VERSION = 2; // This should increase whenever save data or method changes
     public final static String SAVE_GROUP = "TradeTracker";
     private final static String DEFAULT_SAVE_FILENAME = "profile";
@@ -153,10 +154,12 @@ public class SaveManager
             return null;
         }
         final Gson gson = StringUtils.getGsonBuilder();
+        String historyJson = gson.toJson(tradeHistory);
+        historyJson = historyJson.replaceAll(REGEX_EMPTY_NOTES, ""); // remove empty notes
         final SaveData_Profile saveData = new SaveData_Profile(
                 SAVE_VERSION,
                 SaveManager.saveDataCommon.getActiveProfile().getKeyString(),
-                CompressionUtils.compressToEncode(gson.toJson(tradeHistory)));
+                CompressionUtils.compressToEncode(historyJson));
         return gson.toJson(saveData);
     }
 
