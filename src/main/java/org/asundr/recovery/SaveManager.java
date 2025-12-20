@@ -57,7 +57,7 @@ public class SaveManager
         static final int ACTIVE_REQUESTED = REQUESTED | ACTIVE;
     }
 
-    public final static int SAVE_VERSION = 1; // This should increase whenever save data or method changes
+    public final static int SAVE_VERSION = 2; // This should increase whenever save data or method changes
     public final static String SAVE_GROUP = "TradeTracker";
     private final static String DEFAULT_SAVE_FILENAME = "profile";
     private static ConfigManager configManager;
@@ -225,10 +225,15 @@ public class SaveManager
                 log.error("Failed to parse trade history json");
                 return;
             }
+            String decompressedHistory = CompressionUtils.decompressFromEncode(saveData.encodedTradeHistory);
+            if (saveData.saveVersion == 1)
+            {
+                decompressedHistory = SaveUpgradeIUtils.version1to2json(decompressedHistory);
+            }
             final String profileKey = getSaveDataCommon().getActiveProfile() == null ? null : saveDataCommon.getActiveProfile().getKeyString();
             CommonUtils.postEvent(new EventTradeHistoryProfileRestored(
                     profileKey,
-                    gson.fromJson(CompressionUtils.decompressFromEncode(saveData.encodedTradeHistory), dequeType)
+                    gson.fromJson(decompressedHistory, dequeType)
             ));
         }
         catch (Exception e)

@@ -78,9 +78,9 @@ public class SimpleTradeData
         {
             return;
         }
-        quantity = TradeUtils.getTotalItemQuantity(itemsTraded, sampleItem.get().getID());
+        quantity = TradeUtils.getTotalItemQuantity(itemsTraded, sampleItem.get().getUnnotedID());
         pricePerItem = currencyExchanged / (float)quantity;
-        item = new TradeItemData(sampleItem.get().getID(), (int)Math.min(quantity, Integer.MAX_VALUE), sampleItem.get().getGEValue());
+        item = new TradeItemData(sampleItem.get().getUnnotedID(), (int)Math.min(quantity, Integer.MAX_VALUE), sampleItem.get().getGEValue());
     }
 
     private Type determineTradeType(final ArrayList<TradeItemData> given, final ArrayList<TradeItemData> received)

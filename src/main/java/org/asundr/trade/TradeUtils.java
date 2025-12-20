@@ -46,7 +46,7 @@ final public class TradeUtils
     {
         for (TradeItemData itemData : itemDataList)
         {
-            itemData.setGEValue(getItemPrice(itemData.getID()));
+            itemData.setGEValue(getItemPrice(itemData.getUnnotedID()));
         }
     }
 
@@ -61,13 +61,13 @@ final public class TradeUtils
                 final ItemComposition comp = itemManager.getItemComposition(itemData.getID());
                 if (comp.getNote() != -1)
                 {
-                    itemData.setOriginalID(comp.getLinkedNoteId());
-                    if (itemNameCache.containsKey(itemData.getID()))
+                    itemData.setUnnotedId(comp.getLinkedNoteId());
+                    if (itemNameCache.containsKey(itemData.getUnnotedID()))
                     {
                         continue;
                     }
                 }
-                itemNameCache.put(itemData.getID(), comp.getMembersName());
+                itemNameCache.put(itemData.getUnnotedID(), comp.getMembersName());
             }
         }
     }
@@ -81,7 +81,7 @@ final public class TradeUtils
     // Returns the aggregate quantity of all items with the specified ID in the passed item collection
     public static long getTotalItemQuantity(final Collection<TradeItemData> items, int id)
     {
-        return items.stream().filter(i->i.getID() == id).reduce(0L, (a, i) -> a + i.getQuantity(), Long::sum);
+        return items.stream().filter(i->i.getUnnotedID() == id).reduce(0L, (a, i) -> a + i.getQuantity(), Long::sum);
     }
 
     // Evaluates the aggregate Grand Exchange value of all passed item stacks
@@ -99,7 +99,7 @@ final public class TradeUtils
         }
         for (TradeItemData itemData : items)
         {
-            if (itemData.getID() != ItemID.PLATINUM.id && itemData.getID() != ItemID.COINS.id)
+            if (itemData.getUnnotedID() != ItemID.PLATINUM.id && itemData.getUnnotedID() != ItemID.COINS.id)
             {
                 return false;
             }
@@ -115,10 +115,10 @@ final public class TradeUtils
             return false;
         }
         Iterator<TradeItemData> itr = items.iterator();
-        final int id = itr.next().getID();
+        final int id = itr.next().getUnnotedID();
         while (itr.hasNext())
         {
-            if (id != itr.next().getID())
+            if (id != itr.next().getUnnotedID())
             {
                 return false;
             }
@@ -132,7 +132,7 @@ final public class TradeUtils
         final HashMap<Integer, Long> counts = new HashMap<>();
         for (final TradeItemData item : items)
         {
-            final int id = item.getID();
+            final int id = item.getUnnotedID();
             Long count = counts.getOrDefault(id, 0L);
             counts.put(id, count + item.getQuantity());
         }

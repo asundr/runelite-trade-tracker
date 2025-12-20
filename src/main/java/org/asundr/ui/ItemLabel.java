@@ -53,7 +53,7 @@ class ItemLabel extends JLabel
     {
         this.itemData = itemData;
         this.quantityOverride = quantityOverride;
-        final int displayId = itemData.isNoted() ? itemData.getNotedID() : itemData.getID();
+        final int displayId = itemData.getID();
         final AsyncBufferedImage img = TradeUtils.getItemImage(displayId, itemData.getQuantity(), true);
         img.addTo(this);
         addMouseListener(new MouseAdapter() {
@@ -63,7 +63,7 @@ class ItemLabel extends JLabel
                 ToolTipManager.sharedInstance().setEnabled(true);
                 final String tipStr = String.format(
                         ITEM_TOOLTIP_TEMPLATE,
-                        TradeUtils.getOrDefaultCachedItemName(itemData.getID(), "Item"),
+                        TradeUtils.getOrDefaultCachedItemName(itemData.getUnnotedID(), "Item"),
                         QuantityFormatter.formatNumber(GetTrueQuantity()),
                         QuantityFormatter.formatNumber(itemData.getGEValue()),
                         QuantityFormatter.formatNumber((long)itemData.getGEValue() * GetTrueQuantity())
@@ -76,7 +76,7 @@ class ItemLabel extends JLabel
                 super.mouseClicked(e);
                 if (e.getButton() == MouseEvent.BUTTON3)
                 {
-                    popupItemName = TradeUtils.getStoredItemName(itemData.getID());
+                    popupItemName = TradeUtils.getStoredItemName(itemData.getUnnotedID());
                     if (popupItemName != null)
                     {
                         if (popupMenu == null)

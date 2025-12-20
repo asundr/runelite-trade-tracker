@@ -375,9 +375,9 @@ class TradeRecordPanel extends CollapsiblePanel
                 {
                     if (CommonUtils.getConfig().filterMatchItemId())
                     {
-                        if (Integer.toString(item.getID()).startsWith(query))
+                        if (Integer.toString(item.getUnnotedID()).startsWith(query))
                             return true;
-                        if (item.isNoted() && Integer.toString(item.getNotedID()).startsWith(query))
+                        if (item.isNoted() && Integer.toString(item.getID()).startsWith(query))
                             return true;
                     }
                     if (Integer.toString(item.getQuantity()).startsWith(query))
@@ -408,7 +408,7 @@ class TradeRecordPanel extends CollapsiblePanel
             {
                 for (final TradeItemData item : list)
                 {
-                    final String itemName = TradeUtils.getOrDefaultCachedItemName(item.getID(), null);
+                    final String itemName = TradeUtils.getOrDefaultCachedItemName(item.getUnnotedID(), null);
                     if (itemName != null && itemName.toLowerCase().contains(query))
                     {
                         return true;

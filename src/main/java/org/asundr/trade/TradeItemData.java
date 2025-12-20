@@ -28,8 +28,8 @@ package org.asundr.trade;
 // contains data used to describe an item stack at the time of a trade
 public class TradeItemData
 {
-    private int id;
-    private int notedID = -1;
+    private final int id;   // original id (may be noted)
+    private transient int unnotedId = 0; // Dwarf remains (id=0) can never be noted so this should be ok
     private final int quantity;
     private int geValue = -1;       // this is the GE value at the time of the trade and should not be updated
 
@@ -50,16 +50,20 @@ public class TradeItemData
         this.id = other.id;
         this.quantity = other.quantity;
         this.geValue = other.geValue;
-        this.notedID = other.notedID;
+        this.unnotedId = other.unnotedId;
     }
 
-    public boolean isNoted() { return notedID >= 0; }
+    public final boolean isNoted() { return unnotedId > 0; }
 
-    public int getID() { return id; }
+    public final int getID() { return id; }
 
-    public int getQuantity() { return quantity; }
+    public final int getUnnotedID() { return isNoted() ? unnotedId : id; }
 
-    public int getGEValue() { return geValue; }
+    //public final int getNotedID() { return id; }
+
+    public final int getQuantity() { return quantity; }
+
+    public final int getGEValue() { return geValue; }
 
     private void setGEValue(final int value, final boolean override)
     {
@@ -70,16 +74,13 @@ public class TradeItemData
     }
     public void setGEValue(final int value) { setGEValue(value, false); }
 
-    public int getNotedID() { return notedID; }
-
-    public void setOriginalID(final int originalID)
+    public void setUnnotedId(final int unnotedId)
     {
         if (isNoted())
         {
             return;
         }
-        this.notedID = id;
-        id = originalID;
+        this.unnotedId = unnotedId;
     }
 
 }
