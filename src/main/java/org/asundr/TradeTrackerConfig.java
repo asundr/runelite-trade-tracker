@@ -84,39 +84,6 @@ public interface TradeTrackerConfig extends Config
 	default boolean use24HourTime() { return false; }
 
 	@ConfigItem(
-			keyName = ConfigKey.PLAYER_HIGHLIGHT_COLOR,
-			name = "Player highlight color",
-			description = "What color should the player be highlighted",
-			section = SECTION_DISPLAY
-	)
-	default Color playerHighlightColor() { return Color.WHITE; }
-
-	@Range(min = 0, max = 3600 * 6)
-	@ConfigItem(
-			keyName = ConfigKey.PLAYER_HIGHLIGHT_DURATION,
-			name = "Player highlight duration",
-			description = "How many seconds should the player remained highlighted",
-			section = SECTION_DISPLAY
-	)
-	default int playerHighlightDuration() { return 30; }
-
-	@ConfigItem(
-			keyName = ConfigKey.PLAYER_HIGHLIGHT_SHOW_LINE,
-			name = "Player highlight enable line",
-			description = "How many seconds should the player remained highlighted",
-			section = SECTION_DISPLAY
-	)
-	default boolean playerHighlightShowLine() { return true; }
-
-	@ConfigItem(
-			keyName = ConfigKey.PLAYER_HIGHLIGHT_SHOW_MINIMAP,
-			name = "Player highlight on minimap",
-			description = "Highlighted player dot on minimap is set to config color",
-			section = SECTION_DISPLAY
-	)
-	default boolean playerHighlightShowMinimap() { return true; }
-
-	@ConfigItem(
 			keyName = ConfigKey.IGNORE_EMPTY_TRADES,
 			name = "Ignore empty trades",
 			description = "<html><span>If enabled, accepted trades with no items given or received are not tracked.</span><br><span>Setting to false does not clear exiting empty trades.</span>",
