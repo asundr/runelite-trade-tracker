@@ -231,7 +231,7 @@ public class SaveManager
             String decompressedHistory = CompressionUtils.decompressFromEncode(saveData.encodedTradeHistory);
             if (saveData.saveVersion == 1)
             {
-                decompressedHistory = SaveUpgradeIUtils.version1to2json(decompressedHistory);
+                decompressedHistory = SaveUpgradeUtils.version1to2json(decompressedHistory);
             }
             final String profileKey = getSaveDataCommon().getActiveProfile() == null ? null : saveDataCommon.getActiveProfile().getKeyString();
             CommonUtils.postEvent(new EventTradeHistoryProfileRestored(

@@ -3,7 +3,7 @@ package org.asundr.recovery;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SaveUpgradeIUtils {
+public class SaveUpgradeUtils {
 
     static String version1to2json(final String decoded)
     {
