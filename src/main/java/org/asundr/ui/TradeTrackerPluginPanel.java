@@ -28,6 +28,8 @@ package org.asundr.ui;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.ui.PluginPanel;
+import net.runelite.client.util.QuantityFormatter;
+
 import org.asundr.*;
 import org.asundr.recovery.EventTradeTrackerProfileChanged;
 import org.asundr.recovery.ConfigKey;
@@ -219,14 +221,17 @@ public class TradeTrackerPluginPanel extends PluginPanel
             profileNameLabel.setText(String.format(TEMPLATE_SUBTITLE, SaveManager.getActiveProfile().getPlayerName(), SaveManager.getActiveProfile().getTypeString()));
             profileNameLabel.setVisible(true);
         }
-        profileNameLabel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
+        subtitleWrapper.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
                 if (e.getButton() == MouseEvent.BUTTON3)
                 {
-                    subtitlePopup.show(profileNameLabel, e.getX(), e.getY());
+                    subtitlePopup.show(subtitleWrapper, e.getX(), e.getY());
                 }
+            }
+            @Override public void mouseEntered(MouseEvent e) {
+                super.mouseEntered(e);
+                subtitleWrapper.setToolTipText(String.format("%s trades logged", QuantityFormatter.formatNumber(TradeManager.getTradeHistoryCount())));
             }
         });
         subtitleWrapper.setBackground(COLOR_HEADER_BACKGROUND);

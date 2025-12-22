@@ -200,7 +200,10 @@ public class TradeManager
 	}
 
 	// returns a copy of the current trade history
-	public static final ArrayDeque<TradeData> getTradeHistory() { return new ArrayDeque<>(instance.tradeHistory); }
+	public static ArrayDeque<TradeData> getTradeHistory() { return new ArrayDeque<>(instance.tradeHistory); }
+
+	// get total number of recorded trades
+	public static int getTradeHistoryCount() { return instance.tradeHistory.size(); }
 
 	// Updates what stage of a trade the player is in, and fires relevant events
 	private void setTradeState(TradeState newState)
