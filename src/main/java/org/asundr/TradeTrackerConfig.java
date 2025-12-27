@@ -28,8 +28,6 @@ package org.asundr;
 import net.runelite.client.config.*;
 import org.asundr.recovery.ConfigKey;
 
-import java.awt.*;
-
 import static org.asundr.trade.TradeManager.MAX_HISTORY_COUNT;
 import static org.asundr.recovery.SaveManager.SAVE_GROUP;
 

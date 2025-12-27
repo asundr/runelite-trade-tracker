@@ -33,6 +33,7 @@ import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.game.chatbox.ChatboxPanelManager;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
 import org.asundr.TradeTrackerConfig;
 import org.asundr.TradeTrackerPlugin;
@@ -42,7 +43,6 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.*;
 import java.util.function.Consumer;
@@ -144,19 +144,7 @@ public class CommonUtils
     // Returns an Icon given a filepath to an image, or null if no such image exists
     public static BufferedImage getImageFromName(final String filename)
     {
-        final InputStream inputStream = ClassLoader.getSystemResourceAsStream( filename);
-        if (inputStream == null)
-        {
-            return null;
-        }
-        try
-        {
-            return ImageIO.read(inputStream);
-        }
-        catch (Exception e)
-        {
-            return null;
-        }
+        return ImageUtil.loadImageResource(client.getClass(), '/' + filename);
     }
 
     // Returns all enums that describe the current world
