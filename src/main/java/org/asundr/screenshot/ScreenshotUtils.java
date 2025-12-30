@@ -71,7 +71,7 @@ public class ScreenshotUtils
         tradeImage = null;
     }
 
-    public static  BufferedImage getReportButton()
+    public static BufferedImage getReportButton()
     {
         if (reportButton == null)
         {

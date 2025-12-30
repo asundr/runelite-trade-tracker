@@ -1,33 +1,19 @@
-# Trade Tracker plugin for RuneLite
-
-
+# [Trade Tracker](https://runelite.net/plugin-hub/show/trade-tracker)
 
 ### Overview
 
+This RuneLite plugin tracks trades between other players, logging them for future reference in a searchable list.
 
-
-This plugin tracks trades between other players, logging them for future reference in a searchable list.
-
-
-
-Each logged trade specifies all items given and received along with the name of the player you traded and the time the trade was accepted.
-
-
+Logged trades specify the name of the player traded, the time the trade was accepted, and all items given and received.
 
 Additionally, these trade records use the GE prices of the items traded to calculate aggregate values of a trade.
 
+Simple exchanges of coins for a single type of item are summarized to display how much was paid per item.
 
-
-For trades that are simply the exchange of coins for a single type of item, the trade is summarized to display how much was paid per item.
-
-
-
-
+![image](https://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/installs/plugin/trade-tracker)
+![image](https://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/rank/plugin/trade-tracker)
 
 ### Additional features
-
-
-
 * Trade histories are saved and restored between sessions
 * Different trade histories per account and account type (Standard / Deadman)
 * Ability to add notes to logged trades
@@ -37,5 +23,10 @@ For trades that are simply the exchange of coins for a single type of item, the 
 * backup and restore trade histories to files
 * Screenshot accepted trades
 
+<hr>
 
-
+### My RuneLite plugins
+- [Trade Tracker](https://runelite.net/plugin-hub/show/trade-tracker) - Records a detailed, searchable history of past trades with other players
+- [Offer at Price](https://runelite.net/plugin-hub/show/offer-at-price) - SHIFT-right click an item to offer a matching quantity for a provided price
+- [Smithing MisClick Prevention](https://runelite.net/plugin-hub/show/offer-at-price) - Prevents accidentally clicking on unintended items in the smithing menu
+- [Ring of Forging Helper](https://runelite.net/plugin-hub/show/ring-of-forging-helper) - Provides customizable feedback to make smithing with the Ring of Forging more afk
