@@ -74,6 +74,14 @@ public interface TradeTrackerConfig extends Config
 	default boolean getAutoLoadLastProfile() { return true; }
 
 	@ConfigItem(
+			keyName = ConfigKey.SCREENSHOT_ON_TRADE,
+			name = "Screenshot on trade",
+			description = "If enabled, a screenshot of the trade is also saved as an image to disk",
+			section = SECTION_GENERAL
+	)
+	default boolean getScreenshotOnTrade() { return false; }
+
+	@ConfigItem(
 			keyName = ConfigKey.USE_24_HOUR_TIME,
 			name = "Display 24-hour time",
 			description = "If enabled, displays 13:00 instead of 1:00 pm",

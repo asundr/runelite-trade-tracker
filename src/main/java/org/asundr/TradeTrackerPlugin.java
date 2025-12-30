@@ -34,13 +34,17 @@ import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.SpriteManager;
 import net.runelite.client.game.chatbox.ChatboxPanelManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.DrawManager;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.util.ImageCapture;
 import org.asundr.recovery.SaveManager;
+import org.asundr.screenshot.ScreenshotUtils;
 import org.asundr.trade.TradeManager;
 import org.asundr.ui.TradeTrackerPluginPanel;
 import org.asundr.trade.TradeUtils;
@@ -80,6 +84,12 @@ public class TradeTrackerPlugin extends Plugin
 	private EventBus eventBus;
 	@Inject
 	private Gson gson;
+	@Inject
+	private SpriteManager spriteManager;
+	@Inject
+	private ImageCapture imageCapture;
+	@Inject
+	private DrawManager drawManager;
 
 	private final SaveManager saveManager = new SaveManager();
 	private NavigationButton navigationButton;
@@ -94,6 +104,7 @@ public class TradeTrackerPlugin extends Plugin
 		StringUtils.initialize(gson);
 		SaveManager.initialize(configManager);
 		TradeUtils.initialize(itemManager);
+		ScreenshotUtils.initialize(spriteManager, imageCapture, drawManager, overlayManager);
 		SaveManager.restoreCommonData();
 		TradeTrackerPluginPanel mainPanel = new TradeTrackerPluginPanel();
 		eventSubscribers = Arrays.asList(mainPanel, TradeManager.getInstance(), saveManager);
@@ -112,6 +123,7 @@ public class TradeTrackerPlugin extends Plugin
 		clientToolbar.removeNavigation(navigationButton);
 		eventSubscribers.forEach(e -> eventBus.unregister(e));
 		TradeManager.getInstance().shutdown();
+		ScreenshotUtils.shutdown();
 	}
 
 	private void addNavigationButton(final TradeTrackerPluginPanel mainPanel) throws IOException

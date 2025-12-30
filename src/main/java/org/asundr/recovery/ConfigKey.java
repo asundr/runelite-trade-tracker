@@ -29,6 +29,7 @@ public final class ConfigKey
 {
     public static final String COMMON = "Common";
     public static final String AUTOLOAD_LAST_PROFILE = "autoLoadLastProfile";
+    public static final String SCREENSHOT_ON_TRADE = "screenshotOnTrade";
     public static final String MAX_HISTORY = "maxHistoryCount";
     public static final String USE_24_HOUR_TIME = "use24HourTime";
     public static final String IGNORE_EMPTY_TRADES = "ignoreEmptyTrades";

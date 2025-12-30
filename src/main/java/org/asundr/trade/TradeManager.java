@@ -34,6 +34,7 @@ import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import org.asundr.screenshot.ScreenshotUtils;
 import org.asundr.utility.CommonUtils;
 import org.asundr.recovery.EventTradeHistoryProfileRestored;
 import org.asundr.recovery.ConfigKey;
@@ -101,6 +102,7 @@ public class TradeManager
 		}
 		else if (groupId == TradeMenuId.TRADE_CONFIRMATION_MENU)
 		{
+			ScreenshotUtils.takeScreenshot();
 			setTradeState(TradeState.TRADE_CONFIRMATION);
 		}
 	}
@@ -157,11 +159,13 @@ public class TradeManager
 					return;
 				}
 				currentTrade.tradeTime = chatMessage.getTimestamp();
+				ScreenshotUtils.saveScreenshot(currentTrade.tradedPlayer.tradeName);
 				addTradeRecord(currentTrade);
 				setTradeState(TradeState.TRADE_ACCEPTED);
 				break;
 			case MESSAGE_DECLINED_TRADE:
 				setTradeState(TradeState.NOT_TRADING);
+				ScreenshotUtils.clearScreenshot();
 				break;
 			default:
 				return;

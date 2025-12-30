@@ -35,6 +35,7 @@ For trades that are simply the exchange of coins for a single type of item, the 
 * Trade records will collapse to save space and expand to show details
 * Option to automatically delete trades older than a configurable time
 * backup and restore trade histories to files
+* Screenshot accepted trades
 
 
 
