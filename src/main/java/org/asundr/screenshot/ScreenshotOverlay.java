@@ -61,7 +61,8 @@ public class ScreenshotOverlay extends Overlay
     }
 
     @Override
-    public Dimension render(Graphics2D graphics) {
+    public Dimension render(Graphics2D graphics)
+    {
         if (consumers.isEmpty())
         {
             return null;
@@ -89,10 +90,9 @@ public class ScreenshotOverlay extends Overlay
         graphics.setColor(Color.WHITE);
         graphics.drawString(date, textX, textY);
 
-        // Request the queued screenshots to be taken,
-        // now that the timestamp is visible.
         Consumer<Image> consumer;
-        while ((consumer = consumers.poll()) != null) {
+        while ((consumer = consumers.poll()) != null)
+        {
             drawManager.requestNextFrameListener(consumer);
         }
 
@@ -101,7 +101,8 @@ public class ScreenshotOverlay extends Overlay
 
     void queueForTimestamp(Consumer<Image> screenshotConsumer)
     {
-        if (ScreenshotUtils.getReportButton() == null) {
+        if (ScreenshotUtils.getReportButton() == null)
+        {
             return;
         }
         consumers.add(screenshotConsumer);

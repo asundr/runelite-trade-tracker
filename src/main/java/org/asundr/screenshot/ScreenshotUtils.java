@@ -25,9 +25,7 @@
 
 package org.asundr.screenshot;
 
-import lombok.Getter;
-import net.runelite.api.SpriteID;
-import net.runelite.api.widgets.Widget;
+import net.runelite.api.gameval.SpriteID;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.DrawManager;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -38,13 +36,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Consumer;
-import java.util.regex.Matcher;
 
 public class ScreenshotUtils
 {
-    private static final int PLAYER_TRADE_CONFIRMATION_GROUP_ID = 334;
-    private static final int PLAYER_TRADE_CONFIRMATION_TRADING_WITH = 30;
     private static final String FOLDER_NAME = "Trades";
 
     private static BufferedImage reportButton;
@@ -55,14 +49,14 @@ public class ScreenshotUtils
 
     private static Image tradeImage;
 
-    private static ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+    private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
     public static void initialize(SpriteManager spriteManager, ImageCapture imageCapture, DrawManager drawManager, OverlayManager overlayManager)
     {
         ScreenshotUtils.spriteManager = spriteManager;
         ScreenshotUtils.imageCapture = imageCapture;
         ScreenshotUtils.overlayManager = overlayManager;
-        screenshotOverlay = new ScreenshotOverlay(drawManager);
+        ScreenshotUtils.screenshotOverlay = new ScreenshotOverlay(drawManager);
         ScreenshotUtils.overlayManager.add(screenshotOverlay);
         getReportButton();
     }
@@ -72,7 +66,8 @@ public class ScreenshotUtils
         overlayManager.remove(screenshotOverlay);
     }
 
-    public static void clearScreenshot() {
+    public static void clearScreenshot()
+    {
         tradeImage = null;
     }
 
@@ -80,7 +75,7 @@ public class ScreenshotUtils
     {
         if (reportButton == null)
         {
-            spriteManager.getSpriteAsync(SpriteID.CHATBOX_REPORT_BUTTON, 0, s -> reportButton = s);
+            spriteManager.getSpriteAsync(SpriteID.ReportButton._0, 0, s -> reportButton = s);
         }
         return reportButton;
     }
@@ -91,17 +86,7 @@ public class ScreenshotUtils
         {
             return;
         }
-        screenshotOverlay.queueForTimestamp(image -> {
-//            Widget nameWidget = CommonUtils.getClient().getWidget(PLAYER_TRADE_CONFIRMATION_GROUP_ID, PLAYER_TRADE_CONFIRMATION_TRADING_WITH);
-//            trader = "unknown";
-//            if (nameWidget != null) {
-//                Matcher m = TRADING_WITH_PATTERN.matcher(nameWidget.getText());
-//                if (m.matches()) {
-//                    trader = m.group(2);
-//                }
-//            }
-            tradeImage = image;
-        });
+        screenshotOverlay.queueForTimestamp(image -> tradeImage = image);
     }
 
     public static void saveScreenshot(final String tradeName)
@@ -113,11 +98,9 @@ public class ScreenshotUtils
         }
         // Draw the game onto the screenshot off of the game thread
         executor.submit(() -> {
-            BufferedImage screenshot = new BufferedImage(tradeImage.getWidth(null), tradeImage.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-            Graphics graphics = screenshot.getGraphics();
-            int gameOffsetX = 0;
-            int gameOffsetY = 0;
-            graphics.drawImage(tradeImage, gameOffsetX, gameOffsetY, null);
+            final BufferedImage screenshot = new BufferedImage(tradeImage.getWidth(null), tradeImage.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+            final Graphics graphics = screenshot.getGraphics();
+            graphics.drawImage(tradeImage, 0, 0, null);
             imageCapture.saveScreenshot(screenshot, tradeName, FOLDER_NAME, false, false);
             clearScreenshot();
         });
