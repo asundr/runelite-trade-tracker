@@ -214,14 +214,16 @@ public class SaveManager
     // Restores the trade history using a json string serialized from SaveData_Profile
     private static void restoreTradeHistoryData(final String json)
     {
-        final Gson gson = StringUtils.getGsonBuilder();
+        final String profileKey = getSaveDataCommon().getActiveProfile() == null ? null : saveDataCommon.getActiveProfile().getKeyString();
         if (json == null || json.equals(""))
         {
+            CommonUtils.postEvent(new EventTradeHistoryProfileRestored(profileKey, new ArrayDeque<>()));
             return;
         }
         final Type dequeType = new TypeToken<ArrayDeque<TradeData>>(){}.getType();
         try
         {
+            final Gson gson = StringUtils.getGsonBuilder();
             final SaveData_Profile saveData = gson.fromJson(json, SaveData_Profile.class);
             if (saveData == null)
             {
@@ -233,7 +235,6 @@ public class SaveManager
             {
                 decompressedHistory = SaveUpgradeUtils.version1to2json(decompressedHistory);
             }
-            final String profileKey = getSaveDataCommon().getActiveProfile() == null ? null : saveDataCommon.getActiveProfile().getKeyString();
             CommonUtils.postEvent(new EventTradeHistoryProfileRestored(
                     profileKey,
                     gson.fromJson(decompressedHistory, dequeType)
