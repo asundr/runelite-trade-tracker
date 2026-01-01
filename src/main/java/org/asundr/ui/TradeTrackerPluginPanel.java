@@ -84,6 +84,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
     private final JLabel profileNameLabel = new JLabel();
     final private JPopupMenu subtitlePopup = new JPopupMenu();
     private ToolbarButton btnSchedulePurge;
+    private ToolbarButton btnToggleCollapseAll;
     private ToolbarButton btnFilter;
 
 
@@ -331,7 +332,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
         toolbarPanel.add(btnSchedulePurge, gbc);
 
         // Adding button to collapse / expand trade panels
-        ToolbarButton btnToggleCollapseAll = new ToolbarButton(
+        btnToggleCollapseAll = new ToolbarButton(
                 "expand_all.png", "collapse_all.png",
                 "Collapse all", "Expand all", false, null);
         btnToggleCollapseAll.setOnToggledActive(active ->  getTradeRecordPanels().forEach(panel -> panel.setCollapsed(!active)) );
@@ -381,6 +382,10 @@ public class TradeTrackerPluginPanel extends PluginPanel
         CommonUtils.getClientThread().invokeLater(() -> {
             final TradeRecordPanel tradeRecordPanel = new TradeRecordPanel(tradeData);
             tradeRecordPanel.paddingStrut = Box.createVerticalStrut(TRADE_RECORD_PADDING);
+            if (btnToggleCollapseAll.isActive())
+            {
+                tradeRecordPanel.setCollapsed(false);
+            }
             tradeHistoryPanel.add(tradeRecordPanel.paddingStrut, 0);
             tradeHistoryPanel.add(tradeRecordPanel,0);
             updateEmptyHistoryMessages();
