@@ -85,20 +85,33 @@ public class CommonUtils
     public static void registerForEvents(@Nonnull Object object) { eventBus.register(object);}
     public static void unregisterForEvents(@Nonnull Object object) { eventBus.unregister(object);}
 
-    public static final String WIKI_URL_PREFIX = "https://oldschool.runescape.wiki/w/";
+    public static final String URL_PREFIX_WIKI = "https://oldschool.runescape.wiki/w/";
+    public static final String URL_PREFIX_WIKI_PRICE_HISTORY = "https://prices.runescape.wiki/osrs/item/";
+
+    // opens the passed url in the default OS browser
+    private static void openURL(final String url)
+    {
+        try
+        {
+            Desktop.getDesktop().browse(new URI(url));
+        }
+        catch (Exception e)
+        {
+            log.error("Invalid url: " + url);
+        }
+    }
 
     // Given the name of an item, opens the corresponding wiki page
     public static void openItemWiki(String itemName)
     {
         String name = itemName.replace(" (Members)", "").trim().replaceAll(" ", "_");
-        try
-        {
-            Desktop.getDesktop().browse(new URI(WIKI_URL_PREFIX + name));
-        }
-        catch (Exception e)
-        {
-            log.error("Invalid item wiki url: " + WIKI_URL_PREFIX + name);
-        }
+        openURL(URL_PREFIX_WIKI + name);
+    }
+
+    // Given the unnoted id of an item, opens the corresponding wiki price history page
+    public static void openItemPriceHistory(int itemID)
+    {
+        openURL(URL_PREFIX_WIKI_PRICE_HISTORY + itemID);
     }
 
     // Prompts the player to enter text using the in-game message box and sends the input to the response

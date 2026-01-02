@@ -47,6 +47,7 @@ class ItemLabel extends JLabel
 
     private static JPopupMenu popupMenu = null;
     private static String popupItemName = null;
+    private static int popupItemId;
 
 
     ItemLabel(final TradeItemData itemData, final Consumer<MouseEvent> mouseClickedCallback, final long quantityOverride)
@@ -76,7 +77,8 @@ class ItemLabel extends JLabel
                 super.mouseClicked(e);
                 if (e.getButton() == MouseEvent.BUTTON3)
                 {
-                    popupItemName = TradeUtils.getStoredItemName(itemData.getUnnotedID());
+                    popupItemId = itemData.getUnnotedID();
+                    popupItemName = TradeUtils.getStoredItemName(popupItemId);
                     if (popupItemName != null)
                     {
                         if (popupMenu == null)
@@ -85,6 +87,9 @@ class ItemLabel extends JLabel
                             final JMenuItem openWiki = new JMenuItem("Open in Wiki");
                             openWiki.addActionListener(evt -> CommonUtils.openItemWiki(getCurrentItemName()));
                             popupMenu.add(openWiki);
+                            final JMenuItem openWikiGE = new JMenuItem("Open in Wiki Price History");
+                            openWikiGE.addActionListener(evt -> CommonUtils.openItemPriceHistory(popupItemId));
+                            popupMenu.add(openWikiGE);
                         }
                         popupMenu.show(e.getComponent(),e.getX(),e.getY());
                     }
