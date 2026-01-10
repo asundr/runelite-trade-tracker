@@ -96,7 +96,7 @@ public class SaveManager
     // Sets the history associated with the passed profile
     private void setActiveHistoryProfile(final TradeHistoryProfile profile)
     {
-        if (profile == null)
+        if (profile == null || profile.equals(getActiveProfile()))
         {
             return;
         }

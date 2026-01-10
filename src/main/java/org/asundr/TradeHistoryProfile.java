@@ -62,7 +62,8 @@ public class TradeHistoryProfile
         return "(" + StringUtils.capitalize(type.toString().replace("_"," ").toLowerCase()) + ")";
     }
 
-    public final boolean equals(Object o)
+    @Override
+    public boolean equals(Object o)
     {
         if (o == this)
         {

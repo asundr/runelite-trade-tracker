@@ -51,7 +51,7 @@ public class SaveData_Common
 
     public void setActiveProfile(final TradeHistoryProfile activeProfile)
     {
-        if (this.activeProfile == activeProfile)
+        if (this.activeProfile.equals(activeProfile))
         {
             return;
         }
