@@ -104,6 +104,7 @@ public class TradeManager
 		{
 			ScreenshotUtils.takeScreenshot();
 			setTradeState(TradeState.TRADE_CONFIRMATION);
+			fetchTradedPlayerName();
 		}
 	}
 
@@ -237,17 +238,22 @@ public class TradeManager
 	{
 		if (tradeState != TradeState.NOT_TRADING && currentTrade != null && (currentTrade.tradedPlayer == null || !currentTrade.tradedPlayer.isValid()))
 		{
+			TradePlayerData tradePlayerData = null;
 			if (tradeState == TradeState.TRADING)
 			{
-				currentTrade.tradedPlayer =  new TradePlayerData(CommonUtils.extractPatternFromWidget(TradeMenuId.TRADE_MENU, CHILD_TRADE_USERNAME, PATTERN_TRADE_USERNAME));
+				tradePlayerData =  new TradePlayerData(CommonUtils.extractPatternFromWidget(TradeMenuId.TRADE_MENU, CHILD_TRADE_USERNAME, PATTERN_TRADE_USERNAME));
 			}
 			else
 			{
-				currentTrade.tradedPlayer =  new TradePlayerData(CommonUtils.extractPatternFromWidget(TradeMenuId.TRADE_CONFIRMATION_MENU, CHILD_TRADE_CONFIRMATION_USERNAME, PATTERN_TRADE_USERNAME));
+				tradePlayerData =  new TradePlayerData(CommonUtils.extractPatternFromWidget(TradeMenuId.TRADE_CONFIRMATION_MENU, CHILD_TRADE_CONFIRMATION_USERNAME, PATTERN_TRADE_USERNAME));
 			}
-			if (!currentTrade.tradedPlayer.isValid())
+			if (!tradePlayerData.isValid())
 			{
 				CommonUtils.getClientThread().invokeLater(this::fetchTradedPlayerName);
+			}
+			else
+			{
+				currentTrade.tradedPlayer = tradePlayerData;
 			}
 		}
 	}
