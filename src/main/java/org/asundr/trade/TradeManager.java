@@ -171,7 +171,6 @@ public class TradeManager
 			default:
 				return;
 		}
-		currentTrade = null;
 	}
 
 	@Subscribe
