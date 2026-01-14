@@ -219,15 +219,19 @@ public class TradeManager
 		}
 		switch (newState)
 		{
-			case TRADE_ACCEPTED:
-				CommonUtils.getClientThread().invokeLater(() -> setTradeState(TradeState.NOT_TRADING));
-			case TRADING:
-				CommonUtils.postEvent(new EventTradeBegan(currentTrade == null ? null : currentTrade.tradedPlayer));
-				break;
-			case NOT_TRADING:
+		case TRADE_ACCEPTED:
+			CommonUtils.getClientThread().invokeLater(() -> setTradeState(TradeState.NOT_TRADING));
+			break;
+		case TRADING:
+			CommonUtils.postEvent(new EventTradeBegan(currentTrade == null ? null : currentTrade.tradedPlayer));
+			break;
+		case NOT_TRADING:
 			if (tradeState != TradeState.TRADE_ACCEPTED)
-					CommonUtils.postEvent(new EventTradeDeclined(currentTrade == null ? null : currentTrade.tradedPlayer));
-				break;
+			{
+				CommonUtils.postEvent(new EventTradeDeclined(currentTrade == null ? null : currentTrade.tradedPlayer));
+			}
+			currentTrade = null;
+			break;
 		}
 		//log.debug(String.format("%s  --->  %s", tradeState, newState));
 		tradeState = newState;
