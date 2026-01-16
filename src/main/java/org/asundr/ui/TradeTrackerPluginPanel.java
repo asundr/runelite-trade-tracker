@@ -86,6 +86,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
     private ToolbarButton btnSchedulePurge;
     private ToolbarButton btnToggleCollapseAll;
     private ToolbarButton btnFilter;
+    private final JTextField filterText = new JTextField();
 
 
     public TradeTrackerPluginPanel()
@@ -340,7 +341,6 @@ public class TradeTrackerPluginPanel extends PluginPanel
         toolbarPanel.add(btnToggleCollapseAll, gbc);
 
         // Setting up text entry field for filtering trades
-        final JTextField filterText = new JTextField();
         headerPanel.add(filterText);
         headerPanel.add(Box.createVerticalStrut(HEADER_PADDING/2));
         filterText.getDocument().addDocumentListener(new DocumentListener() {
@@ -505,4 +505,13 @@ public class TradeTrackerPluginPanel extends PluginPanel
         }
     }
 
+    void SetFilter(final String text)
+    {
+        if (text.isBlank() || text.equalsIgnoreCase(filterText.getText()))
+        {
+            return;
+        }
+        filterText.setText(text);
+        btnFilter.setActive(true);
+    }
 }
