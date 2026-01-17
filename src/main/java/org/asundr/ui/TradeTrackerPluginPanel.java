@@ -508,11 +508,14 @@ public class TradeTrackerPluginPanel extends PluginPanel
 
     void SetFilter(final String text)
     {
-        if (text.isBlank() || text.equalsIgnoreCase(filterText.getText()))
+        if (text.isBlank())
         {
             return;
         }
-        filterText.setText(text);
+        if (!text.equalsIgnoreCase(filterText.getText()))
+        {
+            filterText.setText(text);
+        }
         btnFilter.setActive(true);
     }
 }
