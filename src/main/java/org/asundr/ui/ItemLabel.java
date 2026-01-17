@@ -122,6 +122,27 @@ class ItemLabel extends JLabel
                             copyUnnotedId.addActionListener(evt-> StringUtils.copyToClipboard(Integer.toString(popupItemData.getUnnotedID())));
                             copySubmenu.add(copyUnnotedId);
                             popupMenu.add(copySubmenu);
+
+                            final JMenu filterSubmenu = new JMenu("Filter by");
+                            final JMenuItem filterName = new JMenuItem(TEXT_MENU_ITEM_NAME);
+                            filterName.addActionListener(evt-> mainPanel.SetFilter(getCurrentItemName()));
+                            filterSubmenu.add(filterName);
+                            final JMenuItem filterQuantity = new JMenuItem(TEXT_MENU_QUANTITY);
+                            filterQuantity.addActionListener(evt-> mainPanel.SetFilter(Long.toString(getTrueQuantity())));
+                            filterSubmenu.add(filterQuantity);
+                            final JMenuItem filterGEPrice = new JMenuItem(TEXT_MENU_PRICE);
+                            filterGEPrice.addActionListener(evt-> mainPanel.SetFilter(Integer.toString(popupItemData.getGEValue())));
+                            filterSubmenu.add(filterGEPrice);
+                            final JMenuItem filterGETotal = new JMenuItem(TEXT_MENU_PRICE_TOTAL);
+                            filterGETotal.addActionListener(evt-> mainPanel.SetFilter(Long.toString((long)popupItemData.getGEValue() * getTrueQuantity())));
+                            filterSubmenu.add(filterGETotal);
+                            if (CommonUtils.getConfig().filterMatchItemId())
+                            {
+                                final JMenuItem filterUnnotedId = new JMenuItem(TEXT_MENU_ID_UNNOTED);
+                                filterUnnotedId.addActionListener(evt-> mainPanel.SetFilter(Integer.toString(popupItemData.getUnnotedID())));
+                                filterSubmenu.add(filterUnnotedId);
+                            }
+                            popupMenu.add(filterSubmenu);
                         }
 
 
