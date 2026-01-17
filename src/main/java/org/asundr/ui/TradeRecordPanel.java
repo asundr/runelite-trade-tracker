@@ -295,10 +295,10 @@ class TradeRecordPanel extends CollapsiblePanel
         }
     }
 
-    public void toggleHidden(final boolean hide)
+    public void toggleVisible(final boolean visible)
     {
-        setVisible(hide);
-        paddingStrut.setVisible(hide);
+        setVisible(visible);
+        paddingStrut.setVisible(visible);
     }
 
     // Updates the text for the time label. Used when toggling the config for 24 hour time.

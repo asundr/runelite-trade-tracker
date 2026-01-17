@@ -394,6 +394,10 @@ public class TradeTrackerPluginPanel extends PluginPanel
             {
                 tradeRecordPanel.setCollapsed(false);
             }
+            if (btnFilter.isActive() && !tradeRecordPanel.match(filterText.getText()))
+            {
+                tradeRecordPanel.toggleVisible(false);
+            }
             tradeHistoryPanel.add(tradeRecordPanel.paddingStrut, 0);
             tradeHistoryPanel.add(tradeRecordPanel,0);
             updateEmptyHistoryMessages();
@@ -470,14 +474,14 @@ public class TradeTrackerPluginPanel extends PluginPanel
         {
             Arrays.stream(tradeHistoryPanel.getComponents())
                     .filter(e -> e instanceof TradeRecordPanel)
-                    .forEach(e -> ((TradeRecordPanel)e).toggleHidden(true));
+                    .forEach(e -> ((TradeRecordPanel)e).toggleVisible(true));
             updateEmptyHistoryMessages();
             return;
         }
         Arrays.stream(tradeHistoryPanel.getComponents()).parallel()
                 .filter(e -> e instanceof TradeRecordPanel)
                 .map(e -> (TradeRecordPanel)e)
-                .forEach(e -> e.toggleHidden(e.match(query)));
+                .forEach(e -> e.toggleVisible(e.match(query)));
         updateEmptyHistoryMessages();
         revalidate();
         repaint();
