@@ -37,7 +37,6 @@ import java.awt.*;
 
 class TradeRecordPopUpMenu extends JPopupMenu
 {
-    static TradeTrackerPluginPanel mainPanel = null;
     private static final String TEXT_TOGGLE_COLLAPSE = "Toggle collapsed";
     private static final String TEXT_DELETE_ITEM = "<html><body style='color:red'>Delete</style></html>";
     private static final String TEMPLATE_EDIT_NOTE = "Edit note for trade with %s";
@@ -79,7 +78,7 @@ class TradeRecordPopUpMenu extends JPopupMenu
 
         final JMenu filterSubmenu = new JMenu("Filter by");
         final JMenuItem filterName = new JMenuItem("Player name");
-        filterName.addActionListener(e -> mainPanel.SetFilter(tradeRecordPanel.getTradeData().tradedPlayer.tradeName));
+        filterName.addActionListener(e -> GuiUtils.setFilter(tradeRecordPanel.getTradeData().tradedPlayer.tradeName));
         filterSubmenu.add(filterName);
         add(filterSubmenu);
 

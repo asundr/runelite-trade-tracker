@@ -46,6 +46,7 @@ import net.runelite.client.util.ImageCapture;
 import org.asundr.recovery.SaveManager;
 import org.asundr.screenshot.ScreenshotUtils;
 import org.asundr.trade.TradeManager;
+import org.asundr.ui.GuiUtils;
 import org.asundr.ui.TradeTrackerPluginPanel;
 import org.asundr.trade.TradeUtils;
 import org.asundr.utility.CommonUtils;
@@ -107,6 +108,7 @@ public class TradeTrackerPlugin extends Plugin
 		ScreenshotUtils.initialize(spriteManager, imageCapture, drawManager, overlayManager);
 		SaveManager.restoreCommonData();
 		TradeTrackerPluginPanel mainPanel = new TradeTrackerPluginPanel();
+		GuiUtils.initialize(mainPanel);
 		eventSubscribers = Arrays.asList(mainPanel, TradeManager.getInstance(), saveManager);
 		eventSubscribers.forEach(e -> eventBus.register(e));
 		if (!config.getAutoLoadLastProfile())
