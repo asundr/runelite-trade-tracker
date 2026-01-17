@@ -48,7 +48,8 @@ class ItemLabel extends JLabel
     private static final String TEXT_MENU_QUANTITY = "Quantity";
     private static final String TEXT_MENU_PRICE = "GE price at trade time";
     private static final String TEXT_MENU_PRICE_TOTAL = "GE total price at trade time";
-    private static final String TEXT_MENU_ID_UNNOTED = "Item id (un-noted)";
+    private static final String TEXT_MENU_ID = "Item ID";
+    private static final String TEXT_MENU_ID_UNNOTED = "Item ID (un-noted)";
 
     static TradeTrackerPluginPanel mainPanel;
     private static JPopupMenu popupMenu = null;
@@ -58,6 +59,10 @@ class ItemLabel extends JLabel
 
     private final TradeItemData itemData;
     private final long quantityOverride;
+    private final JMenuItem copyUnnotedId = new JMenuItem(TEXT_MENU_ID_UNNOTED);
+    private final JMenuItem copyId = new JMenuItem(TEXT_MENU_ID);
+    private final JMenuItem filterUnnotedId = new JMenuItem(TEXT_MENU_ID_UNNOTED);
+    private final JMenuItem filterId = new JMenuItem(TEXT_MENU_ID);
 
 
     ItemLabel(final TradeItemData itemData, final Consumer<MouseEvent> mouseClickedCallback, final long quantityOverride)
@@ -94,7 +99,17 @@ class ItemLabel extends JLabel
                     {
                         if (popupMenu == null)
                         {
-                            popupMenu = new JPopupMenu();
+                            popupMenu = new JPopupMenu()
+                            {
+                                @Override public void show(Component invoker, int x, int y)
+                                {
+                                    final boolean showIDOptions = CommonUtils.getConfig().filterMatchItemId();
+                                    copyUnnotedId.setVisible(popupItemData.isNoted());
+                                    filterId.setVisible(showIDOptions);
+                                    filterUnnotedId.setVisible(showIDOptions && popupItemData.isNoted());
+                                    super.show(invoker, x, y);
+                                }
+                            };
 
                             final JMenu openSubmenu = new JMenu("Open in");
                             final JMenuItem openWiki = new JMenuItem("Wiki page");
@@ -118,7 +133,8 @@ class ItemLabel extends JLabel
                             final JMenuItem copyGETotal = new JMenuItem(TEXT_MENU_PRICE_TOTAL);
                             copyGETotal.addActionListener(evt-> StringUtils.copyToClipboard(Long.toString((long)popupItemData.getGEValue() * getTrueQuantity())));
                             copySubmenu.add(copyGETotal);
-                            final JMenuItem copyUnnotedId = new JMenuItem(TEXT_MENU_ID_UNNOTED);
+                            copyId.addActionListener(evt-> StringUtils.copyToClipboard(Integer.toString(popupItemData.getID())));
+                            copySubmenu.add(copyId);
                             copyUnnotedId.addActionListener(evt-> StringUtils.copyToClipboard(Integer.toString(popupItemData.getUnnotedID())));
                             copySubmenu.add(copyUnnotedId);
                             popupMenu.add(copySubmenu);
@@ -136,12 +152,10 @@ class ItemLabel extends JLabel
                             final JMenuItem filterGETotal = new JMenuItem(TEXT_MENU_PRICE_TOTAL);
                             filterGETotal.addActionListener(evt-> mainPanel.SetFilter(Long.toString((long)popupItemData.getGEValue() * getTrueQuantity())));
                             filterSubmenu.add(filterGETotal);
-                            if (CommonUtils.getConfig().filterMatchItemId())
-                            {
-                                final JMenuItem filterUnnotedId = new JMenuItem(TEXT_MENU_ID_UNNOTED);
-                                filterUnnotedId.addActionListener(evt-> mainPanel.SetFilter(Integer.toString(popupItemData.getUnnotedID())));
-                                filterSubmenu.add(filterUnnotedId);
-                            }
+                            filterId.addActionListener(evt-> mainPanel.SetFilter(Integer.toString(popupItemData.getID())));
+                            filterSubmenu.add(filterId);
+                            filterUnnotedId.addActionListener(evt-> mainPanel.SetFilter(Integer.toString(popupItemData.getUnnotedID())));
+                            filterSubmenu.add(filterUnnotedId);
                             popupMenu.add(filterSubmenu);
                         }
 
