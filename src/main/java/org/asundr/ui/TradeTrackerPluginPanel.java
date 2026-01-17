@@ -87,8 +87,8 @@ public class TradeTrackerPluginPanel extends PluginPanel
     final private JPopupMenu subtitlePopup = new JPopupMenu();
     private ToolbarButton btnSchedulePurge;
     private ToolbarButton btnToggleCollapseAll;
-    private ToolbarButton btnFilter;
-    private final JTextField filterText = new JTextField();
+    ToolbarButton btnFilter;
+    final JTextField filterText = new JTextField();
 
 
     public TradeTrackerPluginPanel()
@@ -513,16 +513,24 @@ public class TradeTrackerPluginPanel extends PluginPanel
         }
     }
 
-    void SetFilter(final String text)
+    void setFilter(final String text)
     {
         if (text.isBlank())
         {
             return;
         }
-        if (!text.equalsIgnoreCase(filterText.getText()))
+        SwingUtilities.invokeLater(() ->
         {
-            filterText.setText(text);
-        }
-        btnFilter.setActive(true);
+            if (!text.equalsIgnoreCase(filterText.getText()))
+            {
+                filterText.setText(text);
+            }
+            btnFilter.setActive(true);
+        });
+    }
+
+    void clearFilter()
+    {
+        SwingUtilities.invokeLater(() -> filterText.setText(""));
     }
 }

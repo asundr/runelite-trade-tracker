@@ -73,6 +73,28 @@ public interface TradeTrackerConfig extends Config
 	)
 	default boolean getAutoLoadLastProfile() { return true; }
 
+	enum AutoFilterOnTrade
+	{
+		NEVER, //
+		ALWAYS,
+		EMPTY,
+		INACTIVE,
+		INACTIVE_EMPTY; //
+	}
+
+	@ConfigItem(
+			keyName = ConfigKey.AUTO_FILTER_ON_TRADE,
+			name = "Auto-filter trade",
+			description = "When a trade starts, determines how the history is auto-filtered using the traded player's name." +
+					"<br>- Never: Never auto-filters during trades" +
+					"<br>- Always - Auto-filter if the player has been traded before" +
+					"<br>- Empty: Only auto-filter if the filter text is empty" +
+					"<br>- Inactive: Only auto-filter if the filter is currently disabled" +
+					"<br>- Inactive Empty: Only auto-filter if the filter is both empty and disabled",
+			section = SECTION_GENERAL
+	)
+	default AutoFilterOnTrade getAutoFilterOnTrade() { return AutoFilterOnTrade.NEVER; }
+
 	@ConfigItem(
 			keyName = ConfigKey.SCREENSHOT_ON_TRADE,
 			name = "Screenshot on trade",

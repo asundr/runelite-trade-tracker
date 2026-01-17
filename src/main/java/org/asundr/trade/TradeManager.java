@@ -34,7 +34,9 @@ import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import org.asundr.TradeTrackerConfig;
 import org.asundr.screenshot.ScreenshotUtils;
+import org.asundr.ui.GuiUtils;
 import org.asundr.utility.CommonUtils;
 import org.asundr.recovery.EventTradeHistoryProfileRestored;
 import org.asundr.recovery.ConfigKey;
@@ -104,7 +106,6 @@ public class TradeManager
 		{
 			ScreenshotUtils.takeScreenshot();
 			setTradeState(TradeState.TRADE_CONFIRMATION);
-			fetchTradedPlayerName();
 		}
 	}
 
@@ -230,6 +231,10 @@ public class TradeManager
 				CommonUtils.postEvent(new EventTradeDeclined(currentTrade == null ? null : currentTrade.tradedPlayer));
 			}
 			currentTrade = null;
+			if (CommonUtils.getConfig().getAutoFilterOnTrade() != TradeTrackerConfig.AutoFilterOnTrade.NEVER)
+			{
+				GuiUtils.restoreFilterPostTrade();
+			}
 			break;
 		}
 		//log.debug(String.format("%s  --->  %s", tradeState, newState));
@@ -257,6 +262,10 @@ public class TradeManager
 			else
 			{
 				currentTrade.tradedPlayer = tradePlayerData;
+				if (CommonUtils.getConfig().getAutoFilterOnTrade() != TradeTrackerConfig.AutoFilterOnTrade.NEVER)
+				{
+					GuiUtils.filterOnTrade(currentTrade);
+				}
 			}
 		}
 	}

@@ -25,8 +25,17 @@
 
 package org.asundr.ui;
 
+import org.asundr.trade.TradeData;
+import org.asundr.trade.TradeManager;
+import org.asundr.utility.CommonUtils;
+
+import javax.swing.*;
+
 public class GuiUtils
 {
+    private static String preTradeFilterText = null;
+    private static boolean preTradeFilterActive = false;
+
     private static TradeTrackerPluginPanel mainPanel = null;
     public static void initialize(TradeTrackerPluginPanel mainPanel)
     {
@@ -49,5 +58,55 @@ public class GuiUtils
             return;
         }
         mainPanel.clearFilter();
+    }
+
+    public static void filterOnTrade(final TradeData tradeData)
+    {
+        switch (CommonUtils.getConfig().getAutoFilterOnTrade())
+        {
+            case NEVER:
+                return;
+            case ALWAYS:
+                break;
+            case EMPTY:
+                if (!mainPanel.filterText.getText().isBlank())
+                {
+                    return;
+                }
+                break;
+            case INACTIVE:
+                if (mainPanel.btnFilter.isActive())
+                {
+                    return;
+                }
+                break;
+            case INACTIVE_EMPTY:
+                if (!mainPanel.filterText.getText().isBlank() || mainPanel.btnFilter.isActive())
+                {
+                    return;
+                }
+                break;
+        }
+        if (TradeManager.getTradeHistory().stream().noneMatch(e -> e.tradedPlayer.tradeName.equalsIgnoreCase(tradeData.tradedPlayer.tradeName)))
+        {
+            return;
+        }
+        preTradeFilterText = mainPanel.filterText.getText();
+        preTradeFilterActive = mainPanel.btnFilter.isActive();
+        setFilter(tradeData.tradedPlayer.tradeName);
+    }
+
+    public static void restoreFilterPostTrade()
+    {
+        if (preTradeFilterText != null)
+        {
+            SwingUtilities.invokeLater(() ->
+            {
+                mainPanel.filterText.setText(preTradeFilterText);
+                mainPanel.btnFilter.setActive(preTradeFilterActive);
+                preTradeFilterText = null;
+                preTradeFilterActive = false;
+            });
+        }
     }
 }
