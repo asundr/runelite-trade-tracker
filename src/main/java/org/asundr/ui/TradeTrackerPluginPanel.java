@@ -44,6 +44,8 @@ import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.*;
@@ -351,6 +353,12 @@ public class TradeTrackerPluginPanel extends PluginPanel
             public void removeUpdate(DocumentEvent e) { updateFilter(filterText.getText()); }
             @Override
             public void changedUpdate(DocumentEvent e) {}
+        });
+        filterText.addKeyListener(new KeyAdapter() {
+            @Override public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
+                    btnFilter.setActive(false);
+            }
         });
         filterText.setVisible(false);
         filterText.setBackground(COLOR_FILTER_TEXT_BACKGROUND);
