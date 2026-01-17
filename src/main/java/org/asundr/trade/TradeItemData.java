@@ -45,7 +45,7 @@ public class TradeItemData
         this(id, quantity, -1);
     }
 
-    TradeItemData(TradeItemData other)
+    public TradeItemData(TradeItemData other)
     {
         this.id = other.id;
         this.num = other.num;

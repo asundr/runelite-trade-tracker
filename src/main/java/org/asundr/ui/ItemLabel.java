@@ -30,6 +30,7 @@ import net.runelite.client.util.QuantityFormatter;
 import org.asundr.trade.TradeItemData;
 import org.asundr.trade.TradeUtils;
 import org.asundr.utility.CommonUtils;
+import org.asundr.utility.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,15 +40,24 @@ import java.util.function.Consumer;
 
 class ItemLabel extends JLabel
 {
-    private static final String ITEM_TOOLTIP_TEMPLATE = "<html><body style><b style='color:#A0A0FF'>%s</b><br>Quantity: %s<br>GE: %s<br>Total: %s</body></html>";
     public static final int ICON_SIZE = 36;
     private static final Dimension PREFERRED_SIZE = new Dimension(ICON_SIZE, ICON_SIZE);
-    private final TradeItemData itemData;
-    private final long quantityOverride;
+    private static final String ITEM_TOOLTIP_TEMPLATE = "<html><body style><b style='color:#A0A0FF'>%s</b><br>Quantity: %s<br>GE: %s<br>Total: %s</body></html>";
 
+    private static final String TEXT_MENU_ITEM_NAME = "Item name";
+    private static final String TEXT_MENU_QUANTITY = "Quantity";
+    private static final String TEXT_MENU_PRICE = "GE price at trade time";
+    private static final String TEXT_MENU_PRICE_TOTAL = "GE total price at trade time";
+    private static final String TEXT_MENU_ID_UNNOTED = "Item id (un-noted)";
+
+    static TradeTrackerPluginPanel mainPanel;
     private static JPopupMenu popupMenu = null;
     private static String popupItemName = null;
     private static int popupItemId;
+    private static TradeItemData popupItemData = null;
+
+    private final TradeItemData itemData;
+    private final long quantityOverride;
 
 
     ItemLabel(final TradeItemData itemData, final Consumer<MouseEvent> mouseClickedCallback, final long quantityOverride)
@@ -65,9 +75,9 @@ class ItemLabel extends JLabel
                 final String tipStr = String.format(
                         ITEM_TOOLTIP_TEMPLATE,
                         TradeUtils.getOrDefaultCachedItemName(itemData.getUnnotedID(), "Item"),
-                        QuantityFormatter.formatNumber(GetTrueQuantity()),
+                        QuantityFormatter.formatNumber(getTrueQuantity()),
                         QuantityFormatter.formatNumber(itemData.getGEValue()),
-                        QuantityFormatter.formatNumber((long)itemData.getGEValue() * GetTrueQuantity())
+                        QuantityFormatter.formatNumber((long)itemData.getGEValue() * getTrueQuantity())
                 );
                 setToolTipText(tipStr);
             }
@@ -79,18 +89,42 @@ class ItemLabel extends JLabel
                 {
                     popupItemId = itemData.getUnnotedID();
                     popupItemName = TradeUtils.getStoredItemName(popupItemId);
+                    popupItemData = new TradeItemData(itemData);
                     if (popupItemName != null)
                     {
                         if (popupMenu == null)
                         {
                             popupMenu = new JPopupMenu();
-                            final JMenuItem openWiki = new JMenuItem("Open in Wiki");
+
+                            final JMenu openSubmenu = new JMenu("Open in");
+                            final JMenuItem openWiki = new JMenuItem("Wiki page");
                             openWiki.addActionListener(evt -> CommonUtils.openItemWiki(getCurrentItemName()));
-                            popupMenu.add(openWiki);
-                            final JMenuItem openWikiGE = new JMenuItem("Open in Wiki Price History");
+                            openSubmenu.add(openWiki);
+                            final JMenuItem openWikiGE = new JMenuItem("Wiki price history");
                             openWikiGE.addActionListener(evt -> CommonUtils.openItemPriceHistory(popupItemId));
-                            popupMenu.add(openWikiGE);
+                            openSubmenu.add(openWikiGE);
+                            popupMenu.add(openSubmenu);
+
+                            final JMenu copySubmenu = new JMenu("Copy");
+                            final JMenuItem copyName = new JMenuItem(TEXT_MENU_ITEM_NAME);
+                            copyName.addActionListener(evt-> StringUtils.copyToClipboard(getCurrentItemName()));
+                            copySubmenu.add(copyName);
+                            final JMenuItem copyQuantity = new JMenuItem(TEXT_MENU_QUANTITY);
+                            copyQuantity.addActionListener(evt-> StringUtils.copyToClipboard(Long.toString(getTrueQuantity())));
+                            copySubmenu.add(copyQuantity);
+                            final JMenuItem copyGEPrice = new JMenuItem(TEXT_MENU_PRICE);
+                            copyGEPrice.addActionListener(evt-> StringUtils.copyToClipboard(Integer.toString(popupItemData.getGEValue())));
+                            copySubmenu.add(copyGEPrice);
+                            final JMenuItem copyGETotal = new JMenuItem(TEXT_MENU_PRICE_TOTAL);
+                            copyGETotal.addActionListener(evt-> StringUtils.copyToClipboard(Long.toString((long)popupItemData.getGEValue() * getTrueQuantity())));
+                            copySubmenu.add(copyGETotal);
+                            final JMenuItem copyUnnotedId = new JMenuItem(TEXT_MENU_ID_UNNOTED);
+                            copyUnnotedId.addActionListener(evt-> StringUtils.copyToClipboard(Integer.toString(popupItemData.getUnnotedID())));
+                            copySubmenu.add(copyUnnotedId);
+                            popupMenu.add(copySubmenu);
                         }
+
+
                         popupMenu.show(e.getComponent(),e.getX(),e.getY());
                     }
                     return;
@@ -109,6 +143,6 @@ class ItemLabel extends JLabel
 
     ItemLabel(TradeItemData itemData) { this(itemData, null, -1L); }
 
-    public long GetTrueQuantity() { return quantityOverride == -1 ? itemData.getQuantity() : quantityOverride; }
+    public long getTrueQuantity() { return quantityOverride == -1 ? itemData.getQuantity() : quantityOverride; }
 
 }
