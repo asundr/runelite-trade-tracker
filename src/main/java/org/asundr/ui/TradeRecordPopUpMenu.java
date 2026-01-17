@@ -30,20 +30,20 @@ import org.asundr.recovery.SaveManager;
 import org.asundr.trade.TradeManager;
 import org.asundr.utility.CommonUtils;
 import org.asundr.utility.StringUtils;
-
-import net.runelite.api.Player;
+import org.asundr.utility.TimeUtils;
 
 import javax.swing.*;
 import java.awt.*;
 
 class TradeRecordPopUpMenu extends JPopupMenu
 {
+    static TradeTrackerPluginPanel mainPanel = null;
     private static final String TEXT_TOGGLE_COLLAPSE = "Toggle collapsed";
     private static final String TEXT_DELETE_ITEM = "<html><body style='color:red'>Delete</style></html>";
     private static final String TEMPLATE_EDIT_NOTE = "Edit note for trade with %s";
     private TradeRecordPanel tradeRecordPanel;
     private final JMenuItem editNote = new JMenuItem("Edit note");
-    private final JMenuItem copyTrade = new JMenuItem("Copy trade data");
+    private final JMenuItem copyTrade = new JMenuItem("Trade data");
     private final JMenuItem highlightPlayer = new JMenuItem("Highlight player");
 
     TradeRecordPopUpMenu()
@@ -63,10 +63,27 @@ class TradeRecordPopUpMenu extends JPopupMenu
         });
         add(editNote);
 
-        copyTrade.addActionListener( e -> { if (tradeRecordPanel != null) StringUtils.copyToClipboard(
+        final JMenu copySubmenu = new JMenu("Copy");
+        final JMenuItem copyName = new JMenuItem("Player name");
+        copyName.addActionListener(e -> StringUtils.copyToClipboard(tradeRecordPanel.getTradeData().tradedPlayer.tradeName));
+        copySubmenu.add(copyName);
+        final JMenuItem copyTime = new JMenuItem("Date and Time");
+        copyTime.addActionListener(e -> StringUtils.copyToClipboard(TimeUtils.timestampToString(tradeRecordPanel.getTradeData().tradeTime)));
+        copySubmenu.add(copyTime);
+
+        copyTrade.addActionListener(e -> { if (tradeRecordPanel != null) StringUtils.copyToClipboard(
                 StringUtils.stringify(tradeRecordPanel.getTradeData()).replaceAll(SaveManager.REGEX_EMPTY_NOTES, "")
         ); });
-        add(copyTrade);
+        copySubmenu.add(copyTrade);
+        add(copySubmenu);
+
+        final JMenu filterSubmenu = new JMenu("Filter by");
+        final JMenuItem filterName = new JMenuItem("Player name");
+        filterName.addActionListener(e -> mainPanel.SetFilter(tradeRecordPanel.getTradeData().tradedPlayer.tradeName));
+        filterSubmenu.add(filterName);
+        add(filterSubmenu);
+
+        addSeparator();
 
         final JMenuItem deleteItem = new JMenuItem(TEXT_DELETE_ITEM);
         deleteItem.addActionListener(e -> { if (tradeRecordPanel != null) TradeManager.requestRemoveTradeRecord(tradeRecordPanel.getTradeData()); });

@@ -95,6 +95,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
     {
         super(false); // disables scrolling
         ItemLabel.mainPanel = this;
+        TradeRecordPopUpMenu.mainPanel = this;
         final int panelWidth = getPreferredSize().width;
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
