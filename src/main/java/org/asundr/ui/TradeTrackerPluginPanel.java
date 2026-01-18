@@ -355,8 +355,18 @@ public class TradeTrackerPluginPanel extends PluginPanel
         });
         filterText.addKeyListener(new KeyAdapter() {
             @Override public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
-                    btnFilter.setActive(false);
+                switch (e.getKeyCode())
+                {
+                    case KeyEvent.VK_ESCAPE:
+                        btnFilter.setActive(false);
+                        break;
+                    case KeyEvent.VK_BACK_SPACE:
+                        if (filterText.getText().isEmpty())
+                        {
+                            e.consume();
+                        }
+                        break;
+                }
             }
         });
         filterText.setVisible(false);
