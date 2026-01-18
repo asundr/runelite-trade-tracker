@@ -378,20 +378,25 @@ public class TradeTrackerPluginPanel extends PluginPanel
         btnFilter = new ToolbarButton(
                 "filter_on.png", "filter_off.png",
                 "Disable filter", "Enable filter", false, active -> {
-            filterText.setVisible(active);
-            final int headerHeight = active ? HEADER_HEIGHT_FILTERING : HEADER_HEIGHT_DEFAULT;
-            headerPanel.setPreferredSize(new Dimension(PANEL_WIDTH, headerHeight));
-            headerPanel.setMinimumSize(new Dimension(PANEL_WIDTH, headerHeight));
-            updateFilter(active ? filterText.getText() : "");
-            if (active)
-            {
-                filterText.grabFocus();
-            }
-            revalidate();
-            repaint();
+            toggleFilter(active, true);
         });
         gbc.gridx += 2;
         toolbarPanel.add(btnFilter, gbc);
+    }
+
+    private void toggleFilter(boolean active, boolean focus)
+    {
+        filterText.setVisible(active);
+        final int headerHeight = active ? HEADER_HEIGHT_FILTERING : HEADER_HEIGHT_DEFAULT;
+        headerPanel.setPreferredSize(new Dimension(PANEL_WIDTH, headerHeight));
+        headerPanel.setMinimumSize(new Dimension(PANEL_WIDTH, headerHeight));
+        updateFilter(active ? filterText.getText() : "");
+        if (focus && active)
+        {
+            filterText.grabFocus();
+        }
+        revalidate();
+        repaint();
     }
 
     // Adds new trade panel to the history in response to new trade being added
@@ -539,7 +544,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
             {
                 filterText.setText(text);
             }
-            btnFilter.setActive(true);
+            toggleFilter(true, false);
         });
     }
 

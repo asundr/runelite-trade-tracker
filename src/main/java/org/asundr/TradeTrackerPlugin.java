@@ -60,7 +60,7 @@ import java.util.Collection;
 @PluginDescriptor(
 	name = "Trade Tracker",
 	description = "Records a searchable history of past trades with players",
-	tags = {"trade", "history", "track", "item", "log", "logger", "memory"},
+	tags = {"trade", "history", "track", "item", "log", "logger", "memory", "lend"},
 	enabledByDefault = true
 )
 public class TradeTrackerPlugin extends Plugin
