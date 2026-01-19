@@ -470,16 +470,24 @@ public class TradeTrackerPluginPanel extends PluginPanel
                 TradeUtils.fetchItemNames(tradeData.receivedItems);
                 tradeData.calculateAggregateValues();
             }
-            for (final TradeData tradeData : tradeHistory)
+            new Thread(() ->
             {
-                TradeRecordPanel tradeRecordPanel = new TradeRecordPanel(tradeData);
-                tradeRecordPanel.paddingStrut = Box.createVerticalStrut(TRADE_RECORD_PADDING);
-                tradeHistoryPanel.add(tradeRecordPanel.paddingStrut, 0);
-                tradeHistoryPanel.add(tradeRecordPanel, 0);
-            }
-            tradeHistoryPanel.setVisible(true);
-            updateEmptyHistoryMessages();
+                for (final TradeData tradeData : tradeHistory)
+                {
+                    TradeRecordPanel tradeRecordPanel = new TradeRecordPanel(tradeData);
+                    tradeRecordPanel.paddingStrut = Box.createVerticalStrut(TRADE_RECORD_PADDING);
+                    tradeHistoryPanel.add(tradeRecordPanel.paddingStrut, 0);
+                    tradeHistoryPanel.add(tradeRecordPanel, 0);
+                }
+                tradeHistoryPanel.setVisible(true);
+                updateEmptyHistoryMessages();
+            }).start();
         });
+    }
+
+    private void populateFromHistory(final ArrayList<TradeData> history, final int startIndex)
+    {
+
     }
 
     // Toggles the hidden status of trade panels depending on if they match the filter query
