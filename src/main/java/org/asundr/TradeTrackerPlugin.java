@@ -115,7 +115,7 @@ public class TradeTrackerPlugin extends Plugin
 		{
 			SaveManager.forgetActiveHistoryProfile();
 		}
-		SaveManager.restoreTradeHistoryData();
+		SaveManager.requestRestoreTradeHistory();
 		addNavigationButton(mainPanel);
 	}
 

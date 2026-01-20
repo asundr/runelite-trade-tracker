@@ -63,7 +63,8 @@ public class SaveManager
     private final static String DEFAULT_SAVE_FILENAME = "profile";
     private static ConfigManager configManager;
     private static SaveData_Common saveDataCommon;
-    private final static AtomicInteger tradeHistorySaveState = new AtomicInteger(SaveState.INACTIVE); // flags for trade history
+    private final static AtomicInteger tradeHistorySaveState = new AtomicInteger(SaveState.INACTIVE); // flags for trade history save operation
+    private final static AtomicInteger tradeHistoryLoadState = new AtomicInteger(SaveState.INACTIVE); // flags for trade history load operation
 
     @Subscribe
     private void onGameStateChanged(GameStateChanged evt)
@@ -104,8 +105,8 @@ public class SaveManager
         final TradeHistoryProfile oldProfile = saveData.getActiveProfile();
         saveData.setActiveProfile(profile);
         CommonUtils.postEvent(new EventTradeTrackerProfileChanged(oldProfile, profile));
-        SaveManager.restoreTradeHistoryData();
         SaveManager.saveCommonData();
+        SaveManager.requestRestoreTradeHistory();
     }
 
     // Sets the active profile to null without updating the UI or saving
@@ -201,14 +202,16 @@ public class SaveManager
     }
 
     // Restores the history of trades from the config entry associated with the currently active account
-    public static void restoreTradeHistoryData()
+    private static void restoreTradeHistoryData()
     {
         if (saveDataCommon == null || saveDataCommon.getActiveProfile() == null)
         {
             return;
         }
+        toggleFlag(tradeHistoryLoadState, SaveState.ACTIVE_REQUESTED);
         final String json = configManager.getConfiguration(SAVE_GROUP, saveDataCommon.getActiveProfile().getKeyString());
         restoreTradeHistoryData(json);
+        clearFlag(tradeHistoryLoadState, SaveState.ACTIVE);
     }
 
     // Restores the trade history using a json string serialized from SaveData_Profile
@@ -246,24 +249,42 @@ public class SaveManager
         }
     }
 
-    // Repeatedly attempts to start a new save thread while a queued save is pending
-    private static void scheduleSave()
+    // Repeatedly attempts to start a new save or load thread while a queued save or load is pending
+    private static void scheduleRecoveryOperation()
     {
-        if (tradeHistorySaveState.get() == SaveState.REQUESTED)
+        if (!hasFlag(tradeHistorySaveState, SaveState.ACTIVE) & !hasFlag(tradeHistoryLoadState, SaveState.ACTIVE))
         {
-            new Thread(SaveManager::saveTradeHistoryData).start();
+            if (tradeHistorySaveState.get() == SaveState.REQUESTED)
+            {
+                new Thread(SaveManager::saveTradeHistoryData).start();
+            }
+            else if (tradeHistoryLoadState.get() == SaveState.REQUESTED)
+            {
+                new Thread(SaveManager::restoreTradeHistoryData).start();
+            }
         }
-        if ((tradeHistorySaveState.get() & SaveState.REQUESTED) > 0)
+        else if ((tradeHistorySaveState.get() & SaveState.REQUESTED) > 0 || (tradeHistoryLoadState.get() & SaveState.REQUESTED) > 0)
         {
-            CommonUtils.getClientThread().invokeLater(SaveManager::scheduleSave);
+            CommonUtils.getClientThread().invokeLater(SaveManager::scheduleRecoveryOperation);
         }
+    }
+
+    // The public method that should be called to reload from the current trade history profile
+    public static void requestRestoreTradeHistory()
+    {
+        tradeHistoryLoadState.set(tradeHistoryLoadState.get() | SaveState.REQUESTED);
+        CommonUtils.getClientThread().invokeLater(SaveManager::scheduleRecoveryOperation);
     }
 
     // The public method that should be called to save the current trade history
     public static void requestTradeHistorySave()
     {
+        if (tradeHistoryLoadState.get() > 0)
+        {
+            return;
+        }
         tradeHistorySaveState.set(tradeHistorySaveState.get() | SaveState.REQUESTED);
-        CommonUtils.getClientThread().invokeLater(SaveManager::scheduleSave);
+        CommonUtils.getClientThread().invokeLater(SaveManager::scheduleRecoveryOperation);
     }
 
     // Saves to the plugin's default group with the passed key
@@ -311,4 +332,11 @@ public class SaveManager
         }
         restoreTradeHistoryData(json);
     }
+
+
+    // Operations for setting and queries flags set on an atomic integer
+    private static void toggleFlag(final AtomicInteger mask, final int flag) { mask.set(mask.get() ^ flag);}
+    private static void clearFlag(final AtomicInteger mask, final int flag) { mask.set(mask.get() & ~flag); }
+    private static void setFlag(final AtomicInteger mask, final int flag) { mask.set(mask.get() | flag); }
+    private static boolean hasFlag(final AtomicInteger mask, final int flag) { return (mask.get() & flag) > 0; }
 }
