@@ -167,7 +167,7 @@ public class SaveManager
     // Saves the current trade history to the config using the profile's hash and account type as a key
     private static void saveTradeHistoryData()
     {
-        tradeHistorySaveState.set(tradeHistorySaveState.get() ^ SaveState.ACTIVE_REQUESTED); // removed requested, add enabled active
+        toggleFlag(tradeHistorySaveState, SaveState.ACTIVE_REQUESTED); // removed requested, add enabled active
         try
         {
             final String json = getTradeHistoryAsJson();
@@ -184,7 +184,7 @@ public class SaveManager
         }
         finally
         {
-            tradeHistorySaveState.set(tradeHistorySaveState.get() & ~SaveState.ACTIVE); // remove active state
+            clearFlag(tradeHistorySaveState, SaveState.ACTIVE);
         }
     }
 
@@ -263,7 +263,7 @@ public class SaveManager
                 new Thread(SaveManager::restoreTradeHistoryData).start();
             }
         }
-        else if ((tradeHistorySaveState.get() & SaveState.REQUESTED) > 0 || (tradeHistoryLoadState.get() & SaveState.REQUESTED) > 0)
+        else if (hasFlag(tradeHistorySaveState, SaveState.REQUESTED) ||hasFlag(tradeHistoryLoadState, SaveState.REQUESTED))
         {
             CommonUtils.getClientThread().invokeLater(SaveManager::scheduleRecoveryOperation);
         }
@@ -272,7 +272,7 @@ public class SaveManager
     // The public method that should be called to reload from the current trade history profile
     public static void requestRestoreTradeHistory()
     {
-        tradeHistoryLoadState.set(tradeHistoryLoadState.get() | SaveState.REQUESTED);
+        setFlag(tradeHistoryLoadState, SaveState.REQUESTED);
         CommonUtils.getClientThread().invokeLater(SaveManager::scheduleRecoveryOperation);
     }
 
@@ -283,7 +283,7 @@ public class SaveManager
         {
             return;
         }
-        tradeHistorySaveState.set(tradeHistorySaveState.get() | SaveState.REQUESTED);
+        setFlag(tradeHistorySaveState, SaveState.REQUESTED);
         CommonUtils.getClientThread().invokeLater(SaveManager::scheduleRecoveryOperation);
     }
 
