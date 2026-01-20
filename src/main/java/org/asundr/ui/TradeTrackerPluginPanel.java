@@ -44,10 +44,7 @@ import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -377,24 +374,28 @@ public class TradeTrackerPluginPanel extends PluginPanel
         // Setting up button for toggling the filter
         btnFilter = new ToolbarButton(
                 "filter_on.png", "filter_off.png",
-                "Disable filter", "Enable filter", false, active -> {
-            toggleFilter(active, true);
-        });
+                "Disable filter", "Enable filter", false,
+                active -> toggleFilter(active) )
+        {
+            @Override protected void actionListenerCallback(ActionEvent e) {
+                super.actionListenerCallback(e);
+                if (isActive())
+                {
+                    filterText.requestFocusInWindow();
+                }
+            }
+        };
         gbc.gridx += 2;
         toolbarPanel.add(btnFilter, gbc);
     }
 
-    private void toggleFilter(boolean active, boolean focus)
+    private void toggleFilter(boolean active)
     {
         filterText.setVisible(active);
         final int headerHeight = active ? HEADER_HEIGHT_FILTERING : HEADER_HEIGHT_DEFAULT;
         headerPanel.setPreferredSize(new Dimension(PANEL_WIDTH, headerHeight));
         headerPanel.setMinimumSize(new Dimension(PANEL_WIDTH, headerHeight));
         updateFilter(active ? filterText.getText() : "");
-        if (focus && active)
-        {
-            filterText.grabFocus();
-        }
         revalidate();
         repaint();
     }
@@ -485,11 +486,6 @@ public class TradeTrackerPluginPanel extends PluginPanel
         });
     }
 
-    private void populateFromHistory(final ArrayList<TradeData> history, final int startIndex)
-    {
-
-    }
-
     // Toggles the hidden status of trade panels depending on if they match the filter query
     private void updateFilter(final String query)
     {
@@ -542,17 +538,12 @@ public class TradeTrackerPluginPanel extends PluginPanel
 
     void setFilter(final String text)
     {
-        if (text.isBlank())
-        {
-            return;
-        }
         SwingUtilities.invokeLater(() ->
         {
             if (!text.equalsIgnoreCase(filterText.getText()))
             {
                 filterText.setText(text);
             }
-            toggleFilter(true, false);
         });
     }
 

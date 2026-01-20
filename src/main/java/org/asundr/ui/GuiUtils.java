@@ -94,6 +94,7 @@ public class GuiUtils
         preTradeFilterText = mainPanel.filterText.getText();
         preTradeFilterActive = mainPanel.btnFilter.isActive();
         setFilter(tradeData.tradedPlayer.tradeName);
+        mainPanel.btnFilter.setActive(true);
     }
 
     public static void restoreFilterPostTrade()
@@ -102,7 +103,7 @@ public class GuiUtils
         {
             SwingUtilities.invokeLater(() ->
             {
-                mainPanel.filterText.setText(preTradeFilterText);
+                setFilter(preTradeFilterText);
                 mainPanel.btnFilter.setActive(preTradeFilterActive);
                 preTradeFilterText = null;
                 preTradeFilterActive = false;

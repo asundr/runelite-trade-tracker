@@ -30,6 +30,7 @@ import org.asundr.utility.CommonUtils;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -60,7 +61,7 @@ class ToolbarButton extends JButton
         this.enabledToolTipText = enabledToolTipText;
         this.disabledToolTipText = disabledToolTipText == null ? this.enabledToolTipText : disabledToolTipText;
         setToolTipText(active ? enabledToolTipText : disabledToolTipText);
-        addActionListener(e -> toggleActive());
+        addActionListener(this::actionListenerCallback);
     }
 
     // Sets the state of the button conditional on onToggledValidate if set
@@ -96,6 +97,11 @@ class ToolbarButton extends JButton
     public void setOnToggledValidate(final Predicate<Boolean> onToggledValidate)
     {
         this.onToggledValidate = onToggledValidate;
+    }
+
+    protected void actionListenerCallback(ActionEvent e)
+    {
+        toggleActive();
     }
 
 }
