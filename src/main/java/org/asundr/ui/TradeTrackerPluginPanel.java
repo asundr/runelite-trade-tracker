@@ -46,6 +46,7 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -374,8 +375,8 @@ public class TradeTrackerPluginPanel extends PluginPanel
         // Setting up button for toggling the filter
         btnFilter = new ToolbarButton(
                 "filter_on.png", "filter_off.png",
-                "Disable filter", "Enable filter", false,
-                active -> toggleFilter(active) )
+                "Disable filter", "Enable filter",
+                false, this::toggleFilter)
         {
             @Override protected void actionListenerCallback(ActionEvent e) {
                 super.actionListenerCallback(e);
@@ -473,12 +474,15 @@ public class TradeTrackerPluginPanel extends PluginPanel
             }
             new Thread(() ->
             {
-                for (final TradeData tradeData : tradeHistory)
-                {
-                    TradeRecordPanel tradeRecordPanel = new TradeRecordPanel(tradeData);
+                final List<TradeRecordPanel> panels = tradeHistory.parallelStream().map(e -> {
+                    TradeRecordPanel tradeRecordPanel = new TradeRecordPanel(e);
                     tradeRecordPanel.paddingStrut = Box.createVerticalStrut(TRADE_RECORD_PADDING);
-                    tradeHistoryPanel.add(tradeRecordPanel.paddingStrut, 0);
-                    tradeHistoryPanel.add(tradeRecordPanel, 0);
+                    return tradeRecordPanel;
+                }).collect(Collectors.toList());
+                for (final TradeRecordPanel panel : panels)
+                {
+                    tradeHistoryPanel.add(panel.paddingStrut, 0);
+                    tradeHistoryPanel.add(panel, 0);
                 }
                 tradeHistoryPanel.setVisible(true);
                 updateEmptyHistoryMessages();
