@@ -78,7 +78,7 @@ class TradeRecordPopUpMenu extends JPopupMenu
 
         final JMenu filterSubmenu = new JMenu("Filter by");
         final JMenuItem filterName = new JMenuItem("Player name");
-        filterName.addActionListener(e -> GuiUtils.setFilter(tradeRecordPanel.getTradeData().tradedPlayer.tradeName));
+        filterName.addActionListener(e -> GuiUtils.setFilterAndEnabled(tradeRecordPanel.getTradeData().tradedPlayer.tradeName));
         filterSubmenu.add(filterName);
         add(filterSubmenu);
 

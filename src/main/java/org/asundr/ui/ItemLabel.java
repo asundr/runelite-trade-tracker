@@ -140,20 +140,20 @@ class ItemLabel extends JLabel
 
                             final JMenu filterSubmenu = new JMenu("Filter by");
                             final JMenuItem filterName = new JMenuItem(TEXT_MENU_ITEM_NAME);
-                            filterName.addActionListener(evt-> GuiUtils.setFilter(getCurrentItemName()));
+                            filterName.addActionListener(evt-> GuiUtils.setFilterAndEnabled(getCurrentItemName()));
                             filterSubmenu.add(filterName);
                             final JMenuItem filterQuantity = new JMenuItem(TEXT_MENU_QUANTITY);
-                            filterQuantity.addActionListener(evt-> GuiUtils.setFilter(Long.toString(getTrueQuantity())));
+                            filterQuantity.addActionListener(evt-> GuiUtils.setFilterAndEnabled(Long.toString(getTrueQuantity())));
                             filterSubmenu.add(filterQuantity);
                             final JMenuItem filterGEPrice = new JMenuItem(TEXT_MENU_PRICE);
-                            filterGEPrice.addActionListener(evt-> GuiUtils.setFilter(Integer.toString(popupItemData.getGEValue())));
+                            filterGEPrice.addActionListener(evt-> GuiUtils.setFilterAndEnabled(Integer.toString(popupItemData.getGEValue())));
                             filterSubmenu.add(filterGEPrice);
                             final JMenuItem filterGETotal = new JMenuItem(TEXT_MENU_PRICE_TOTAL);
-                            filterGETotal.addActionListener(evt-> GuiUtils.setFilter(Long.toString((long)popupItemData.getGEValue() * getTrueQuantity())));
+                            filterGETotal.addActionListener(evt-> GuiUtils.setFilterAndEnabled(Long.toString((long)popupItemData.getGEValue() * getTrueQuantity())));
                             filterSubmenu.add(filterGETotal);
-                            filterId.addActionListener(evt-> GuiUtils.setFilter(Integer.toString(popupItemData.getID())));
+                            filterId.addActionListener(evt-> GuiUtils.setFilterAndEnabled(Integer.toString(popupItemData.getID())));
                             filterSubmenu.add(filterId);
-                            filterUnnotedId.addActionListener(evt-> GuiUtils.setFilter(Integer.toString(popupItemData.getUnnotedID())));
+                            filterUnnotedId.addActionListener(evt-> GuiUtils.setFilterAndEnabled(Integer.toString(popupItemData.getUnnotedID())));
                             filterSubmenu.add(filterUnnotedId);
                             popupMenu.add(filterSubmenu);
                         }

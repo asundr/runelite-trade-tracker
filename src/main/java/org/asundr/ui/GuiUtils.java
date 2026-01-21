@@ -51,6 +51,12 @@ public class GuiUtils
         mainPanel.setFilter(text);
     }
 
+    public static void setFilterAndEnabled(final String text)
+    {
+        setFilter(text);
+        mainPanel.btnFilter.setActive(true);
+    }
+
     public static void clearFilter()
     {
         if (mainPanel == null)
@@ -93,8 +99,7 @@ public class GuiUtils
         }
         preTradeFilterText = mainPanel.filterText.getText();
         preTradeFilterActive = mainPanel.btnFilter.isActive();
-        setFilter(tradeData.tradedPlayer.tradeName);
-        mainPanel.btnFilter.setActive(true);
+        setFilterAndEnabled(tradeData.tradedPlayer.tradeName);
     }
 
     public static void restoreFilterPostTrade()
