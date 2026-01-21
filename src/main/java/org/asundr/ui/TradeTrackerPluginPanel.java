@@ -209,10 +209,15 @@ public class TradeTrackerPluginPanel extends PluginPanel
         saveHistoryMenu.addActionListener(a -> SaveManager.saveTradeHistoryToFile());
         final JMenuItem loadHistoryMenu = new JMenuItem(("Load profile from file"));
         loadHistoryMenu.addActionListener(a ->SaveManager.loadTradeHistoryFromFile());
+        final JMenuItem refreshCurrentMenu = new JMenuItem("Refresh current trade history");
+        refreshCurrentMenu.addActionListener(a -> replaceAllTradeRecords(TradeManager.getTradeHistory()));
+        refreshCurrentMenu.setToolTipText("Updates the trade history UI using the currently loaded history");
         final JMenuItem saveCurrentMenu = new JMenuItem("Save current trade history");
         saveCurrentMenu.addActionListener(a -> SaveManager.requestTradeHistorySave());
         subtitlePopup.add(saveHistoryMenu);
         subtitlePopup.add(loadHistoryMenu);
+        subtitlePopup.addSeparator();
+        subtitlePopup.add(refreshCurrentMenu);
         subtitlePopup.add(saveCurrentMenu);
 
         // Create subtitle panel and setup popup events
