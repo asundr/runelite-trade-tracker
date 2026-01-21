@@ -81,6 +81,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
     private final JPanel emptyHistoryPanel = new JPanel();
     private final JLabel emptyHistoryLabel = new JLabel(String.format(TEMPLATE_EMPTY_LIST, "Trade History", "No trades have been recorded"));
     private final JLabel emptyFilterLabel = new JLabel(String.format(TEMPLATE_EMPTY_LIST, "Filter Results", "No recorded trades match your filter"));
+    private final JLabel emptyLoadingLabel = new JLabel(String.format(TEMPLATE_EMPTY_LIST, "Loading History...", "Please wait until all records have been loaded"));
     private final JLabel profileNameLabel = new JLabel();
     final private JPopupMenu subtitlePopup = new JPopupMenu();
     private ToolbarButton btnSchedulePurge;
@@ -466,11 +467,14 @@ public class TradeTrackerPluginPanel extends PluginPanel
         clearAllTradeRecords();
         if (tradeHistory == null || tradeHistory.isEmpty())
         {
+            updateEmptyHistoryMessages();
             return;
         }
+        btnFilter.setActive(false);
+        tradeHistoryPanel.setVisible(false);
+        updateEmptyHistoryMessages();
         CommonUtils.getClientThread().invokeLater(() ->
         {
-            tradeHistoryPanel.setVisible(false);
             for (final TradeData tradeData : tradeHistory)
             {
                 TradeUtils.fetchItemNames(tradeData.givenItems);
@@ -515,13 +519,23 @@ public class TradeTrackerPluginPanel extends PluginPanel
         repaint();
     }
 
+    final private boolean isRefreshingTradeHistory()
+    {
+        return !tradeHistoryPanel.isVisible();
+    }
+
     // Toggles the visibility of empty trade history messages in cases where there are
     // no trades or when all existing trades have been filtered out
     private void updateEmptyHistoryMessages()
     {
         emptyHistoryPanel.removeAll();
         emptyHistoryPanel.setVisible(false);
-        if (tradeHistoryPanel.getComponents().length == 0)
+        if (isRefreshingTradeHistory())
+        {
+            emptyHistoryPanel.add(emptyLoadingLabel);
+            emptyHistoryPanel.setVisible(true);
+        }
+        else if (tradeHistoryPanel.getComponents().length == 0)
         {
             emptyHistoryPanel.add(emptyHistoryLabel);
             emptyHistoryPanel.setVisible(true);
