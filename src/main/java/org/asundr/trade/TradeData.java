@@ -53,7 +53,7 @@ public class TradeData
         }
         for (Item item : itemContainer.getItems())
         {
-            if (item == null)
+            if (item == null || item.getId() == -1)
             {
                 continue;
             }
