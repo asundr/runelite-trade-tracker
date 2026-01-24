@@ -48,6 +48,8 @@ import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -75,6 +77,8 @@ public class TradeTrackerPluginPanel extends PluginPanel
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private ScheduledFuture<?> scheduledUpdateTimeFuture = null;
+    private final ExecutorService executor = Executors.newFixedThreadPool(1);
+    private Future<?> uiExecutorFuture = null;
 
     private final JPanel headerPanel = new JPanel();
     private final JPanel tradeHistoryPanel = new JPanel();
@@ -494,7 +498,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
                 TradeUtils.fetchItemNames(tradeData.receivedItems);
                 tradeData.calculateAggregateValues();
             }
-            new Thread(() ->
+            uiExecutorFuture = executor.submit(() ->
             {
                 final List<TradeRecordPanel> panels = tradeHistory.parallelStream().map(e -> {
                     TradeRecordPanel tradeRecordPanel = new TradeRecordPanel(e);
@@ -508,7 +512,8 @@ public class TradeTrackerPluginPanel extends PluginPanel
                 }
                 tradeHistoryPanel.setVisible(true);
                 updateEmptyHistoryMessages();
-            }).start();
+                uiExecutorFuture = null;
+            });
         });
     }
 
