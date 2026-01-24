@@ -205,4 +205,9 @@ public class CommonUtils
     {
         return config.getPurgeHistoryType() != TradeTrackerConfig.PurgeHistoryType.NEVER && config.getPurgeHistoryMagnitude() > 0;
     }
+
+    public static boolean isThreadActive(java.util.concurrent.Future<?> future)
+    {
+        return future != null && !future.isCancelled() && !future.isDone();
+    }
 }

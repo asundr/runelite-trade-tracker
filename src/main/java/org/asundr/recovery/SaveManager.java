@@ -127,7 +127,7 @@ public class SaveManager
 
     public static void shutdown()
     {
-        if (ioExecutorFuture != null && !ioExecutorFuture.isCancelled() && !ioExecutorFuture.isDone())
+        if (CommonUtils.isThreadActive(ioExecutorFuture))
         {
             if (hasFlag(tradeHistorySaveState, SaveState.ACTIVE))
             {
@@ -273,8 +273,7 @@ public class SaveManager
     // Repeatedly attempts to start a new save or load thread while a queued save or load is pending
     private static void scheduleRecoveryOperation()
     {
-        final boolean threadStillActive = ioExecutorFuture != null && !ioExecutorFuture.isCancelled() && !ioExecutorFuture.isDone();
-        if (!threadStillActive && !hasFlag(tradeHistorySaveState, SaveState.ACTIVE) && !hasFlag(tradeHistoryLoadState, SaveState.ACTIVE))
+        if (!CommonUtils.isThreadActive(ioExecutorFuture) && !hasFlag(tradeHistorySaveState, SaveState.ACTIVE) && !hasFlag(tradeHistoryLoadState, SaveState.ACTIVE))
         {
             if (tradeHistorySaveState.get() == SaveState.REQUESTED)
             {

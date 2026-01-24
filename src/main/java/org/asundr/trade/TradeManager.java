@@ -334,7 +334,7 @@ public class TradeManager
 	// Called whenever the timer to purge expired trades needs to be changed or cancelled
 	private void updateRemoveExpiredRecordTimer()
 	{
-		if (scheduledPurgeFuture != null && !scheduledPurgeFuture.isCancelled() && !scheduledPurgeFuture.isDone())
+		if (CommonUtils.isThreadActive(scheduledPurgeFuture))
 		{
 			//log.debug("Cancelled scheduled removal of expired trade.");
 			scheduledPurgeFuture.cancel(false);
