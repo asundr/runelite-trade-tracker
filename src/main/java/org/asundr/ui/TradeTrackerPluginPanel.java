@@ -131,6 +131,18 @@ public class TradeTrackerPluginPanel extends PluginPanel
                 TimeUnit.MILLISECONDS);
     }
 
+    public void shutdown()
+    {
+        if (CommonUtils.isThreadActive(scheduledUpdateTimeFuture))
+        {
+            scheduler.shutdownNow();
+        }
+        if (CommonUtils.isThreadActive(uiExecutorFuture))
+        {
+            executor.shutdownNow();
+        }
+    }
+
     @Subscribe
     private void onEventTradeTrackerProfileChanged(EventTradeTrackerProfileChanged evt)
     {

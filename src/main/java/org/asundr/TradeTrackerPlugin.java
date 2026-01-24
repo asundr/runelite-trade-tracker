@@ -93,6 +93,7 @@ public class TradeTrackerPlugin extends Plugin
 	private DrawManager drawManager;
 
 	private final SaveManager saveManager = new SaveManager();
+	private TradeTrackerPluginPanel mainPanel;
 	private NavigationButton navigationButton;
 	private Collection<Object> eventSubscribers;
 
@@ -107,7 +108,7 @@ public class TradeTrackerPlugin extends Plugin
 		TradeUtils.initialize(itemManager);
 		ScreenshotUtils.initialize(spriteManager, imageCapture, drawManager, overlayManager);
 		SaveManager.restoreCommonData();
-		TradeTrackerPluginPanel mainPanel = new TradeTrackerPluginPanel();
+		mainPanel = new TradeTrackerPluginPanel();
 		GuiUtils.initialize(mainPanel);
 		eventSubscribers = Arrays.asList(mainPanel, TradeManager.getInstance(), saveManager);
 		eventSubscribers.forEach(e -> eventBus.register(e));
@@ -126,6 +127,7 @@ public class TradeTrackerPlugin extends Plugin
 		eventSubscribers.forEach(e -> eventBus.unregister(e));
 		TradeManager.getInstance().shutdown();
 		SaveManager.shutdown();
+		mainPanel.shutdown();
 		ScreenshotUtils.shutdown();
 	}
 
