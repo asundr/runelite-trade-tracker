@@ -373,6 +373,19 @@ public class TradeTrackerPluginPanel extends PluginPanel
                 }
             }
         });
+        filterText.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                if (e.getButton() == MouseEvent.BUTTON3)
+                {
+                    JPopupMenu filterTextPopup = new JPopupMenu();
+                    JMenuItem clearFilterTextItem = new JMenuItem("Clear");
+                    clearFilterTextItem.addActionListener(event -> clearFilter());
+                    filterTextPopup.add(clearFilterTextItem);
+                    filterTextPopup.show(filterText, e.getX(), e.getY());
+                }
+            }
+        });
         filterText.setVisible(false);
         filterText.setBackground(COLOR_FILTER_TEXT_BACKGROUND);
         filterText.setBorder(BORDER_FILTER_TEXT);
