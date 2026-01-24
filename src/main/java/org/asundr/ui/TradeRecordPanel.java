@@ -156,8 +156,8 @@ class TradeRecordPanel extends CollapsiblePanel
             summaryPanel.add(imgLabel);
             if (tradeType == SimpleTradeData.Type.Sold_Item || simpleData.getTradeType() == SimpleTradeData.Type.Bought_Item)
             {
-                final String pricePerString = simpleData.getPricePerItem() < 100f
-                        ? Float.toString(Math.round(1000*simpleData.getPricePerItem())/1000.f)
+                final String pricePerString = simpleData.getPricePerItem() < 100d
+                        ? Double.toString(Math.round(1000d*simpleData.getPricePerItem())/1000d)
                         : StringUtils.quantityToRSDecimalStackLong((int)simpleData.getPricePerItem(),true);
                 JLabel pricePerLabel = new JLabel(String.format(TRADE_PRICE_PER_TEMPLATE, pricePerString));
                 pricePerLabel.setToolTipText(QuantityFormatter.formatNumber(simpleData.getPricePerItem()) + " gp each");
@@ -344,7 +344,7 @@ class TradeRecordPanel extends CollapsiblePanel
         // float numeric queries
         if (simpleData != null && simpleData.isValid())
         {
-            if (Float.toString(simpleData.getPricePerItem()).startsWith(query))
+            if (Double.toString(simpleData.getPricePerItem()).startsWith(query))
                 return true;
         }
         // int/long numeric queries

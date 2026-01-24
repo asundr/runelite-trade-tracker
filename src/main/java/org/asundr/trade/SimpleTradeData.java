@@ -47,7 +47,7 @@ public class SimpleTradeData
     private final Type tradeType;
     private TradeItemData item = null;
     private long quantity = 0;
-    private float pricePerItem = 0f;
+    private double pricePerItem = 0f;
 
     public SimpleTradeData(final TradeData tradeData)
     {
@@ -79,7 +79,7 @@ public class SimpleTradeData
             return;
         }
         quantity = TradeUtils.getTotalItemQuantity(itemsTraded, sampleItem.get().getUnnotedID());
-        pricePerItem = currencyExchanged / (float)quantity;
+        pricePerItem = (double)currencyExchanged / (double)quantity;
         item = new TradeItemData(sampleItem.get().getUnnotedID(), (int)Math.min(quantity, Integer.MAX_VALUE), sampleItem.get().getGEValue());
     }
 
@@ -116,5 +116,5 @@ public class SimpleTradeData
     public final boolean isType(final Type type) { return tradeType == type; }
     public final long getQuantity() { return quantity; }
     public final TradeItemData getItem() { return new TradeItemData(item); }
-    public final float getPricePerItem() { return pricePerItem; }
+    public final double getPricePerItem() { return pricePerItem; }
 }
