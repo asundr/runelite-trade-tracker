@@ -125,6 +125,7 @@ public class TradeTrackerPlugin extends Plugin
 		clientToolbar.removeNavigation(navigationButton);
 		eventSubscribers.forEach(e -> eventBus.unregister(e));
 		TradeManager.getInstance().shutdown();
+		SaveManager.shutdown();
 		ScreenshotUtils.shutdown();
 	}
 

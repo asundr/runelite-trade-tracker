@@ -42,12 +42,15 @@ import org.asundr.utility.StringUtils;
 
 import java.lang.reflect.Type;
 import java.util.ArrayDeque;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public class SaveManager
 {
-    public final static String REGEX_EMPTY_NOTES = ",\"note\":(?:null|\"\")";
+    public static final String REGEX_EMPTY_NOTES = ",\"note\":(?:null|\"\")";
 
     // used to schedule saves and prevent save operations from being interrupted
     private static final class SaveState
@@ -58,13 +61,15 @@ public class SaveManager
         static final int ACTIVE_REQUESTED = REQUESTED | ACTIVE;
 
     }
-    public final static int SAVE_VERSION = 2; // This should increase whenever save data or method changes
-    public final static String SAVE_GROUP = "TradeTracker";
-    private final static String DEFAULT_SAVE_FILENAME = "profile";
+    public static final int SAVE_VERSION = 2; // This should increase whenever save data or method changes
+    public static final String SAVE_GROUP = "TradeTracker";
+    private static final String DEFAULT_SAVE_FILENAME = "profile";
     private static ConfigManager configManager;
     private static SaveData_Common saveDataCommon;
-    private final static AtomicInteger tradeHistorySaveState = new AtomicInteger(SaveState.INACTIVE); // flags for trade history save operation
-    private final static AtomicInteger tradeHistoryLoadState = new AtomicInteger(SaveState.INACTIVE); // flags for trade history load operation
+    private static final AtomicInteger tradeHistorySaveState = new AtomicInteger(SaveState.INACTIVE); // flags for trade history save operation
+    private static final AtomicInteger tradeHistoryLoadState = new AtomicInteger(SaveState.INACTIVE); // flags for trade history load operation
+    private static final ExecutorService ioExecutor = Executors.newFixedThreadPool(1);
+    private static Future<?> ioExecutorFuture  = null;
 
     @Subscribe
     private void onGameStateChanged(GameStateChanged evt)
@@ -120,6 +125,21 @@ public class SaveManager
         SaveManager.configManager = configManager;
     }
 
+    public static void shutdown()
+    {
+        if (ioExecutorFuture != null && !ioExecutorFuture.isCancelled() && !ioExecutorFuture.isDone())
+        {
+            if (hasFlag(tradeHistorySaveState, SaveState.ACTIVE))
+            {
+                ioExecutor.shutdown();
+            }
+            else
+            {
+                ioExecutor.shutdownNow();
+            }
+        }
+    }
+
     private static SaveData_Common getSaveDataCommon()
     {
         if (saveDataCommon == null)
@@ -136,7 +156,6 @@ public class SaveManager
     // serializes and saves common data
     private static void saveCommonData()
     {
-
         Gson gson = StringUtils.getGsonBuilder();
         String json = gson.toJson(getSaveDataCommon());
         configManager.setConfiguration(SAVE_GROUP, ConfigKey.COMMON, json);
@@ -185,6 +204,7 @@ public class SaveManager
         finally
         {
             clearFlag(tradeHistorySaveState, SaveState.ACTIVE);
+            ioExecutorFuture = null;
         }
     }
 
@@ -210,12 +230,13 @@ public class SaveManager
         }
         toggleFlag(tradeHistoryLoadState, SaveState.ACTIVE_REQUESTED);
         final String json = configManager.getConfiguration(SAVE_GROUP, saveDataCommon.getActiveProfile().getKeyString());
-        restoreTradeHistoryData(json);
+        restoreTradeHistoryDataFromJson(json);
         clearFlag(tradeHistoryLoadState, SaveState.ACTIVE);
+        ioExecutorFuture = null;
     }
 
     // Restores the trade history using a json string serialized from SaveData_Profile
-    private static void restoreTradeHistoryData(final String json)
+    private static void restoreTradeHistoryDataFromJson(final String json)
     {
         final String profileKey = getSaveDataCommon().getActiveProfile() == null ? null : saveDataCommon.getActiveProfile().getKeyString();
         if (json == null || json.equals(""))
@@ -252,18 +273,19 @@ public class SaveManager
     // Repeatedly attempts to start a new save or load thread while a queued save or load is pending
     private static void scheduleRecoveryOperation()
     {
-        if (!hasFlag(tradeHistorySaveState, SaveState.ACTIVE) & !hasFlag(tradeHistoryLoadState, SaveState.ACTIVE))
+        final boolean threadStillActive = ioExecutorFuture != null && !ioExecutorFuture.isCancelled() && !ioExecutorFuture.isDone();
+        if (!threadStillActive && !hasFlag(tradeHistorySaveState, SaveState.ACTIVE) && !hasFlag(tradeHistoryLoadState, SaveState.ACTIVE))
         {
             if (tradeHistorySaveState.get() == SaveState.REQUESTED)
             {
-                new Thread(SaveManager::saveTradeHistoryData).start();
+                ioExecutorFuture = ioExecutor.submit(SaveManager::saveTradeHistoryData);
             }
             else if (tradeHistoryLoadState.get() == SaveState.REQUESTED)
             {
-                new Thread(SaveManager::restoreTradeHistoryData).start();
+                ioExecutorFuture = ioExecutor.submit(SaveManager::restoreTradeHistoryData);
             }
         }
-        else if (hasFlag(tradeHistorySaveState, SaveState.REQUESTED) ||hasFlag(tradeHistoryLoadState, SaveState.REQUESTED))
+        else if (hasFlag(tradeHistorySaveState, SaveState.REQUESTED) || hasFlag(tradeHistoryLoadState, SaveState.REQUESTED))
         {
             CommonUtils.getClientThread().invokeLater(SaveManager::scheduleRecoveryOperation);
         }
@@ -330,7 +352,7 @@ public class SaveManager
         {
             return;
         }
-        restoreTradeHistoryData(json);
+        restoreTradeHistoryDataFromJson(json);
     }
 
 
