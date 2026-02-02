@@ -111,6 +111,21 @@ public interface TradeTrackerConfig extends Config
 	)
 	default boolean use24HourTime() { return false; }
 
+	public enum ItemPriceType
+	{
+		LOW_ALCHEMY,
+		HIGH_ALCHEMY,
+		GRAND_EXCHANGE
+	}
+
+	@ConfigItem(
+			keyName = ConfigKey.DEFAULT_PRICE_TYPE,
+			name = "Price type",
+			description = "Uses the set price source to calculate aggregate values",
+			section = SECTION_DISPLAY
+	)
+	default ItemPriceType getDefaultPriceType() { return ItemPriceType.GRAND_EXCHANGE; }
+
 	@ConfigItem(
 			keyName = ConfigKey.IGNORE_EMPTY_TRADES,
 			name = "Ignore empty trades",
