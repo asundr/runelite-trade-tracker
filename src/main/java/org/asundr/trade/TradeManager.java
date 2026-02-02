@@ -277,8 +277,8 @@ public class TradeManager
 		removeOverflowRecords(1);
 		tradeHistory.addLast(tradeData);
 		CommonUtils.getClientThread().invokeLater(() -> {
-			TradeUtils.fetchItemNames(tradeData.givenItems);
-			TradeUtils.fetchItemNames(tradeData.receivedItems);
+			TradeUtils.fetchCompositionData(tradeData.givenItems);
+			TradeUtils.fetchCompositionData(tradeData.receivedItems);
 			TradeUtils.fetchGePrices(tradeData.givenItems);
 			TradeUtils.fetchGePrices(tradeData.receivedItems);
 			tradeData.calculateAggregateValues();

@@ -65,6 +65,10 @@ public class TradeItemData
 
     public final int getGEValue() { return ge; }
 
+    public final int getHaValue() { return TradeUtils.getHaPrice(getID()); }
+
+    public final int getConfiguredValue() { return TradeUtils.getConfiguredPrice(this); }
+
     private void setGEValue(final int value, final boolean override)
     {
         if (ge == -1 || override)

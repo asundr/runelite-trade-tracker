@@ -506,8 +506,8 @@ public class TradeTrackerPluginPanel extends PluginPanel
         {
             for (final TradeData tradeData : tradeHistory)
             {
-                TradeUtils.fetchItemNames(tradeData.givenItems);
-                TradeUtils.fetchItemNames(tradeData.receivedItems);
+                TradeUtils.fetchCompositionData(tradeData.givenItems);
+                TradeUtils.fetchCompositionData(tradeData.receivedItems);
                 tradeData.calculateAggregateValues();
             }
             uiExecutorFuture = executor.submit(() ->

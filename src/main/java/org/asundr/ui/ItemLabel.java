@@ -92,7 +92,7 @@ class ItemLabel extends JLabel
                 if (e.getButton() == MouseEvent.BUTTON3)
                 {
                     popupItemId = itemData.getUnnotedID();
-                    popupItemName = TradeUtils.getStoredItemName(popupItemId);
+                    popupItemName = TradeUtils.getCachedItemName(popupItemId);
                     popupItemData = new TradeItemData(itemData);
                     if (popupItemName != null)
                     {

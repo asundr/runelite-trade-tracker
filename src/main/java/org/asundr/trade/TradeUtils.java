@@ -3,6 +3,7 @@ package org.asundr.trade;
 import net.runelite.api.ItemComposition;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.util.AsyncBufferedImage;
+import org.asundr.utility.CommonUtils;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,7 +19,23 @@ final public class TradeUtils
         ItemID(int id) {this.id = id;}
     }
 
-    private final static HashMap<Integer, String> itemNameCache = new HashMap<>();
+    // Contains cached item data
+    private static class CachedItemComposition
+    {
+        private final String name;
+        private final int price;
+        CachedItemComposition(final String membersName, final int storePrice)
+        {
+            this.name = membersName;
+            this.price = storePrice;
+        }
+        public String getName() { return name; }
+        public int getStorePrice() { return price; }
+        public int getHaPrice() { return (int)(price * 0.8f);}
+        public int getLaPrice() { return (int)(price * 0.6f); }
+    }
+
+    private final static HashMap<Integer, CachedItemComposition> itemCompositionMap = new HashMap<>();
 
     private static ItemManager itemManager;
 
@@ -27,11 +44,47 @@ final public class TradeUtils
         TradeUtils.itemManager = itemManager;
     }
 
-    public static String getStoredItemName(final int id)
+    // Returns the cached item name of the passed id. Assumes the cached value exists.
+    public static String getCachedItemName(final int id)
     {
-        return itemNameCache.get(id);
+        return itemCompositionMap.get(id).getName();
     }
-    public static String getOrDefaultCachedItemName(final int id, final String defaultValue) { return itemNameCache.getOrDefault(id, defaultValue); }
+
+    // Returns the cached item name of the passed id, or the passed default value if no ached value is found
+    public static String getOrDefaultCachedItemName(final int id, final String defaultValue)
+    {
+        final CachedItemComposition comp = itemCompositionMap.get(id);
+        return comp == null ? defaultValue : comp.getName();
+    }
+
+    // Returns the cached high alchemy price of the passed item id
+    public static int getHaPrice(final int id)
+    {
+        final CachedItemComposition cachedComp = itemCompositionMap.get(id);
+        return cachedComp == null ? 0 : cachedComp.getHaPrice();
+    }
+
+    // Returns the cached low alchemy price of the passed item
+    public static int getLaPrice(final int id)
+    {
+        final CachedItemComposition cachedComp = itemCompositionMap.get(id);
+        return cachedComp == null ? 0 : cachedComp.getLaPrice();
+    }
+
+    // Returns either the GE price at the time of the trade, or the cached HA / LA price
+    public static int getConfiguredPrice(final TradeItemData itemData)
+    {
+        switch (CommonUtils.getConfig().getDefaultPriceType())
+        {
+            case LOW_ALCHEMY:
+                return getLaPrice(itemData.getID());
+            case HIGH_ALCHEMY:
+                return  getHaPrice(itemData.getID());
+            case GRAND_EXCHANGE:
+                return itemData.getGEValue();
+        }
+        return -1;
+    }
 
     // Returns the price of the item with the passed ID
     // Note: Should be called via clientThread.invokeLater()
@@ -52,27 +105,28 @@ final public class TradeUtils
 
     // Fetches item names and will update the id of noted items
     // Note: Should be called via clientThread.invokeLater()
-    public static void fetchItemNames(final Collection<TradeItemData> itemDataList)
+    public static void fetchCompositionData(final Collection<TradeItemData> itemDataList)
     {
         for (final TradeItemData itemData : itemDataList)
         {
-            if (!itemNameCache.containsKey(itemData.getID()))
+            if (!itemCompositionMap.containsKey(itemData.getID()))
             {
                 final ItemComposition comp = itemManager.getItemComposition(itemData.getID());
+                comp.getPrice();comp.getHaPrice();
                 if (comp.getNote() != -1)
                 {
                     itemData.setUnnotedId(comp.getLinkedNoteId());
-                    if (itemNameCache.containsKey(itemData.getUnnotedID()))
+                    if (itemCompositionMap.containsKey(itemData.getUnnotedID()))
                     {
                         continue;
                     }
                 }
-                itemNameCache.put(itemData.getUnnotedID(), comp.getMembersName());
+                itemCompositionMap.put(itemData.getUnnotedID(), new CachedItemComposition(comp.getMembersName(), comp.getPrice()));
             }
         }
     }
 
-    // Returns the image for the passed item with the quantity count
+    // Returns the image for the passed item with the quantity count,
     public static AsyncBufferedImage getItemImage(final int itemId, final int quantity, final boolean stackable)
     {
         return itemManager.getImage(itemId, quantity, stackable);
