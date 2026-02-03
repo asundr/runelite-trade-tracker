@@ -30,6 +30,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
+import net.runelite.client.chat.ChatMessageBuilder;
+import net.runelite.client.chat.ChatMessageManager;
+import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.game.chatbox.ChatboxPanelManager;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -56,6 +59,7 @@ public class CommonUtils
     private static Client client;
     private static ClientThread clientThread;
     private static ChatboxPanelManager chatboxPanelManager;
+    private static ChatMessageManager chatMessageManager;
     private static EventBus eventBus;
     private static OverlayManager overlayManager;
 
@@ -66,12 +70,13 @@ public class CommonUtils
 
 
     // Prepares the utility class with the various query class instances it needs to function
-    public static void initialize(TradeTrackerConfig config, Client client, ClientThread clientThread, TradeTrackerPlugin plugin, ChatboxPanelManager chatboxPanelManager, EventBus eventBus, OverlayManager overlayManager)
+    public static void initialize(TradeTrackerConfig config, Client client, ClientThread clientThread, TradeTrackerPlugin plugin, ChatboxPanelManager chatboxPanelManager, EventBus eventBus, OverlayManager overlayManager, ChatMessageManager chatMessageManager)
     {
         CommonUtils.config = config;
         CommonUtils.client = client;
         CommonUtils.clientThread = clientThread;
         CommonUtils.chatboxPanelManager = chatboxPanelManager;
+        CommonUtils.chatMessageManager = chatMessageManager;
         CommonUtils.eventBus = eventBus;
         CommonUtils.overlayManager = overlayManager;
     }
@@ -127,6 +132,16 @@ public class CommonUtils
                 content = Text.removeTags(content).trim();
                 response.accept(content);
             }).build();
+    }
+
+    public static void chatMessage(final String message)
+    {
+        final ChatMessageBuilder messageBuilder = new ChatMessageBuilder()
+                .append(message);
+        chatMessageManager.queue(QueuedMessage.builder()
+                .type(ChatMessageType.GAMEMESSAGE)
+                .runeLiteFormattedMessage(messageBuilder.build())
+                .build());
     }
 
     // Returns an Icon given a filepath to an image, or null if no such image exists.
