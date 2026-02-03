@@ -88,7 +88,7 @@ public class TradeLookupMenuManager
             case InterfaceID.IGNORE:
             {
                 final String name = Text.toJagexName(Text.removeTags(event.getTarget()));
-                CommonUtils.getClient().getMenu().createMenuEntry(-10)
+                CommonUtils.getClient().getMenu().createMenuEntry(-1)
                         .setTarget(event.getTarget())
                         .setOption(TEXT_MENU_ITEM_FILTER)
                         .setType(MenuAction.RUNELITE)
