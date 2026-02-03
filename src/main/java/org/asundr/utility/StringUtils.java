@@ -2,6 +2,7 @@ package org.asundr.utility;
 
 import com.google.gson.Gson;
 import net.runelite.client.util.QuantityFormatter;
+import org.asundr.TradeTrackerConfig;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
@@ -111,4 +112,9 @@ public class StringUtils
         return (capitalized ? capitalize(enumValue.toString()) : enumValue.toString().toLowerCase()).replace("_"," ");
     }
 
+    public static String replacePriceType(final String original, final boolean isShort)
+    {
+        final TradeTrackerConfig.ItemPriceType type = CommonUtils.getConfig().getDefaultPriceType();
+        return original.replaceAll("#[pP]", isShort ? type.shortName : type.fullName);
+    }
 }

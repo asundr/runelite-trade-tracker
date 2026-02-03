@@ -1,8 +1,10 @@
 package org.asundr.trade;
 
 import net.runelite.api.ItemComposition;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.util.AsyncBufferedImage;
+import org.asundr.utility.CommonUtils;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,15 +12,23 @@ import java.util.Iterator;
 
 final public class TradeUtils
 {
-    public enum ItemID
+    // Contains cached item data
+    private static class CachedItemComposition
     {
-        COINS(995),
-        PLATINUM(13204);
-        public final int id;
-        ItemID(int id) {this.id = id;}
+        private final String name;
+        private final int haPrice;
+        CachedItemComposition(final String membersName, final int haPrice)
+        {
+            this.name = membersName;
+            this.haPrice = haPrice;
+        }
+        public String getName() { return name; }
+        public int getStorePrice() { return (int)(haPrice / 0.6f); }
+        public int getHaPrice() { return haPrice; }
+        public int getLaPrice() { return (int)((haPrice * 2L) / 3L); }
     }
 
-    private final static HashMap<Integer, String> itemNameCache = new HashMap<>();
+    private final static HashMap<Integer, CachedItemComposition> itemCompositionMap = new HashMap<>();
 
     private static ItemManager itemManager;
 
@@ -27,15 +37,51 @@ final public class TradeUtils
         TradeUtils.itemManager = itemManager;
     }
 
-    public static String getStoredItemName(final int id)
+    // Returns the cached item name of the passed id. Assumes the cached value exists.
+    public static String getCachedItemName(final int id)
     {
-        return itemNameCache.get(id);
+        return itemCompositionMap.get(id).getName();
     }
-    public static String getOrDefaultCachedItemName(final int id, final String defaultValue) { return itemNameCache.getOrDefault(id, defaultValue); }
+
+    // Returns the cached item name of the passed id, or the passed default value if no ached value is found
+    public static String getOrDefaultCachedItemName(final int id, final String defaultValue)
+    {
+        final CachedItemComposition comp = itemCompositionMap.get(id);
+        return comp == null ? defaultValue : comp.getName();
+    }
+
+    // Returns the cached high alchemy price of the passed item id
+    public static int getHaPrice(final int id)
+    {
+        final CachedItemComposition cachedComp = itemCompositionMap.get(id);
+        return cachedComp == null ? 0 : cachedComp.getHaPrice();
+    }
+
+    // Returns the cached low alchemy price of the passed item
+    public static int getLaPrice(final int id)
+    {
+        final CachedItemComposition cachedComp = itemCompositionMap.get(id);
+        return cachedComp == null ? 0 : isCurrency(id) ? cachedComp.getHaPrice() : cachedComp.getLaPrice();
+    }
+
+    // Returns either the GE price at the time of the trade, or the cached HA / LA price
+    public static int getConfiguredPrice(final TradeItemData itemData)
+    {
+        switch (CommonUtils.getConfig().getDefaultPriceType())
+        {
+            case LOW_ALCHEMY:
+                return getLaPrice(itemData.getUnnotedID());
+            case HIGH_ALCHEMY:
+                return getHaPrice(itemData.getUnnotedID());
+            case GRAND_EXCHANGE:
+                return itemData.getGEValue();
+        }
+        return -1;
+    }
 
     // Returns the price of the item with the passed ID
     // Note: Should be called via clientThread.invokeLater()
-    public static int getItemPrice(final int itemID)
+    public static int fetchItemGePrice(final int itemID)
     {
         return itemManager.getItemPrice(itemID);
     }
@@ -46,33 +92,34 @@ final public class TradeUtils
     {
         for (TradeItemData itemData : itemDataList)
         {
-            itemData.setGEValue(getItemPrice(itemData.getUnnotedID()));
+            itemData.setGEValue(fetchItemGePrice(itemData.getUnnotedID()));
         }
     }
 
     // Fetches item names and will update the id of noted items
     // Note: Should be called via clientThread.invokeLater()
-    public static void fetchItemNames(final Collection<TradeItemData> itemDataList)
+    public static void fetchCompositionData(final Collection<TradeItemData> itemDataList)
     {
         for (final TradeItemData itemData : itemDataList)
         {
-            if (!itemNameCache.containsKey(itemData.getID()))
+            if (!itemCompositionMap.containsKey(itemData.getID()))
             {
                 final ItemComposition comp = itemManager.getItemComposition(itemData.getID());
                 if (comp.getNote() != -1)
                 {
                     itemData.setUnnotedId(comp.getLinkedNoteId());
-                    if (itemNameCache.containsKey(itemData.getUnnotedID()))
+                    if (itemCompositionMap.containsKey(itemData.getUnnotedID()))
                     {
                         continue;
                     }
                 }
-                itemNameCache.put(itemData.getUnnotedID(), comp.getMembersName());
+                final int haPrice = isCurrency(itemData.getUnnotedID()) ? comp.getPrice() : comp.getHaPrice();
+                itemCompositionMap.put(itemData.getUnnotedID(), new CachedItemComposition(comp.getMembersName(), haPrice));
             }
         }
     }
 
-    // Returns the image for the passed item with the quantity count
+    // Returns the image for the passed item with the quantity count,
     public static AsyncBufferedImage getItemImage(final int itemId, final int quantity, final boolean stackable)
     {
         return itemManager.getImage(itemId, quantity, stackable);
@@ -85,9 +132,9 @@ final public class TradeUtils
     }
 
     // Evaluates the aggregate Grand Exchange value of all passed item stacks
-    public static long totalGEValue(final Collection<TradeItemData> items)
+    public static long totalConfiguredValue(final Collection<TradeItemData> items)
     {
-        return items.stream().reduce(0L, (Acc, item) -> Acc + (item.getGEValue() * (long)item.getQuantity()), Long::sum);
+        return items.stream().reduce(0L, (acc, item) -> acc + ((long)item.getConfiguredValue() * (long)item.getQuantity()), Long::sum);
     }
 
     // Returns true if the only items in the passed collection currency such as coins or platinum
@@ -99,12 +146,17 @@ final public class TradeUtils
         }
         for (TradeItemData itemData : items)
         {
-            if (itemData.getUnnotedID() != ItemID.PLATINUM.id && itemData.getUnnotedID() != ItemID.COINS.id)
+            if (!isCurrency(itemData.getUnnotedID()))
             {
                 return false;
             }
         }
         return true;
+    }
+
+    public static boolean isCurrency(final int id)
+    {
+        return id == ItemID.COINS || id == ItemID.PLATINUM;
     }
 
     // Returns true if all items in the passed collection have the same ID.

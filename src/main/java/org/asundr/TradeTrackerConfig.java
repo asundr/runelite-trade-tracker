@@ -27,6 +27,7 @@ package org.asundr;
 
 import net.runelite.client.config.*;
 import org.asundr.recovery.ConfigKey;
+import org.asundr.utility.StringUtils;
 
 import static org.asundr.trade.TradeManager.MAX_HISTORY_COUNT;
 import static org.asundr.recovery.SaveManager.SAVE_GROUP;
@@ -110,6 +111,24 @@ public interface TradeTrackerConfig extends Config
 			section = SECTION_DISPLAY
 	)
 	default boolean use24HourTime() { return false; }
+
+	enum ItemPriceType
+	{
+		LOW_ALCHEMY("LA", "Low Alchemy"),
+		HIGH_ALCHEMY("HA", "High Alchemy"),
+		GRAND_EXCHANGE("GE", "Grand Exchange");
+		ItemPriceType(final String shortName, final String fullName) { this.shortName = shortName; this.fullName = fullName; }
+		public final String shortName;
+		public final String fullName;
+	}
+
+	@ConfigItem(
+			keyName = ConfigKey.DEFAULT_PRICE_TYPE,
+			name = "Price type",
+			description = "Uses the set price source to calculate aggregate values",
+			section = SECTION_DISPLAY
+	)
+	default ItemPriceType getDefaultPriceType() { return ItemPriceType.GRAND_EXCHANGE; }
 
 	@ConfigItem(
 			keyName = ConfigKey.IGNORE_EMPTY_TRADES,

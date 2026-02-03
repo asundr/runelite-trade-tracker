@@ -161,7 +161,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
             switch (e.getKey())
             {
             case ConfigKey.USE_24_HOUR_TIME:
-                getTradeRecordPanels().forEach(TradeRecordPanel::updateTimeDisplay);
+                executor.execute(()->getTradeRecordPanels().forEach(TradeRecordPanel::updateTimeDisplay));
                 break;
             case ConfigKey.PURGE_HISTORY_TYPE: case ConfigKey.PURGE_HISTORY_MAGNITUDE:
                 if (TradeManager.isPurgingExpiredTrades())
@@ -174,6 +174,9 @@ public class TradeTrackerPluginPanel extends PluginPanel
                         JOptionPane.PLAIN_MESSAGE
                     );
                 }
+                break;
+            case ConfigKey.DEFAULT_PRICE_TYPE:
+                executor.execute(()->getTradeRecordPanels().parallelStream().forEach(TradeRecordPanel::updateItemPriceType));
                 break;
             }
         }
@@ -506,8 +509,8 @@ public class TradeTrackerPluginPanel extends PluginPanel
         {
             for (final TradeData tradeData : tradeHistory)
             {
-                TradeUtils.fetchItemNames(tradeData.givenItems);
-                TradeUtils.fetchItemNames(tradeData.receivedItems);
+                TradeUtils.fetchCompositionData(tradeData.givenItems);
+                TradeUtils.fetchCompositionData(tradeData.receivedItems);
                 tradeData.calculateAggregateValues();
             }
             uiExecutorFuture = executor.submit(() ->
