@@ -31,6 +31,7 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.client.callback.ClientThread;
+import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.game.ItemManager;
@@ -84,6 +85,8 @@ public class TradeTrackerPlugin extends Plugin
 	@Inject
 	private ChatboxPanelManager chatboxPanelManager;
 	@Inject
+	private ChatMessageManager chatMessageManager;
+	@Inject
 	private EventBus eventBus;
 	@Inject
 	private Gson gson;
@@ -107,7 +110,7 @@ public class TradeTrackerPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
-		CommonUtils.initialize(config, client, clientThread, this, chatboxPanelManager, eventBus, overlayManager);
+		CommonUtils.initialize(config, client, clientThread, this, chatboxPanelManager, eventBus, overlayManager, chatMessageManager);
 		StringUtils.initialize(gson);
 		SaveManager.initialize(configManager);
 		TradeUtils.initialize(itemManager);
