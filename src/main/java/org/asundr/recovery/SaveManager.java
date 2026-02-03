@@ -319,8 +319,13 @@ public class SaveManager
     // Return type matches that of the variable this function output is assigned to.
     public static <T> T restoreFromKey(final String key)
     {
+        return restoreFromKey(SAVE_GROUP, key);
+    }
+
+    public static <T> T restoreFromKey(final String group, final String key)
+    {
         final Gson gson = StringUtils.getGsonBuilder();
-        final String value = configManager.getConfiguration(SAVE_GROUP, key);
+        final String value = configManager.getConfiguration(group, key);
         if (value == null)
         {
             return null;
