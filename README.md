@@ -21,8 +21,9 @@ Simple exchanges of coins for a single type of item are summarized to display ho
 * Trade records will collapse to save space and expand to show details
 * Option to automatically delete trades older than a configurable time
 * backup and restore trade histories to files
-* Screenshot accepted trades
 * Supports calculating prices using low alch, high alch and GE price at the time of trade
+* Can right-click on player characters and players in interfaces to filter trades by their name
+* Screenshot accepted trades
 
 <hr>
 
