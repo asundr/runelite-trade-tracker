@@ -40,4 +40,7 @@ public final class ConfigKey
     public static final String PURGE_HISTORY_TYPE = "purgeHistoryType";
     public static final String PURGE_HISTORY_MAGNITUDE = "purgeHistoryMagnitude";
     public static final String SCHEDULED_PURGE = "SchedulePurge";
+    public static final String PLAYER_LOOKUP_MENU = "playerLookupMenu";
+    public static final String PLAYER_LOOKUP_CHARACTER = "playerLookupCharacter";
+
 }
