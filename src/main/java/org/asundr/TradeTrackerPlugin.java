@@ -40,6 +40,7 @@ import net.runelite.client.game.chatbox.ChatboxPanelManager;
 import net.runelite.client.menus.MenuManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.DrawManager;
 import net.runelite.client.ui.NavigationButton;
@@ -98,6 +99,8 @@ public class TradeTrackerPlugin extends Plugin
 	private DrawManager drawManager;
 	@Inject
 	private MenuManager menuManager;
+	@Inject
+	private PluginManager pluginManager;
 
 	private final SaveManager saveManager = new SaveManager();
 	private TradeTrackerPluginPanel mainPanel;
@@ -114,7 +117,7 @@ public class TradeTrackerPlugin extends Plugin
 		StringUtils.initialize(gson);
 		SaveManager.initialize(configManager);
 		TradeUtils.initialize(itemManager);
-		ScreenshotUtils.initialize(spriteManager, imageCapture, drawManager, overlayManager);
+		ScreenshotUtils.initialize(spriteManager, imageCapture, drawManager, overlayManager, pluginManager);
 		SaveManager.restoreCommonData();
 		mainPanel = new TradeTrackerPluginPanel();
 		GuiUtils.initialize(mainPanel);

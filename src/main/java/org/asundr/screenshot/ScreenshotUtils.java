@@ -27,37 +27,47 @@ package org.asundr.screenshot;
 
 import net.runelite.api.gameval.SpriteID;
 import net.runelite.client.game.SpriteManager;
+import net.runelite.client.plugins.Plugin;
+import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.ui.DrawManager;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageCapture;
+import org.asundr.recovery.SaveManager;
 import org.asundr.utility.CommonUtils;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class ScreenshotUtils
 {
     private static final String FOLDER_NAME = "Trades";
+    private static final String WARNING_RUNEWATCH = "[Trade Tracker] WARNING: Trade screenshot deferred to RuneWatch. Make sure you only have trade screenshots enabled on one plugin!";
+    private static final String RUNEWATCH_PLUGIN_NAME = "RuneWatch";
+    private static final String RUNEWATCH_CONFIG_GROUP = "runewatch";
+    private static final String RUNEWATCH_CONFIG_KEY_SCREENSHOT = "screenshotTrades";
 
     private static BufferedImage reportButton;
     private static SpriteManager spriteManager;
     private static ScreenshotOverlay screenshotOverlay;
     private static ImageCapture imageCapture;
     private static OverlayManager overlayManager;
+    private static PluginManager pluginManager;
 
     private static Image tradeImage;
 
     private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
-    public static void initialize(SpriteManager spriteManager, ImageCapture imageCapture, DrawManager drawManager, OverlayManager overlayManager)
+    public static void initialize(SpriteManager spriteManager, ImageCapture imageCapture, DrawManager drawManager, OverlayManager overlayManager, PluginManager pluginManager)
     {
         ScreenshotUtils.spriteManager = spriteManager;
         ScreenshotUtils.imageCapture = imageCapture;
         ScreenshotUtils.overlayManager = overlayManager;
         ScreenshotUtils.screenshotOverlay = new ScreenshotOverlay(drawManager);
         ScreenshotUtils.overlayManager.add(screenshotOverlay);
+        ScreenshotUtils.pluginManager = pluginManager;
         getReportButton();
     }
 
@@ -84,6 +94,13 @@ public class ScreenshotUtils
     {
         if (!CommonUtils.getConfig().getScreenshotOnTrade())
         {
+            return;
+        }
+        final Optional<Plugin> runeWatchPlugin = pluginManager.getPlugins().stream().filter(p -> p.getName().equals(RUNEWATCH_PLUGIN_NAME)).findFirst();
+        if (runeWatchPlugin.isPresent() && pluginManager.isPluginEnabled(runeWatchPlugin.get())
+                && Boolean.TRUE.equals(SaveManager.restoreFromKey(RUNEWATCH_CONFIG_GROUP, RUNEWATCH_CONFIG_KEY_SCREENSHOT)))
+        {
+            CommonUtils.chatMessage(WARNING_RUNEWATCH);
             return;
         }
         screenshotOverlay.queueForTimestamp(image -> tradeImage = image);
