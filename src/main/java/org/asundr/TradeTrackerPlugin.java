@@ -36,6 +36,7 @@ import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.game.chatbox.ChatboxPanelManager;
+import net.runelite.client.menus.MenuManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
@@ -43,6 +44,7 @@ import net.runelite.client.ui.DrawManager;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageCapture;
+import org.asundr.menu.TradeLookupMenuManager;
 import org.asundr.recovery.SaveManager;
 import org.asundr.screenshot.ScreenshotUtils;
 import org.asundr.trade.TradeManager;
@@ -91,10 +93,13 @@ public class TradeTrackerPlugin extends Plugin
 	private ImageCapture imageCapture;
 	@Inject
 	private DrawManager drawManager;
+	@Inject
+	private MenuManager menuManager;
 
 	private final SaveManager saveManager = new SaveManager();
 	private TradeTrackerPluginPanel mainPanel;
 	private NavigationButton navigationButton;
+	private TradeLookupMenuManager tradeLookupMenuManager;
 	private Collection<Object> eventSubscribers;
 
 	@Provides TradeTrackerConfig provideConfig(ConfigManager configManager) { return configManager.getConfig(TradeTrackerConfig.class); }
@@ -110,7 +115,8 @@ public class TradeTrackerPlugin extends Plugin
 		SaveManager.restoreCommonData();
 		mainPanel = new TradeTrackerPluginPanel();
 		GuiUtils.initialize(mainPanel);
-		eventSubscribers = Arrays.asList(mainPanel, TradeManager.getInstance(), saveManager);
+		tradeLookupMenuManager = new TradeLookupMenuManager(menuManager);
+		eventSubscribers = Arrays.asList(mainPanel, TradeManager.getInstance(), saveManager, tradeLookupMenuManager);
 		eventSubscribers.forEach(e -> eventBus.register(e));
 		if (!config.getAutoLoadLastProfile())
 		{
@@ -125,6 +131,7 @@ public class TradeTrackerPlugin extends Plugin
 	{
 		clientToolbar.removeNavigation(navigationButton);
 		eventSubscribers.forEach(e -> eventBus.unregister(e));
+		tradeLookupMenuManager.shutdown();
 		TradeManager.getInstance().shutdown();
 		SaveManager.shutdown();
 		mainPanel.shutdown();
