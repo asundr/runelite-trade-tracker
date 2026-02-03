@@ -505,7 +505,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
         btnFilter.setActive(false);
         tradeHistoryPanel.setVisible(false);
         updateEmptyHistoryMessages();
-        CommonUtils.getClientThread().invokeLater(() ->
+        CommonUtils.getClientThread().invoke(() ->
         {
             for (final TradeData tradeData : tradeHistory)
             {
@@ -525,6 +525,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
                     tradeHistoryPanel.add(panel.paddingStrut, 0);
                     tradeHistoryPanel.add(panel, 0);
                 }
+                panels.forEach(TradeRecordPanel::updatePreferredSize); // fix for mis-sized panels on reload all
                 tradeHistoryPanel.setVisible(true);
                 updateEmptyHistoryMessages();
                 uiExecutorFuture = null;

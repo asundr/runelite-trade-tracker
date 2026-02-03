@@ -251,7 +251,7 @@ class TradeRecordPanel extends CollapsiblePanel
     }
 
     // Collapses the entire panel to zero height to prevent it form taking space in the history
-    private void updatePreferredSize()
+    public void updatePreferredSize()
     {
         double contentSize = 0d;
         if (!isCollapsed())
