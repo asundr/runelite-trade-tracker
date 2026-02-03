@@ -302,6 +302,7 @@ class TradeRecordPanel extends CollapsiblePanel
             noteIconLabel.setToolTipText(tradeData.note);
             noteIconLabel.setVisible(true);
         }
+        SwingUtilities.invokeLater(toggleButton::updateUI);
     }
 
     public void toggleVisible(final boolean visible)

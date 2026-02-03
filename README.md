@@ -22,6 +22,7 @@ Simple exchanges of coins for a single type of item are summarized to display ho
 * Option to automatically delete trades older than a configurable time
 * backup and restore trade histories to files
 * Screenshot accepted trades
+* Supports calculating prices using low alch, high alch and GE price at the time of trade
 
 <hr>
 
@@ -31,3 +32,4 @@ Simple exchanges of coins for a single type of item are summarized to display ho
 - [Smithing MisClick Prevention](https://runelite.net/plugin-hub/show/offer-at-price) - Prevents accidentally clicking on unintended items in the smithing menu
 - [Ring of Forging Helper](https://runelite.net/plugin-hub/show/ring-of-forging-helper) - Provides customizable feedback to make smithing with the Ring of Forging more afk
 - [Chat Space Blocker](https://runelite.net/plugin-hub/show/chat-space-blocker) - Prevents players from entering spaces as the first character of chat input
+- [Trade Highlighter](https://runelite.net/plugin-hub/show/trade-highlighter) - Highlights configurable items in the player trade menu. Useful for scam prevention.
