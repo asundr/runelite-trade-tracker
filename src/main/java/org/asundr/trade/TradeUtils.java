@@ -1,6 +1,7 @@
 package org.asundr.trade;
 
 import net.runelite.api.ItemComposition;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.util.AsyncBufferedImage;
 import org.asundr.utility.CommonUtils;
@@ -11,28 +12,20 @@ import java.util.Iterator;
 
 final public class TradeUtils
 {
-    public enum ItemID
-    {
-        COINS(995),
-        PLATINUM(13204);
-        public final int id;
-        ItemID(int id) {this.id = id;}
-    }
-
     // Contains cached item data
     private static class CachedItemComposition
     {
         private final String name;
-        private final int price;
-        CachedItemComposition(final String membersName, final int storePrice)
+        private final int haPrice;
+        CachedItemComposition(final String membersName, final int haPrice)
         {
             this.name = membersName;
-            this.price = storePrice;
+            this.haPrice = haPrice;
         }
         public String getName() { return name; }
-        public int getStorePrice() { return price; }
-        public int getHaPrice() { return (int)(price * 0.8f);}
-        public int getLaPrice() { return (int)(price * 0.6f); }
+        public int getStorePrice() { return (int)(haPrice / 0.6f); }
+        public int getHaPrice() { return haPrice; }
+        public int getLaPrice() { return (int)((haPrice * 2L) / 3L); }
     }
 
     private final static HashMap<Integer, CachedItemComposition> itemCompositionMap = new HashMap<>();
@@ -68,7 +61,7 @@ final public class TradeUtils
     public static int getLaPrice(final int id)
     {
         final CachedItemComposition cachedComp = itemCompositionMap.get(id);
-        return cachedComp == null ? 0 : cachedComp.getLaPrice();
+        return cachedComp == null ? 0 : isCurrency(id) ? cachedComp.getHaPrice() : cachedComp.getLaPrice();
     }
 
     // Returns either the GE price at the time of the trade, or the cached HA / LA price
@@ -77,9 +70,9 @@ final public class TradeUtils
         switch (CommonUtils.getConfig().getDefaultPriceType())
         {
             case LOW_ALCHEMY:
-                return getLaPrice(itemData.getID());
+                return getLaPrice(itemData.getUnnotedID());
             case HIGH_ALCHEMY:
-                return  getHaPrice(itemData.getID());
+                return getHaPrice(itemData.getUnnotedID());
             case GRAND_EXCHANGE:
                 return itemData.getGEValue();
         }
@@ -88,7 +81,7 @@ final public class TradeUtils
 
     // Returns the price of the item with the passed ID
     // Note: Should be called via clientThread.invokeLater()
-    public static int getItemPrice(final int itemID)
+    public static int fetchItemGePrice(final int itemID)
     {
         return itemManager.getItemPrice(itemID);
     }
@@ -99,7 +92,7 @@ final public class TradeUtils
     {
         for (TradeItemData itemData : itemDataList)
         {
-            itemData.setGEValue(getItemPrice(itemData.getUnnotedID()));
+            itemData.setGEValue(fetchItemGePrice(itemData.getUnnotedID()));
         }
     }
 
@@ -112,7 +105,6 @@ final public class TradeUtils
             if (!itemCompositionMap.containsKey(itemData.getID()))
             {
                 final ItemComposition comp = itemManager.getItemComposition(itemData.getID());
-                comp.getPrice();comp.getHaPrice();
                 if (comp.getNote() != -1)
                 {
                     itemData.setUnnotedId(comp.getLinkedNoteId());
@@ -121,7 +113,8 @@ final public class TradeUtils
                         continue;
                     }
                 }
-                itemCompositionMap.put(itemData.getUnnotedID(), new CachedItemComposition(comp.getMembersName(), comp.getPrice()));
+                final int haPrice = isCurrency(itemData.getUnnotedID()) ? comp.getPrice() : comp.getHaPrice();
+                itemCompositionMap.put(itemData.getUnnotedID(), new CachedItemComposition(comp.getMembersName(), haPrice));
             }
         }
     }
@@ -139,9 +132,9 @@ final public class TradeUtils
     }
 
     // Evaluates the aggregate Grand Exchange value of all passed item stacks
-    public static long totalGEValue(final Collection<TradeItemData> items)
+    public static long totalConfiguredValue(final Collection<TradeItemData> items)
     {
-        return items.stream().reduce(0L, (Acc, item) -> Acc + (item.getGEValue() * (long)item.getQuantity()), Long::sum);
+        return items.stream().reduce(0L, (acc, item) -> acc + ((long)item.getConfiguredValue() * (long)item.getQuantity()), Long::sum);
     }
 
     // Returns true if the only items in the passed collection currency such as coins or platinum
@@ -153,12 +146,17 @@ final public class TradeUtils
         }
         for (TradeItemData itemData : items)
         {
-            if (itemData.getUnnotedID() != ItemID.PLATINUM.id && itemData.getUnnotedID() != ItemID.COINS.id)
+            if (!isCurrency(itemData.getUnnotedID()))
             {
                 return false;
             }
         }
         return true;
+    }
+
+    public static boolean isCurrency(final int id)
+    {
+        return id == ItemID.COINS || id == ItemID.PLATINUM;
     }
 
     // Returns true if all items in the passed collection have the same ID.

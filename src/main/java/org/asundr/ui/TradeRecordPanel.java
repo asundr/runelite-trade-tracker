@@ -49,7 +49,7 @@ class TradeRecordPanel extends CollapsiblePanel
     private static final ImageIcon ICON_NOTE = CommonUtils.getIconFromName("note_icon.png", 14, 14, Image.SCALE_SMOOTH);
     private static final String TRADE_NAME_TEMPLATE = "<html><body style='color:#A0A0EE;font-size:13px;translate:-100px 0'><b>%s</b></body></html>";
     private static final String TRADE_TIME_TEMPLATE = "<html><body style='color:yellow'>%s</body></html>";
-    private static final String TEMPLATE_TRADE_TOTAL = "<html><body style='color:white'><nobr>%s: (<span style='color:%s'> GE: %s </nobr></span>)</body></html>";
+    private static final String TEMPLATE_TRADE_TOTAL = "<html><body style='color:white'><nobr>%s: (<span style='color:%s'> #P: %s </nobr></span>)</body></html>";
     private static final String TRADE_PRICE_PER_TEMPLATE = "<html><span style=''>@</span> %s<span style=''> ea</span></html>";
     private static final Color COLOR_BUTTON_BACKGROUND = new Color(20,20,30);
     private static final Color COLOR_FOOTER_PROFIT = new Color(10, 50, 10);
@@ -67,6 +67,8 @@ class TradeRecordPanel extends CollapsiblePanel
     private JLabel noteIconLabel = null;
     public Component paddingStrut = null;
     private final JLabel tradeTimeLabel = new JLabel();
+    private final QuantityLabel givenTotalLabel;
+    private final QuantityLabel receivedTotalLabel;
 
     TradeRecordPanel(TradeData tradeData)
     {
@@ -200,28 +202,34 @@ class TradeRecordPanel extends CollapsiblePanel
         gbc.gridx = 0;
 
         gbc.gridy = 0;
-        final QuantityLabel myLabel = new QuantityLabel(
-                tradeData.givenTotalValueGE,
+        givenTotalLabel = new QuantityLabel(
+                tradeData.givenTotalValue,
                 String.format(TEMPLATE_TRADE_TOTAL, "Given items", "#FF9090", "%s"),
-                "Total Grand Exchange value of items you gave away: %s"
+                "Total #P value of items you gave away: %s"
         );
-        contentPanel.add(myLabel, gbc);
+        contentPanel.add(givenTotalLabel, gbc);
 
         gbc.gridy = 1;
         contentPanel.add(myItemGrid, gbc);
 
         gbc.gridy = 2;
-        QuantityLabel otherLabel = new QuantityLabel(
-                tradeData.receivedTotalValueGE,
+        receivedTotalLabel = new QuantityLabel(
+                tradeData.receivedTotalValue,
                 String.format(TEMPLATE_TRADE_TOTAL, "Received items", "#90FF90", "%s"),
-                "Total Grand Exchange value of items you were given: %s"
+                "Total #P value of items you were given: %s"
         );
-        contentPanel.add(otherLabel, gbc);
+        contentPanel.add(receivedTotalLabel, gbc);
 
         gbc.gridy = 3;
         contentPanel.add(otherItemGrid, gbc);
 
-        final long netTransfer = tradeData.receivedTotalValueGE - tradeData.givenTotalValueGE;
+        updateFooterPanel();
+        updatePreferredSize();
+    }
+
+    private void updateFooterPanel()
+    {
+        final long netTransfer = tradeData.receivedTotalValue - tradeData.givenTotalValue;
         final Color footerColor = netTransfer > 0 ? COLOR_FOOTER_PROFIT : netTransfer < 0 ? COLOR_FOOTER_LOSS : COLOR_FOOTER_EVEN;
         footerPanel.setBackground(footerColor);
         if (tradeData.givenItems.isEmpty() && tradeData.receivedItems.isEmpty())
@@ -230,15 +238,16 @@ class TradeRecordPanel extends CollapsiblePanel
         }
         else if (netTransfer == 0)
         {
-            footerPanel.add(new JLabel("GE values matched exactly"));
+            final String shortPriceName = CommonUtils.getConfig().getDefaultPriceType().shortName;
+            footerPanel.add(new JLabel(shortPriceName + " values matched exactly"));
         }
         else
         {
             String footerPrefix = netTransfer < 0 ? "You lost" : "You gained";
-            QuantityLabel footerLabel = new QuantityLabel(netTransfer, "<html>" + footerPrefix + ": %s  <span style='color:#909090'>[GE]</span></html>", "%s");
+            final QuantityLabel footerLabel = new QuantityLabel(netTransfer, "<html>" + footerPrefix + ": %s  <span style='color:#909090'>[#P]</span></html>", "%s");
+            footerPanel.removeAll();
             footerPanel.add(footerLabel);
         }
-        updatePreferredSize();
     }
 
     // Collapses the entire panel to zero height to prevent it form taking space in the history
@@ -307,6 +316,15 @@ class TradeRecordPanel extends CollapsiblePanel
         tradeTimeLabel.setText(String.format(TRADE_TIME_TEMPLATE, TimeUtils.timestampToStringTime(tradeData.tradeTime)));
     }
 
+    // Updates the aggregate item prices after changing price type
+    public void updateItemPriceType()
+    {
+        tradeData.calculateAggregateValues();
+        givenTotalLabel.update(tradeData.givenTotalValue);
+        receivedTotalLabel.update(tradeData.receivedTotalValue);
+        updateFooterPanel();
+    }
+
     @Override
     protected void onToggleCollapsed()
     {
@@ -351,11 +369,11 @@ class TradeRecordPanel extends CollapsiblePanel
         if (StringUtils.isStringLong(query) || query.equals("-"))
         {
             // searching for balance values
-            if (Long.toString(tradeData.receivedTotalValueGE).startsWith(query))
+            if (Long.toString(tradeData.receivedTotalValue).startsWith(query))
                 return true;
-            if (Long.toString(tradeData.givenTotalValueGE).startsWith(query))
+            if (Long.toString(tradeData.givenTotalValue).startsWith(query))
                 return true;
-            if (Long.toString(tradeData.receivedTotalValueGE-tradeData.givenTotalValueGE).startsWith(query))
+            if (Long.toString(tradeData.receivedTotalValue -tradeData.givenTotalValue).startsWith(query))
                 return true;
 
             // query simple trade values
@@ -383,6 +401,10 @@ class TradeRecordPanel extends CollapsiblePanel
                     if (Integer.toString(item.getQuantity()).startsWith(query))
                         return true;
                     if (Integer.toString(item.getGEValue()).startsWith(query))
+                        return true;
+                    if (Integer.toString(item.getLaValue()).startsWith(query))
+                        return true;
+                    if (Integer.toString(item.getHaValue()).startsWith(query))
                         return true;
                 }
 

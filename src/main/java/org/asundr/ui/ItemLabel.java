@@ -27,6 +27,7 @@ package org.asundr.ui;
 
 import net.runelite.client.util.AsyncBufferedImage;
 import net.runelite.client.util.QuantityFormatter;
+import org.asundr.TradeTrackerConfig;
 import org.asundr.trade.TradeItemData;
 import org.asundr.trade.TradeUtils;
 import org.asundr.utility.CommonUtils;
@@ -42,12 +43,19 @@ class ItemLabel extends JLabel
 {
     public static final int ICON_SIZE = 36;
     private static final Dimension PREFERRED_SIZE = new Dimension(ICON_SIZE, ICON_SIZE);
-    private static final String ITEM_TOOLTIP_TEMPLATE = "<html><body style><b style='color:#A0A0FF'>%s</b><br>Quantity: %s<br>GE: %s<br>Total: %s</body></html>";
+    private static final String ITEM_TOOLTIP_TEMPLATE = "<html><body style><b style='color:#A0A0FF'>%s</b><br>Quantity: %s<br>GE: %s<br>HA: %s<br>Total: %s</body></html>";
 
+    private static final String TEMPLATE_MENU_PRICE = "#P";
+    private static final String TEMPLATE_MENU_PRICE_TOTAL = "#P total";
+    private static final String SUFFIX_MENU_PRICE_GE = " at trade time";
+    private static final String TEXT_MENU_PRICE_LA = TEMPLATE_MENU_PRICE.replaceAll("#P", TradeTrackerConfig.ItemPriceType.LOW_ALCHEMY.fullName);
+    private static final String TEXT_MENU_PRICE_HA = TEMPLATE_MENU_PRICE.replaceAll("#P", TradeTrackerConfig.ItemPriceType.HIGH_ALCHEMY.fullName);
+    private static final String TEXT_MENU_PRICE_GE = TEMPLATE_MENU_PRICE.replaceAll("#P", TradeTrackerConfig.ItemPriceType.GRAND_EXCHANGE.shortName) + SUFFIX_MENU_PRICE_GE;
+    private static final String TEXT_MENU_PRICE_TOTAL_LA = TEMPLATE_MENU_PRICE_TOTAL.replaceAll("#P", TradeTrackerConfig.ItemPriceType.LOW_ALCHEMY.fullName);
+    private static final String TEXT_MENU_PRICE_TOTAL_HA = TEMPLATE_MENU_PRICE_TOTAL.replaceAll("#P", TradeTrackerConfig.ItemPriceType.HIGH_ALCHEMY.fullName);
+    private static final String TEXT_MENU_PRICE_TOTAL_GE = TEMPLATE_MENU_PRICE_TOTAL.replaceAll("#P", TradeTrackerConfig.ItemPriceType.GRAND_EXCHANGE.shortName) + SUFFIX_MENU_PRICE_GE;
     private static final String TEXT_MENU_ITEM_NAME = "Item name";
     private static final String TEXT_MENU_QUANTITY = "Quantity";
-    private static final String TEXT_MENU_PRICE = "GE price at trade time";
-    private static final String TEXT_MENU_PRICE_TOTAL = "GE total price at trade time";
     private static final String TEXT_MENU_ID = "Item ID";
     private static final String TEXT_MENU_ID_UNNOTED = "Item ID (un-noted)";
 
@@ -81,7 +89,8 @@ class ItemLabel extends JLabel
                         TradeUtils.getOrDefaultCachedItemName(itemData.getUnnotedID(), "Item"),
                         QuantityFormatter.formatNumber(getTrueQuantity()),
                         QuantityFormatter.formatNumber(itemData.getGEValue()),
-                        QuantityFormatter.formatNumber((long)itemData.getGEValue() * getTrueQuantity())
+                        QuantityFormatter.formatNumber(itemData.getHaValue()),
+                        QuantityFormatter.formatNumber((long)itemData.getConfiguredValue() * getTrueQuantity()) + " [" + CommonUtils.getConfig().getDefaultPriceType().shortName + "]"
                 );
                 setToolTipText(tipStr);
             }
@@ -119,6 +128,7 @@ class ItemLabel extends JLabel
                             openSubmenu.add(openWikiGE);
                             popupMenu.add(openSubmenu);
 
+                            // Add copy submenu
                             final JMenu copySubmenu = new JMenu("Copy");
                             final JMenuItem copyName = new JMenuItem(TEXT_MENU_ITEM_NAME);
                             copyName.addActionListener(evt-> StringUtils.copyToClipboard(getCurrentItemName()));
@@ -126,18 +136,34 @@ class ItemLabel extends JLabel
                             final JMenuItem copyQuantity = new JMenuItem(TEXT_MENU_QUANTITY);
                             copyQuantity.addActionListener(evt-> StringUtils.copyToClipboard(Long.toString(getTrueQuantity())));
                             copySubmenu.add(copyQuantity);
-                            final JMenuItem copyGEPrice = new JMenuItem(TEXT_MENU_PRICE);
+                            // copy price sub-sub menu
+                            final JMenu copyPriceSubmenu = new JMenu("Prices");
+                            final JMenuItem copyLAPrice = new JMenuItem(TEXT_MENU_PRICE_LA);
+                            copyLAPrice.addActionListener(evt-> StringUtils.copyToClipboard(Integer.toString(popupItemData.getLaValue())));
+                            copyPriceSubmenu.add(copyLAPrice);
+                            final JMenuItem copyLATotal = new JMenuItem(TEXT_MENU_PRICE_TOTAL_LA);
+                            copyLATotal.addActionListener(evt-> StringUtils.copyToClipboard(Long.toString((long)popupItemData.getLaValue() * getTrueQuantity())));
+                            copyPriceSubmenu.add(copyLATotal);
+                            final JMenuItem copyHAPrice = new JMenuItem(TEXT_MENU_PRICE_HA);
+                            copyHAPrice.addActionListener(evt-> StringUtils.copyToClipboard(Integer.toString(popupItemData.getHaValue())));
+                            copyPriceSubmenu.add(copyHAPrice);
+                            final JMenuItem copyHATotal = new JMenuItem(TEXT_MENU_PRICE_TOTAL_HA);
+                            copyHATotal.addActionListener(evt-> StringUtils.copyToClipboard(Long.toString((long)popupItemData.getHaValue() * getTrueQuantity())));
+                            copyPriceSubmenu.add(copyHATotal);
+                            final JMenuItem copyGEPrice = new JMenuItem(TEXT_MENU_PRICE_GE);
                             copyGEPrice.addActionListener(evt-> StringUtils.copyToClipboard(Integer.toString(popupItemData.getGEValue())));
-                            copySubmenu.add(copyGEPrice);
-                            final JMenuItem copyGETotal = new JMenuItem(TEXT_MENU_PRICE_TOTAL);
+                            copyPriceSubmenu.add(copyGEPrice);
+                            final JMenuItem copyGETotal = new JMenuItem(TEXT_MENU_PRICE_TOTAL_GE);
                             copyGETotal.addActionListener(evt-> StringUtils.copyToClipboard(Long.toString((long)popupItemData.getGEValue() * getTrueQuantity())));
-                            copySubmenu.add(copyGETotal);
+                            copyPriceSubmenu.add(copyGETotal);
+                            copySubmenu.add(copyPriceSubmenu);
                             copyId.addActionListener(evt-> StringUtils.copyToClipboard(Integer.toString(popupItemData.getID())));
                             copySubmenu.add(copyId);
                             copyUnnotedId.addActionListener(evt-> StringUtils.copyToClipboard(Integer.toString(popupItemData.getUnnotedID())));
                             copySubmenu.add(copyUnnotedId);
                             popupMenu.add(copySubmenu);
 
+                            // Add filter submenu
                             final JMenu filterSubmenu = new JMenu("Filter by");
                             final JMenuItem filterName = new JMenuItem(TEXT_MENU_ITEM_NAME);
                             filterName.addActionListener(evt-> GuiUtils.setFilterAndEnabled(getCurrentItemName()));
@@ -145,12 +171,28 @@ class ItemLabel extends JLabel
                             final JMenuItem filterQuantity = new JMenuItem(TEXT_MENU_QUANTITY);
                             filterQuantity.addActionListener(evt-> GuiUtils.setFilterAndEnabled(Long.toString(getTrueQuantity())));
                             filterSubmenu.add(filterQuantity);
-                            final JMenuItem filterGEPrice = new JMenuItem(TEXT_MENU_PRICE);
+                            // filter by prices sub-sub menu
+                            final JMenu filterPricesSubmenu = new JMenu("Prices");
+                            final JMenuItem filterLaPrice = new JMenuItem(TEXT_MENU_PRICE_LA);
+                            filterLaPrice.addActionListener(evt-> GuiUtils.setFilterAndEnabled(Integer.toString(popupItemData.getLaValue())));
+                            filterPricesSubmenu.add(filterLaPrice);
+                            final JMenuItem filterLaTotal = new JMenuItem(TEXT_MENU_PRICE_TOTAL_LA);
+                            filterLaTotal.addActionListener(evt-> GuiUtils.setFilterAndEnabled(Long.toString((long)popupItemData.getLaValue() * getTrueQuantity())));
+                            filterPricesSubmenu.add(filterLaTotal);
+                            final JMenuItem filterHaPrice = new JMenuItem(TEXT_MENU_PRICE_HA);
+                            filterHaPrice.addActionListener(evt-> GuiUtils.setFilterAndEnabled(Integer.toString(popupItemData.getHaValue())));
+                            filterPricesSubmenu.add(filterHaPrice);
+                            final JMenuItem filterHaTotal = new JMenuItem(TEXT_MENU_PRICE_TOTAL_HA);
+                            filterHaTotal.addActionListener(evt-> GuiUtils.setFilterAndEnabled(Long.toString((long)popupItemData.getHaValue() * getTrueQuantity())));
+                            filterPricesSubmenu.add(filterHaTotal);
+                            final JMenuItem filterGEPrice = new JMenuItem(TEXT_MENU_PRICE_GE);
                             filterGEPrice.addActionListener(evt-> GuiUtils.setFilterAndEnabled(Integer.toString(popupItemData.getGEValue())));
-                            filterSubmenu.add(filterGEPrice);
-                            final JMenuItem filterGETotal = new JMenuItem(TEXT_MENU_PRICE_TOTAL);
+                            filterPricesSubmenu.add(filterGEPrice);
+                            final JMenuItem filterGETotal = new JMenuItem(TEXT_MENU_PRICE_TOTAL_GE);
                             filterGETotal.addActionListener(evt-> GuiUtils.setFilterAndEnabled(Long.toString((long)popupItemData.getGEValue() * getTrueQuantity())));
-                            filterSubmenu.add(filterGETotal);
+                            filterPricesSubmenu.add(filterGETotal);
+                            filterSubmenu.add(filterPricesSubmenu);
+
                             filterId.addActionListener(evt-> GuiUtils.setFilterAndEnabled(Integer.toString(popupItemData.getID())));
                             filterSubmenu.add(filterId);
                             filterUnnotedId.addActionListener(evt-> GuiUtils.setFilterAndEnabled(Integer.toString(popupItemData.getUnnotedID())));

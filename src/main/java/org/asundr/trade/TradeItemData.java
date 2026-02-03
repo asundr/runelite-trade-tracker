@@ -59,13 +59,12 @@ public class TradeItemData
 
     public final int getUnnotedID() { return isNoted() ? unnotedId : id; }
 
-    //public final int getNotedID() { return id; }
-
     public final int getQuantity() { return num; }
 
     public final int getGEValue() { return ge; }
 
-    public final int getHaValue() { return TradeUtils.getHaPrice(getID()); }
+    public final int getHaValue() { return TradeUtils.getHaPrice(getUnnotedID()); }
+    public final int getLaValue() { return TradeUtils.getLaPrice(getUnnotedID()); }
 
     public final int getConfiguredValue() { return TradeUtils.getConfiguredPrice(this); }
 

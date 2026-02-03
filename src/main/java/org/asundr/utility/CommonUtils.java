@@ -39,7 +39,6 @@ import org.asundr.TradeTrackerConfig;
 import org.asundr.TradeTrackerPlugin;
 
 import javax.annotation.Nonnull;
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;

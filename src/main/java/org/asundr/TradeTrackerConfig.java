@@ -27,6 +27,7 @@ package org.asundr;
 
 import net.runelite.client.config.*;
 import org.asundr.recovery.ConfigKey;
+import org.asundr.utility.StringUtils;
 
 import static org.asundr.trade.TradeManager.MAX_HISTORY_COUNT;
 import static org.asundr.recovery.SaveManager.SAVE_GROUP;
@@ -111,11 +112,14 @@ public interface TradeTrackerConfig extends Config
 	)
 	default boolean use24HourTime() { return false; }
 
-	public enum ItemPriceType
+	enum ItemPriceType
 	{
-		LOW_ALCHEMY,
-		HIGH_ALCHEMY,
-		GRAND_EXCHANGE
+		LOW_ALCHEMY("LA", "Low Alchemy"),
+		HIGH_ALCHEMY("HA", "High Alchemy"),
+		GRAND_EXCHANGE("GE", "Grand Exchange");
+		ItemPriceType(final String shortName, final String fullName) { this.shortName = shortName; this.fullName = fullName; }
+		public final String shortName;
+		public final String fullName;
 	}
 
 	@ConfigItem(

@@ -55,10 +55,10 @@ public class SimpleTradeData
         switch (tradeType)
         {
             case Bought_Item:
-                calculateTradeData(tradeData.receivedItems, tradeData.givenTotalValueGE);
+                calculateTradeData(tradeData.receivedItems, tradeData.givenTotalValue);
                 break;
             case Sold_Item:
-                calculateTradeData(tradeData.givenItems, tradeData.receivedTotalValueGE);
+                calculateTradeData(tradeData.givenItems, tradeData.receivedTotalValue);
                 break;
             case Gift_Giving:
                 calculateTradeData(tradeData.givenItems, 0);

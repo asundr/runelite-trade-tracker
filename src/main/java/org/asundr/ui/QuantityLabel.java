@@ -26,6 +26,7 @@
 package org.asundr.ui;
 
 import net.runelite.client.util.QuantityFormatter;
+import org.asundr.utility.CommonUtils;
 import org.asundr.utility.StringUtils;
 
 import javax.swing.*;
@@ -34,19 +35,28 @@ import java.awt.event.MouseEvent;
 
 class QuantityLabel extends JLabel
 {
-
     private static final String TEXT_MENU_ITEM_COPY = "Copy";
+    private static final String PATTERN_REPLACE_PRICE_TYPE = "#P";
     private static JPopupMenu menu = null;
     private static long activeQuantity = 0L;
 
+
+    private long quantity;
+    private final String tooltipTemplate;
+    private final String textTemplate;
+
     private static String getActiveQuantityString() { return Long.toString(activeQuantity); }
 
-    QuantityLabel(long quantity, final String template, final String tooltipFormat)
+    QuantityLabel(long _quantity, final String template, final String tooltipFormat)
     {
-        super(String.format(template, StringUtils.quantityToRSDecimalStackLong(quantity, true)));
+        super();
+        this.textTemplate = template;
+        this.tooltipTemplate = tooltipFormat;
+        this.quantity = _quantity;
+        updateText();
+
         addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
+            @Override public void mouseClicked(MouseEvent e){
                 super.mouseClicked(e);
                 if (e.getButton() == MouseEvent.BUTTON3)
                 {
@@ -59,18 +69,37 @@ class QuantityLabel extends JLabel
                     }
                     activeQuantity = quantity;
                     menu.show(e.getComponent(), e.getX(), e.getY());
-                } else {
+                }
+                else
+                {
                     super.mouseClicked(e);
                 }
             }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
+            @Override public void mouseEntered(MouseEvent e) {
                 super.mouseEntered(e);
-                setToolTipText(String.format(tooltipFormat, QuantityFormatter.formatNumber(quantity)));
+                setToolTipText(constructTooltipText());
                 getToolTipLocation(e);
             }
         });
     }
 
+    protected String constructTooltipText()
+    {
+        return String.format(
+                tooltipTemplate.replaceFirst(PATTERN_REPLACE_PRICE_TYPE, CommonUtils.getConfig().getDefaultPriceType().fullName),
+                QuantityFormatter.formatNumber(quantity));
+    }
+
+    protected void updateText()
+    {
+        setText(String.format(
+                textTemplate.replaceFirst(PATTERN_REPLACE_PRICE_TYPE, CommonUtils.getConfig().getDefaultPriceType().shortName),
+                StringUtils.quantityToRSDecimalStackLong(quantity, true)));
+    }
+
+    public void update(final long newQuantity)
+    {
+        this.quantity = newQuantity;
+        updateText();
+    }
 }
