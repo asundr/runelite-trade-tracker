@@ -183,23 +183,15 @@ public class TradeTrackerPluginPanel extends PluginPanel
 
     }
 
-    @Subscribe
-    private void onEventTradeAdded(EventTradeAdded e)
+    @Subscribe private void onEventTradeAdded(EventTradeAdded e)
     {
         addTradeRecord(e.tradeData);
     }
-
-    @Subscribe
-    private void onEventTradeRemoved(EventTradeRemoved e)
+    @Subscribe private void onEventTradeRemoved(EventTradeRemoved e)
     {
         removeTradeRecord(e.tradeData);
     }
-
-    @Subscribe
-    private void onEventTradeResetHistory(EventTradeResetHistory e)
-    {
-        replaceAllTradeRecords(e.newTradeHistory);
-    }
+    @Subscribe private void onEventTradeResetHistory(EventTradeResetHistory e) { replaceAllTradeRecords(e.newTradeHistory); }
 
     public final Collection<TradeRecordPanel> getTradeRecordPanels()
     {
