@@ -27,7 +27,6 @@ package org.asundr;
 
 import net.runelite.client.config.*;
 import org.asundr.recovery.ConfigKey;
-import org.asundr.utility.StringUtils;
 
 import static org.asundr.trade.TradeManager.MAX_HISTORY_COUNT;
 import static org.asundr.recovery.SaveManager.SAVE_GROUP;
@@ -57,12 +56,20 @@ public interface TradeTrackerConfig extends Config
 	String SECTION_HISTORY_LIMITS = "historyLimits";
 
 	@ConfigSection(
+			name = "Player menu",
+			description = "Options to enable player menu options",
+			position = 3
+	)
+	String SECTION_PLAYER_MENU = "player_menu";
+
+	@ConfigSection(
 			name = "Debug",
 			description = "For advanced users or submitting bug reports",
-			position = 3,
+			position = 10,
 			closedByDefault = true
 	)
 	String SECTION_DEBUG = "Debug";
+
 
 ///////////////////////////////
 
@@ -196,4 +203,23 @@ public interface TradeTrackerConfig extends Config
 			position = 3
 	)
 	default int getPurgeHistoryMagnitude() { return 1; }
+
+	@ConfigItem(
+			keyName = ConfigKey.PLAYER_LOOKUP_MENU,
+			name = "Enable on menus",
+			description = "Add option to filter by player name when right-clicking their chat messages and friends list",
+			section =  SECTION_PLAYER_MENU,
+			position = 1
+	)
+	default boolean getPlayerLookupMenu() { return false; }
+
+	@ConfigItem(
+			keyName = ConfigKey.PLAYER_LOOKUP_CHARACTER,
+			name = "Enable on player",
+			description = "Add option to filter by player name when right-clicking a player",
+			section =  SECTION_PLAYER_MENU,
+			position = 0
+	)
+	default boolean getPlayerLookupCharacter() { return false; }
+
 }
