@@ -232,22 +232,23 @@ class TradeRecordPanel extends CollapsiblePanel
         final long netTransfer = tradeData.receivedTotalValue - tradeData.givenTotalValue;
         final Color footerColor = netTransfer > 0 ? COLOR_FOOTER_PROFIT : netTransfer < 0 ? COLOR_FOOTER_LOSS : COLOR_FOOTER_EVEN;
         footerPanel.setBackground(footerColor);
+        JLabel footerLabel;
         if (tradeData.givenItems.isEmpty() && tradeData.receivedItems.isEmpty())
         {
-            footerPanel.add(new JLabel("No items traded"));
+            footerLabel = new JLabel("No items traded");
         }
         else if (netTransfer == 0)
         {
             final String shortPriceName = CommonUtils.getConfig().getDefaultPriceType().shortName;
-            footerPanel.add(new JLabel(shortPriceName + " values matched exactly"));
+            footerLabel = new JLabel(shortPriceName + " values matched exactly");
         }
         else
         {
-            String footerPrefix = netTransfer < 0 ? "You lost" : "You gained";
-            final QuantityLabel footerLabel = new QuantityLabel(netTransfer, "<html>" + footerPrefix + ": %s  <span style='color:#909090'>[#P]</span></html>", "%s");
-            footerPanel.removeAll();
-            footerPanel.add(footerLabel);
+            final String footerPrefix = netTransfer < 0 ? "You lost" : "You gained";
+            footerLabel = new QuantityLabel(netTransfer, "<html>" + footerPrefix + ": %s  <span style='color:#909090'>[#P]</span></html>", "%s");
         }
+        footerPanel.removeAll();
+        footerPanel.add(footerLabel);
     }
 
     // Collapses the entire panel to zero height to prevent it form taking space in the history
