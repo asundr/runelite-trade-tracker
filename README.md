@@ -6,7 +6,7 @@ This RuneLite plugin tracks trades between other players, logging them for futur
 
 Logged trades specify the name of the player traded, the time the trade was accepted, and all items given and received.
 
-Additionally, these trade records use the GE prices of the items traded to calculate aggregate values of a trade.
+Trade records can be configured to use the High Alch, Low Alch, or GE prices of the items traded to calculate aggregate values of a trade.
 
 Simple exchanges of coins for a single type of item are summarized to display how much was paid per item.
 
@@ -21,7 +21,6 @@ Simple exchanges of coins for a single type of item are summarized to display ho
 * Trade records will collapse to save space and expand to show details
 * Option to automatically delete trades older than a configurable time
 * backup and restore trade histories to files
-* Supports calculating prices using low alch, high alch and GE price at the time of trade
 * Can right-click on player characters and players in interfaces to filter trades by their name
 * Screenshot accepted trades
 
