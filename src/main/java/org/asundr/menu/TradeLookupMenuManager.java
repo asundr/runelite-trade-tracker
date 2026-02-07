@@ -170,17 +170,15 @@ public class TradeLookupMenuManager
                         break;
                     }
                 }
-            case PLAYER_FOURTH_OPTION:
+        }
+        // Stores player trade offer sent to, to later use it to update offer chat message
+        if (CommonUtils.getConfig().addNameToTradeOfferChat() && event.getMenuOption().equals(TEXT_MENU_ITEM_TRADE))
+        {
+            final Matcher m = PATTERN_MENU_PLAYER_NAME.matcher(Text.toJagexName(Text.removeTags(event.getMenuTarget())));
+            if (m.find())
             {
-                // Stores player trade offer sent to, to later use it to update offer chat message
-                if (CommonUtils.getConfig().addNameToTradeOfferChat() && event.getMenuOption().equals(TEXT_MENU_ITEM_TRADE))
-                {
-                    final Matcher m = PATTERN_MENU_PLAYER_NAME.matcher(Text.toJagexName(Text.removeTags(event.getMenuTarget())));
-                    if (m.find())
-                    {
-                        lastOfferedPlayerName = m.group(1).trim();
-                    }
-                }
+                lastOfferedPlayerName = m.group(1).trim();
+                System.out.println("Cached trade name: " + lastOfferedPlayerName);
             }
         }
     }
