@@ -14,6 +14,7 @@ Simple exchanges of coins for a single type of item are summarized to display ho
 ![image](https://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/rank/plugin/trade-tracker)
 
 ### Additional features
+* Screenshot accepted trades
 * Trade histories are saved and restored between sessions
 * Different trade histories per account and account type (Standard / Deadman)
 * Ability to add notes to logged trades
@@ -22,7 +23,7 @@ Simple exchanges of coins for a single type of item are summarized to display ho
 * Option to automatically delete trades older than a configurable time
 * backup and restore trade histories to files
 * Can right-click on player characters and players in interfaces to filter trades by their name
-* Screenshot accepted trades
+* Changes offer chat message to "Sending <PLAYER_NAME> a trade offer..."
 
 <hr>
 
