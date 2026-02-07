@@ -53,10 +53,14 @@ public class GuiUtils
 
     public static void setFilterAndEnabled(final String text)
     {
-        setFilter(text);
-        mainPanel.btnFilter.setActive(true);
+        SwingUtilities.invokeLater(()->
+        {
+            setFilter(text);
+            mainPanel.btnFilter.setActive(true);
+        });
     }
 
+    // Note: Must be called inside a SwingUtilities.invokeLater
     public static void clearFilter()
     {
         if (mainPanel == null)

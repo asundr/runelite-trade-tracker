@@ -585,17 +585,16 @@ public class TradeTrackerPluginPanel extends PluginPanel
         }
     }
 
+    // Note: Must be called inside a SwingUtilities.invokeLater
     void setFilter(final String text)
     {
-        SwingUtilities.invokeLater(() ->
+        if (!text.equalsIgnoreCase(filterText.getText()))
         {
-            if (!text.equalsIgnoreCase(filterText.getText()))
-            {
-                filterText.setText(text);
-            }
-        });
+            filterText.setText(text);
+        }
     }
 
+    // Note: Must be called inside a SwingUtilities.invokeLater
     void clearFilter()
     {
         SwingUtilities.invokeLater(() -> filterText.setText(""));
