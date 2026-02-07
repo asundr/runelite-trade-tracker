@@ -152,34 +152,33 @@ public class TradeLookupMenuManager
     @Subscribe
     private void onMenuOptionClicked(MenuOptionClicked event)
     {
-        switch (event.getMenuAction())
+        switch (Text.removeTags(event.getMenuOption()).trim())
         {
-            case RUNELITE_PLAYER:
-                switch (event.getMenuOption())
-                {
-                    // Note: adapted from WOM plugin
-                    case TEXT_MENU_ITEM_FILTER:
-                    {
-                        final IndexedObjectSet<? extends Player> players = CommonUtils.getClient().getTopLevelWorldView().players();
-                        final Player player = players.byIndex(event.getId());
-                        if (player == null)
-                        {
-                            return;
-                        }
-                        GuiUtils.setFilterAndEnabled(player.getName());
-                        break;
-                    }
-                }
-        }
-        // Stores player trade offer sent to, to later use it to update offer chat message
-        if (CommonUtils.getConfig().addNameToTradeOfferChat() && event.getMenuOption().equals(TEXT_MENU_ITEM_TRADE))
+        case TEXT_MENU_ITEM_FILTER:
         {
-            final Matcher m = PATTERN_MENU_PLAYER_NAME.matcher(Text.toJagexName(Text.removeTags(event.getMenuTarget())));
-            if (m.find())
+            if (event.getMenuAction() != MenuAction.RUNELITE_PLAYER)
             {
-                lastOfferedPlayerName = m.group(1).trim();
-                System.out.println("Cached trade name: " + lastOfferedPlayerName);
+                final IndexedObjectSet<? extends Player> players = CommonUtils.getClient().getTopLevelWorldView().players();
+                final Player player = players.byIndex(event.getId());
+                if (player != null)
+                {
+                    GuiUtils.setFilterAndEnabled(player.getName());
+                }
             }
+            break;
+        }
+        case TEXT_MENU_ITEM_TRADE:
+        {
+            if (CommonUtils.getConfig().addNameToTradeOfferChat())
+            {
+                final Matcher m = PATTERN_MENU_PLAYER_NAME.matcher(Text.toJagexName(Text.removeTags(event.getMenuTarget())));
+                if (m.find())
+                {
+                    lastOfferedPlayerName = m.group(1).trim();
+                }
+            }
+            break;
+        }
         }
     }
 

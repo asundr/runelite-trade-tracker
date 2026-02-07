@@ -225,7 +225,7 @@ public interface TradeTrackerConfig extends Config
 			section = SECTION_PLAYER_LOOKUP,
 			position = 1
 	)
-	default LookupType getPlayerLookupMenu() { return LookupType.DISABLED; }
+	default LookupType getPlayerLookupMenu() { return LookupType.REQUIRE_SHIFT; }
 
 	@ConfigItem(
 			keyName = ConfigKey.PLAYER_LOOKUP_CHARACTER,
@@ -234,7 +234,7 @@ public interface TradeTrackerConfig extends Config
 			section = SECTION_PLAYER_LOOKUP,
 			position = 0
 	)
-	default LookupType getPlayerLookupCharacter() { return LookupType.DISABLED; }
+	default LookupType getPlayerLookupCharacter() { return LookupType.REQUIRE_SHIFT; }
 
 	@ConfigItem(
 			keyName = ConfigKey.ADD_NAME_TO_TRADE_OFFER,
