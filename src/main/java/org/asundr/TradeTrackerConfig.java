@@ -56,11 +56,11 @@ public interface TradeTrackerConfig extends Config
 	String SECTION_HISTORY_LIMITS = "historyLimits";
 
 	@ConfigSection(
-			name = "Player menu",
+			name = "Player lookup",
 			description = "Options to enable player menu options",
 			position = 3
 	)
-	String SECTION_PLAYER_MENU = "player_menu";
+	String SECTION_PLAYER_LOOKUP = "player_lookup";
 
 	@ConfigSection(
 			name = "Debug",
@@ -208,7 +208,7 @@ public interface TradeTrackerConfig extends Config
 			keyName = ConfigKey.PLAYER_LOOKUP_MENU,
 			name = "Enable on menus",
 			description = "Add option to filter by player name when right-clicking their chat messages and friends list",
-			section =  SECTION_PLAYER_MENU,
+			section = SECTION_PLAYER_LOOKUP,
 			position = 1
 	)
 	default boolean getPlayerLookupMenu() { return false; }
@@ -217,7 +217,7 @@ public interface TradeTrackerConfig extends Config
 			keyName = ConfigKey.PLAYER_LOOKUP_CHARACTER,
 			name = "Enable on player",
 			description = "Add option to filter by player name when right-clicking a player",
-			section =  SECTION_PLAYER_MENU,
+			section = SECTION_PLAYER_LOOKUP,
 			position = 0
 	)
 	default boolean getPlayerLookupCharacter() { return false; }
