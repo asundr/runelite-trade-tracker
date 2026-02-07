@@ -211,6 +211,13 @@ public interface TradeTrackerConfig extends Config
 	)
 	default int getPurgeHistoryMagnitude() { return 1; }
 
+	enum LookupType
+	{
+		DISABLED,
+		ENABLED,
+		REQUIRE_SHIFT;
+	}
+
 	@ConfigItem(
 			keyName = ConfigKey.PLAYER_LOOKUP_MENU,
 			name = "Enable on menus",
@@ -218,7 +225,7 @@ public interface TradeTrackerConfig extends Config
 			section = SECTION_PLAYER_LOOKUP,
 			position = 1
 	)
-	default boolean getPlayerLookupMenu() { return false; }
+	default LookupType getPlayerLookupMenu() { return LookupType.DISABLED; }
 
 	@ConfigItem(
 			keyName = ConfigKey.PLAYER_LOOKUP_CHARACTER,
@@ -227,7 +234,7 @@ public interface TradeTrackerConfig extends Config
 			section = SECTION_PLAYER_LOOKUP,
 			position = 0
 	)
-	default boolean getPlayerLookupCharacter() { return false; }
+	default LookupType getPlayerLookupCharacter() { return LookupType.DISABLED; }
 
 	@ConfigItem(
 			keyName = ConfigKey.ADD_NAME_TO_TRADE_OFFER,

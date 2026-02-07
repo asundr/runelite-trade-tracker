@@ -37,6 +37,7 @@ import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.game.chatbox.ChatboxPanelManager;
+import net.runelite.client.input.KeyManager;
 import net.runelite.client.menus.MenuManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -46,6 +47,7 @@ import net.runelite.client.ui.DrawManager;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageCapture;
+import org.asundr.input.TradeInputManager;
 import org.asundr.menu.TradeLookupMenuManager;
 import org.asundr.recovery.SaveManager;
 import org.asundr.screenshot.ScreenshotUtils;
@@ -101,6 +103,8 @@ public class TradeTrackerPlugin extends Plugin
 	private MenuManager menuManager;
 	@Inject
 	private PluginManager pluginManager;
+	@Inject
+	private KeyManager keyManager;
 
 	private final SaveManager saveManager = new SaveManager();
 	private TradeTrackerPluginPanel mainPanel;
@@ -118,6 +122,7 @@ public class TradeTrackerPlugin extends Plugin
 		SaveManager.initialize(configManager);
 		TradeUtils.initialize(itemManager);
 		ScreenshotUtils.initialize(spriteManager, imageCapture, drawManager, overlayManager, pluginManager);
+		TradeInputManager.initialize(keyManager);
 		SaveManager.restoreCommonData();
 		mainPanel = new TradeTrackerPluginPanel();
 		GuiUtils.initialize(mainPanel);
@@ -137,6 +142,7 @@ public class TradeTrackerPlugin extends Plugin
 	{
 		clientToolbar.removeNavigation(navigationButton);
 		eventSubscribers.forEach(e -> eventBus.unregister(e));
+		TradeInputManager.shutdown(keyManager);
 		tradeLookupMenuManager.shutdown();
 		TradeManager.getInstance().shutdown();
 		SaveManager.shutdown();
