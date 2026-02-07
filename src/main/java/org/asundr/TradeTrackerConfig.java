@@ -63,6 +63,13 @@ public interface TradeTrackerConfig extends Config
 	String SECTION_PLAYER_LOOKUP = "player_lookup";
 
 	@ConfigSection(
+			name = "Miscellaneous",
+			description = "Additional features",
+			position = 4
+	)
+	String SECTION_MISCELLANEOUS = "miscellaneous";
+
+	@ConfigSection(
 			name = "Debug",
 			description = "For advanced users or submitting bug reports",
 			position = 10,
@@ -221,5 +228,14 @@ public interface TradeTrackerConfig extends Config
 			position = 0
 	)
 	default boolean getPlayerLookupCharacter() { return false; }
+
+	@ConfigItem(
+			keyName = ConfigKey.ADD_NAME_TO_TRADE_OFFER,
+			name = "Player name in trade offer",
+			description = "Shows the name of the player you traded in the \"Sending trade offer...\" chat message",
+			section = SECTION_MISCELLANEOUS,
+			position = 0
+	)
+	default boolean addNameToTradeOfferChat() { return true; }
 
 }

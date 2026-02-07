@@ -42,5 +42,6 @@ public final class ConfigKey
     public static final String SCHEDULED_PURGE = "SchedulePurge";
     public static final String PLAYER_LOOKUP_MENU = "playerLookupMenu";
     public static final String PLAYER_LOOKUP_CHARACTER = "playerLookupCharacter";
+    public static final String ADD_NAME_TO_TRADE_OFFER = "addNameToTradeOffer";
 
 }

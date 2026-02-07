@@ -1,8 +1,10 @@
 package org.asundr.menu;
 
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.IndexedObjectSet;
 import net.runelite.api.MenuAction;
 import net.runelite.api.Player;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.MenuEntryAdded;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.gameval.InterfaceID;
@@ -16,17 +18,25 @@ import org.asundr.recovery.SaveManager;
 import org.asundr.ui.GuiUtils;
 import org.asundr.utility.CommonUtils;
 
+import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TradeLookupMenuManager
 {
+    private static final Pattern PATTERN_MENU_PLAYER_NAME = Pattern.compile("(.+)\\s+\\([Ll]evel \\d+\\)");
+    private static final String TEMPLATE_CHAT_TRADE_OFFER_WITH_NAME = "Sending %s a trade offer...";
+    private static final String MESSAGE_OFFERED_TRADE = "Sending trade offer...";
+    private static final String TEXT_MENU_ITEM_TRADE = "Trade with";
     private static final String TEXT_MENU_ITEM_FILTER = "Filter trades";
     private static final String TEXT_MENU_OPTION_KICK = "Kick";
     private static final String TEXT_MENU_OPTION_DELETE = "Delete";
     private static final List<String> AFTER_OPTIONS = Arrays.asList("Message", "Add ignore", "Remove friend", TEXT_MENU_OPTION_DELETE, TEXT_MENU_OPTION_KICK);
 
     private final MenuManager menuManager;
+    private String lastOfferedPlayerName = null;
 
     public TradeLookupMenuManager(MenuManager menuManager)
     {
@@ -99,21 +109,59 @@ public class TradeLookupMenuManager
         }
     }
 
-    // Note: adapted from WOM plugin
+
     @Subscribe
     private void onMenuOptionClicked(MenuOptionClicked event)
     {
-        if (event.getMenuAction() != MenuAction.RUNELITE_PLAYER || !event.getMenuOption().equals(TEXT_MENU_ITEM_FILTER))
+        MenuAction action = event.getMenuAction();
+        switch (event.getMenuAction())
         {
-            return;
+            case RUNELITE_PLAYER:
+                switch (event.getMenuOption())
+                {
+                    // Note: adapted from WOM plugin
+                    case TEXT_MENU_ITEM_FILTER:
+                    {
+                        final IndexedObjectSet<? extends Player> players = CommonUtils.getClient().getTopLevelWorldView().players();
+                        final Player player = players.byIndex(event.getId());
+                        if (player == null)
+                        {
+                            return;
+                        }
+                        GuiUtils.setFilterAndEnabled(player.getName());
+                        break;
+                    }
+                }
+            case PLAYER_FOURTH_OPTION:
+            {
+                // Stores player trade offer sent to, to later use it to update offer chat message
+                if (CommonUtils.getConfig().addNameToTradeOfferChat() && event.getMenuOption().equals(TEXT_MENU_ITEM_TRADE))
+                {
+                    final Matcher m = PATTERN_MENU_PLAYER_NAME.matcher(Text.toJagexName(Text.removeTags(event.getMenuTarget())));
+                    if (m.find())
+                    {
+                        lastOfferedPlayerName = m.group(1).trim();
+                    }
+                }
+            }
         }
-        final IndexedObjectSet<? extends Player> players = CommonUtils.getClient().getTopLevelWorldView().players();
-        final Player player = players.byIndex(event.getId());
-        if (player == null)
+    }
+
+    @Subscribe
+    private void onChatMessage(ChatMessage event)
+    {
+        // Updates trade offer message with offered player's name
+        if (event.getType() == ChatMessageType.TRADE && event.getMessage().equals(MESSAGE_OFFERED_TRADE))
         {
-            return;
+            if (lastOfferedPlayerName != null)
+            {
+                // Delayed just in case other plugins need to match the original text
+                SwingUtilities.invokeLater(() -> {
+                    event.getMessageNode().setValue(String.format(TEMPLATE_CHAT_TRADE_OFFER_WITH_NAME, lastOfferedPlayerName));
+                    lastOfferedPlayerName = null;
+                });
+            }
         }
-        GuiUtils.setFilterAndEnabled(player.getName());
     }
 
     private void updatePlayerMenuItem(boolean add)
