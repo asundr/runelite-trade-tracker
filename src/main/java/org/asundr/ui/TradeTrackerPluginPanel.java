@@ -57,22 +57,32 @@ import java.util.stream.Collectors;
 
 public class TradeTrackerPluginPanel extends PluginPanel
 {
-    private final static int TRADE_RECORD_PADDING = 10;
-    private final static int HEADER_PADDING = 7;
-    private final static int HEADER_FILTER_ENTRY_HEIGHT = 25;
-    private final static int HEADER_HEIGHT_DEFAULT = 100;
-    private final static int HEADER_HEIGHT_FILTERING = HEADER_HEIGHT_DEFAULT + HEADER_FILTER_ENTRY_HEIGHT + 4;
+    private static final int TRADE_RECORD_PADDING = 10;
+    private static final int HEADER_PADDING = 7;
+    private static final int HEADER_FILTER_ENTRY_HEIGHT = 25;
+    private static final int HEADER_HEIGHT_DEFAULT = 100;
+    private static final int SIZE_FILTER_BUTTON_X = 15;
+    private static final int HEADER_HEIGHT_FILTERING = HEADER_HEIGHT_DEFAULT + HEADER_FILTER_ENTRY_HEIGHT + 4;
+    private static final Dimension DIMENSION_FILTER_WRAPPER = new Dimension(PANEL_WIDTH, HEADER_FILTER_ENTRY_HEIGHT);
+    private static final Dimension DIMENSION_FILTER_TEXT = new Dimension(PANEL_WIDTH - SIZE_FILTER_BUTTON_X, HEADER_FILTER_ENTRY_HEIGHT);
+    private static final Dimension DIMENSION_CLEAR_FILTER_WRAPPER = new Dimension(SIZE_FILTER_BUTTON_X, HEADER_FILTER_ENTRY_HEIGHT);
+    private static final Dimension DIMENSION_CLEAR_FILTER_BUTTON = new Dimension(SIZE_FILTER_BUTTON_X - 9, HEADER_FILTER_ENTRY_HEIGHT - 16);
+    private final static Color COLOR_TRANSPARENT = new Color(0,0,0,0);
     private final static Color COLOR_HEADER_BACKGROUND = new Color(15, 15, 25);
     private final static Color COLOR_FILTER_TEXT_BACKGROUND = new Color(10, 10, 10);
     private final static Color COLOR_TOOLBAR_BACKGROUND = new Color(40, 40, 0);
+    private final static Color COLOR_CLEAR_FILTER_BACKGROUND = new Color(80, 0, 0);
     private final static String TEMPLATE_EMPTY_LIST = "<html><body style='text-align:center'><span style='font-size:12px;color:white'>%s</span><br><span style='font-size:10px;color:#939393'>%s</span></body></html>";
     private final static String TEMPLATE_SUBTITLE = "<html><span style='font-size:13;color:white'><nobr>%s <span style='color:#909090'>%s</span></nobr></span><html>";
     private final static String TEMPLATE_PURGE_TOOLTIP = "<html><span>%s auto-remove old trades</span></html>";
     private final static String TEMPLATE_PURGE_TOOLTIP_AUTO = "<html><span>%s auto-remove old trades</span><br><span>Lifetime: %s %s</span></html>";
     private final static Border BORDER_EMPTY = BorderFactory.createEmptyBorder(0, 0, 0, 0);
-    private final static Border BORDER_FILTER_TEXT = BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(90,90,30), 1), BorderFactory.createEmptyBorder(0, 5, 0, 5));
+    private final static Border BORDER_FILTER_TEXT_WRAPPER = BorderFactory.createLineBorder(new Color(90,90,30), 1);
+    private final static Border BORDER_FILTER_TEXT = BorderFactory.createEmptyBorder(0, 5, 0, 5);
     private final static Border BORDER_HISTORY_PANEL = BorderFactory.createEmptyBorder(4, 2, 2, 3);
     private final static Border BORDER_TOOLBAR = BorderFactory.createLineBorder(new Color(40, 40, 0), 3);
+    private final static Border BORDER_PADDING_CLEAR_FILTER_WRAPPER = BorderFactory.createEmptyBorder(6,3,6,5);
+    private final static Border BORDER_PADDING_CLEAR_FILTER_BUTTON = BorderFactory.createEmptyBorder(0,0,0,0);
 
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -91,8 +101,9 @@ public class TradeTrackerPluginPanel extends PluginPanel
     private ToolbarButton btnSchedulePurge;
     private ToolbarButton btnToggleCollapseAll;
     ToolbarButton btnFilter;
+    final JPanel filterTextWrapper = new JPanel();
     final JTextField filterText = new JTextField();
-
+    final JPanel clearFilterWrapper = new JPanel();
 
     public TradeTrackerPluginPanel()
     {
@@ -358,7 +369,31 @@ public class TradeTrackerPluginPanel extends PluginPanel
         toolbarPanel.add(btnToggleCollapseAll, gbc);
 
         // Setting up text entry field for filtering trades
-        headerPanel.add(filterText);
+        filterTextWrapper.setPreferredSize(DIMENSION_FILTER_WRAPPER);
+        filterTextWrapper.setMinimumSize(DIMENSION_FILTER_WRAPPER);
+        filterTextWrapper.setLayout(new BoxLayout(filterTextWrapper, BoxLayout.X_AXIS));
+        filterTextWrapper.setBorder(BORDER_FILTER_TEXT_WRAPPER);
+        filterTextWrapper.setBackground(COLOR_FILTER_TEXT_BACKGROUND);
+        filterTextWrapper.add(filterText);
+
+        clearFilterWrapper.setLayout(new BorderLayout());
+        clearFilterWrapper.setPreferredSize(DIMENSION_CLEAR_FILTER_WRAPPER);
+        clearFilterWrapper.setMinimumSize(DIMENSION_CLEAR_FILTER_WRAPPER);
+        clearFilterWrapper.setBorder(BORDER_PADDING_CLEAR_FILTER_WRAPPER);
+        clearFilterWrapper.setBackground(COLOR_TRANSPARENT);
+
+        final JButton clearFilterButton = new JButton("×");
+        clearFilterButton.addActionListener(e -> SwingUtilities.invokeLater(this::clearFilter));
+        clearFilterButton.setPreferredSize(DIMENSION_CLEAR_FILTER_BUTTON);
+        clearFilterButton.setMinimumSize(DIMENSION_CLEAR_FILTER_BUTTON);
+        clearFilterButton.setBackground(COLOR_CLEAR_FILTER_BACKGROUND);
+        clearFilterButton.setBorder(BORDER_PADDING_CLEAR_FILTER_BUTTON);
+        clearFilterButton.setToolTipText("Clear");
+        clearFilterWrapper.setVisible(false);
+        clearFilterWrapper.add(clearFilterButton, BorderLayout.CENTER);
+        filterTextWrapper.add(clearFilterWrapper);
+
+        headerPanel.add(filterTextWrapper);
         headerPanel.add(Box.createVerticalStrut(HEADER_PADDING/2));
         filterText.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -382,6 +417,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
                         }
                         break;
                 }
+                SwingUtilities.invokeLater(() -> clearFilterWrapper.setVisible(!filterText.getText().isEmpty()));
             }
         });
         filterText.addMouseListener(new MouseAdapter() {
@@ -391,16 +427,18 @@ public class TradeTrackerPluginPanel extends PluginPanel
                 {
                     JPopupMenu filterTextPopup = new JPopupMenu();
                     JMenuItem clearFilterTextItem = new JMenuItem("Clear");
-                    clearFilterTextItem.addActionListener(event -> clearFilter());
+                    clearFilterTextItem.addActionListener(event -> SwingUtilities.invokeLater(TradeTrackerPluginPanel.this::clearFilter));
                     filterTextPopup.add(clearFilterTextItem);
                     filterTextPopup.show(filterText, e.getX(), e.getY());
                 }
             }
         });
-        filterText.setVisible(false);
-        filterText.setBackground(COLOR_FILTER_TEXT_BACKGROUND);
+        filterText.setBackground(COLOR_TRANSPARENT);
         filterText.setBorder(BORDER_FILTER_TEXT);
-        filterText.setPreferredSize(new Dimension(PANEL_WIDTH, HEADER_FILTER_ENTRY_HEIGHT));
+        filterText.setPreferredSize(DIMENSION_FILTER_TEXT);
+        filterText.setMinimumSize(DIMENSION_FILTER_TEXT);
+        filterTextWrapper.setVisible(false);
+
 
         // Setting up button for toggling the filter
         btnFilter = new ToolbarButton(
@@ -422,7 +460,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
 
     private void toggleFilter(boolean active)
     {
-        filterText.setVisible(active);
+        filterTextWrapper.setVisible(active);
         final int headerHeight = active ? HEADER_HEIGHT_FILTERING : HEADER_HEIGHT_DEFAULT;
         headerPanel.setPreferredSize(new Dimension(PANEL_WIDTH, headerHeight));
         headerPanel.setMinimumSize(new Dimension(PANEL_WIDTH, headerHeight));
@@ -591,12 +629,14 @@ public class TradeTrackerPluginPanel extends PluginPanel
         if (!text.equalsIgnoreCase(filterText.getText()))
         {
             filterText.setText(text);
+            clearFilterWrapper.setVisible(!text.isEmpty());
         }
     }
 
     // Note: Must be called inside a SwingUtilities.invokeLater
     void clearFilter()
     {
-        SwingUtilities.invokeLater(() -> filterText.setText(""));
+        filterText.setText("");
+        clearFilterWrapper.setVisible(false);
     }
 }
