@@ -137,13 +137,12 @@ public class TradeLookupMenuManager
             case InterfaceID.FRIENDS:
             case InterfaceID.IGNORE:
             {
-                final String name = Text.toJagexName(Text.removeTags(event.getTarget()));
                 CommonUtils.getClient().getMenu().createMenuEntry(-1)
                         .setTarget(event.getTarget())
                         .setOption(TEXT_MENU_ITEM_FILTER)
                         .setType(MenuAction.RUNELITE)
                         .setIdentifier(event.getIdentifier())
-                        .onClick(e -> GuiUtils.setFilterAndEnabled(name));
+                        .onClick(e -> GuiUtils.setFilterAndEnabled(Text.removeTags(event.getTarget())));
                 break;
             }
         }
