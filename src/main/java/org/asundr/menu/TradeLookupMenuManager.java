@@ -29,7 +29,7 @@ public class TradeLookupMenuManager
     private static final Pattern PATTERN_MENU_PLAYER_NAME = Pattern.compile("(.+)\\s+\\([Ll]evel \\d+\\)");
     private static final String TEMPLATE_CHAT_TRADE_OFFER_WITH_NAME = "Sending %s a trade offer...";
     private static final String MESSAGE_OFFERED_TRADE = "Sending trade offer...";
-    private static final String TEXT_MENU_ITEM_TRADE = "Trade with";
+    private static final String TEXT_MENU_ITEM_TRADE_WITH = "Trade with";
     private static final String TEXT_MENU_ITEM_ACCEPT_TRADE = "Accept trade";
     private static final String TEXT_MENU_ITEM_FILTER = "Filter trades";
     private static final String TEXT_MENU_OPTION_KICK = "Kick";
@@ -168,11 +168,11 @@ public class TradeLookupMenuManager
             }
             break;
         }
-        case TEXT_MENU_ITEM_TRADE:
+        case TEXT_MENU_ITEM_TRADE_WITH:
         {
             if (CommonUtils.getConfig().addNameToTradeOfferChat())
             {
-                final Matcher m = PATTERN_MENU_PLAYER_NAME.matcher(Text.toJagexName(Text.removeTags(event.getMenuTarget())));
+                final Matcher m = PATTERN_MENU_PLAYER_NAME.matcher(Text.removeTags(event.getMenuTarget()));
                 if (m.find())
                 {
                     lastOfferedPlayerName = m.group(1).trim();
