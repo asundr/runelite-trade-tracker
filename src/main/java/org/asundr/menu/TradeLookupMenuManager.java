@@ -7,20 +7,14 @@ import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.widgets.WidgetUtil;
 import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.menus.MenuManager;
 import net.runelite.client.util.Text;
-import org.asundr.input.TradeInputManager;
-import org.asundr.recovery.ConfigKey;
-import org.asundr.recovery.SaveManager;
 import org.asundr.ui.GuiUtils;
 import org.asundr.utility.CommonUtils;
 
 import javax.swing.*;
-import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,39 +29,19 @@ public class TradeLookupMenuManager
     private static final String TEXT_MENU_OPTION_KICK = "Kick";
     private static final String TEXT_MENU_OPTION_DELETE = "Delete";
     private static final List<String> AFTER_OPTIONS = Arrays.asList("Message", "Add ignore", "Remove friend", TEXT_MENU_OPTION_DELETE, TEXT_MENU_OPTION_KICK);
-    private final static int KEY_SHIFT = KeyEvent.VK_SHIFT;
 
     private final MenuManager menuManager;
-    private final Consumer<Boolean> CALLBACK_SHIFT_KEY_CHANGED = b -> updatePlayerLookupEnabled();
     private boolean playerLookupEnabled = false;
     private String lastOfferedPlayerName = null;
 
     public TradeLookupMenuManager(MenuManager menuManager)
     {
         this.menuManager = menuManager;
-        updatePlayerLookupEnabled();
-        TradeInputManager.registerPressedListener(KEY_SHIFT, CALLBACK_SHIFT_KEY_CHANGED);
-        TradeInputManager.registerReleasedListener(KEY_SHIFT, CALLBACK_SHIFT_KEY_CHANGED);
     }
 
     public void shutdown()
     {
-        TradeInputManager.unregisterPressedListener(KEY_SHIFT, CALLBACK_SHIFT_KEY_CHANGED);
-        TradeInputManager.unregisterReleasedListener(KEY_SHIFT, CALLBACK_SHIFT_KEY_CHANGED);
         setPlayerLookupEnabled(false);
-    }
-
-    @Subscribe
-    private void onConfigChanged(ConfigChanged event)
-    {
-        if (!event.getGroup().equals(SaveManager.SAVE_GROUP))
-        {
-            return;
-        }
-        if (event.getKey().equals(ConfigKey.PLAYER_LOOKUP_CHARACTER))
-        {
-            updatePlayerLookupEnabled();
-        }
     }
 
     private void updatePlayerLookupEnabled()
@@ -109,6 +83,7 @@ public class TradeLookupMenuManager
     @Subscribe
     private void onMenuEntryAdded(MenuEntryAdded event)
     {
+        updatePlayerLookupEnabled();
         switch (CommonUtils.getConfig().getPlayerLookupMenu())
         {
             case REQUIRE_SHIFT:
