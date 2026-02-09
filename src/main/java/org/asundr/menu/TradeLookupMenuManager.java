@@ -156,7 +156,7 @@ public class TradeLookupMenuManager
         {
         case TEXT_MENU_ITEM_FILTER:
         {
-            if (event.getMenuAction() != MenuAction.RUNELITE_PLAYER)
+            if (event.getMenuAction() == MenuAction.RUNELITE_PLAYER)
             {
                 final IndexedObjectSet<? extends Player> players = CommonUtils.getClient().getTopLevelWorldView().players();
                 final Player player = players.byIndex(event.getId());
