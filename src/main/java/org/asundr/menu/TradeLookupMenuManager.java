@@ -30,6 +30,7 @@ public class TradeLookupMenuManager
     private static final String TEMPLATE_CHAT_TRADE_OFFER_WITH_NAME = "Sending %s a trade offer...";
     private static final String MESSAGE_OFFERED_TRADE = "Sending trade offer...";
     private static final String TEXT_MENU_ITEM_TRADE = "Trade with";
+    private static final String TEXT_MENU_ITEM_ACCEPT_TRADE = "Accept trade";
     private static final String TEXT_MENU_ITEM_FILTER = "Filter trades";
     private static final String TEXT_MENU_OPTION_KICK = "Kick";
     private static final String TEXT_MENU_OPTION_DELETE = "Delete";
@@ -179,6 +180,12 @@ public class TradeLookupMenuManager
             }
             break;
         }
+        case TEXT_MENU_ITEM_ACCEPT_TRADE:
+            if (CommonUtils.getConfig().addNameToTradeOfferChat())
+            {
+                lastOfferedPlayerName = Text.removeTags(event.getMenuTarget()).trim();
+            }
+            break;
         }
     }
 
