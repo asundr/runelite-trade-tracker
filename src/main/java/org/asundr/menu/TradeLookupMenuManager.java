@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 public class TradeLookupMenuManager
 {
-    private static final Pattern PATTERN_MENU_PLAYER_NAME = Pattern.compile("(.+)\\s+\\([Ll]evel \\d+\\)");
+    private static final Pattern PATTERN_MENU_PLAYER_NAME = Pattern.compile("(.+)\\s*\\([^\\)]*\\)");
     private static final String TEMPLATE_CHAT_TRADE_OFFER_WITH_NAME = "Sending %s a trade offer...";
     private static final String MESSAGE_OFFERED_TRADE = "Sending trade offer...";
     private static final String TEXT_MENU_ITEM_TRADE_WITH = "Trade with";
