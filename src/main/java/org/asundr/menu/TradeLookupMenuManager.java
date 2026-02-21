@@ -117,7 +117,10 @@ public class TradeLookupMenuManager
                         .setOption(TEXT_MENU_ITEM_FILTER)
                         .setType(MenuAction.RUNELITE)
                         .setIdentifier(event.getIdentifier())
-                        .onClick(e -> GuiUtils.setFilterAndEnabled(Text.removeTags(event.getTarget())));
+                        .onClick(e -> {
+                            GuiUtils.setFilterAndEnabled(Text.removeTags(event.getTarget()));
+                            SwingUtilities.invokeLater(GuiUtils::openPanel);
+                        });
                 break;
             }
         }
@@ -138,6 +141,7 @@ public class TradeLookupMenuManager
                 if (player != null)
                 {
                     GuiUtils.setFilterAndEnabled(player.getName());
+                    SwingUtilities.invokeLater(GuiUtils::openPanel);
                 }
             }
             break;

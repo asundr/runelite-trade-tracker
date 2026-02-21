@@ -125,7 +125,6 @@ public class TradeTrackerPlugin extends Plugin
 		TradeInputManager.initialize(keyManager);
 		SaveManager.restoreCommonData();
 		mainPanel = new TradeTrackerPluginPanel();
-		GuiUtils.initialize(mainPanel);
 		tradeLookupMenuManager = new TradeLookupMenuManager(menuManager);
 		eventSubscribers = Arrays.asList(mainPanel, TradeManager.getInstance(), saveManager, tradeLookupMenuManager);
 		eventSubscribers.forEach(e -> eventBus.register(e));
@@ -135,6 +134,7 @@ public class TradeTrackerPlugin extends Plugin
 		}
 		SaveManager.requestRestoreTradeHistory();
 		addNavigationButton(mainPanel);
+		GuiUtils.initialize(mainPanel, clientToolbar, navigationButton);
 	}
 
 	@Override

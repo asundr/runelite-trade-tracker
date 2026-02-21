@@ -25,6 +25,8 @@
 
 package org.asundr.ui;
 
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
 import org.asundr.trade.TradeData;
 import org.asundr.trade.TradeManager;
 import org.asundr.utility.CommonUtils;
@@ -37,9 +39,14 @@ public class GuiUtils
     private static boolean preTradeFilterActive = false;
 
     private static TradeTrackerPluginPanel mainPanel = null;
-    public static void initialize(TradeTrackerPluginPanel mainPanel)
+    private static ClientToolbar clientToolbar = null;
+    private static NavigationButton pluginNavButton = null;
+
+    public static void initialize(TradeTrackerPluginPanel mainPanel, ClientToolbar clientToolbar, NavigationButton navButton)
     {
         GuiUtils.mainPanel = mainPanel;
+        GuiUtils.clientToolbar = clientToolbar;
+        GuiUtils.pluginNavButton = navButton;
     }
 
     public static void setFilter(final String text)
@@ -104,6 +111,7 @@ public class GuiUtils
         preTradeFilterText = mainPanel.filterText.getText();
         preTradeFilterActive = mainPanel.btnFilter.isActive();
         setFilterAndEnabled(tradeData.tradedPlayer.tradeName);
+        openPanel();
     }
 
     public static void restoreFilterPostTrade()
@@ -118,5 +126,10 @@ public class GuiUtils
                 preTradeFilterActive = false;
             });
         }
+    }
+
+    public static void openPanel()
+    {
+        clientToolbar.openPanel(pluginNavButton);
     }
 }
