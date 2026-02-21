@@ -111,7 +111,7 @@ public class GuiUtils
         preTradeFilterText = mainPanel.filterText.getText();
         preTradeFilterActive = mainPanel.btnFilter.isActive();
         setFilterAndEnabled(tradeData.tradedPlayer.tradeName);
-        openPanel();
+        SwingUtilities.invokeLater(GuiUtils::openPanel);
     }
 
     public static void restoreFilterPostTrade()
@@ -128,6 +128,7 @@ public class GuiUtils
         }
     }
 
+    // Note: must be called inside SwingUtils.invokeLater()
     public static void openPanel()
     {
         clientToolbar.openPanel(pluginNavButton);
