@@ -575,6 +575,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
                 scheduler.shutdownNow();
                 scheduledUpdateTimeFuture = null;
                 uiExecutorFuture = null;
+                scheduledTimeLabelUpdate();
             });
         });
     }
