@@ -57,6 +57,7 @@ import java.util.stream.Collectors;
 
 public class TradeTrackerPluginPanel extends PluginPanel
 {
+    private static final int TIME_RESTART_TRADE_RECORD_REFRESH = 30; // seconds
     private static final int TRADE_RECORD_PADDING = 10;
     private static final int HEADER_PADDING = 7;
     private static final int HEADER_FILTER_ENTRY_HEIGHT = 25;
@@ -133,13 +134,6 @@ public class TradeTrackerPluginPanel extends PluginPanel
         add(headerPanel);
         add(emptyHistoryPanel);
         add(tradeHistoryScroll);
-
-        // Schedule recurring update for time labels at midnight
-        scheduler.scheduleAtFixedRate(
-                () -> getTradeRecordPanels().forEach(TradeRecordPanel::updateTimeDisplay),
-                TimeUtils.getTimeUntilMidnight() + 1000L,
-                TimeUtils.MILLISECONDS_IN_DAY,
-                TimeUnit.MILLISECONDS);
     }
 
     public void shutdown()
@@ -526,6 +520,18 @@ public class TradeTrackerPluginPanel extends PluginPanel
     // Batch adds all trade panels from a trade history collection, replacing existing panels
     private void replaceAllTradeRecords(final Collection<TradeData> tradeHistory)
     {
+        if (CommonUtils.isThreadActive(scheduledUpdateTimeFuture))
+        {
+            scheduler.shutdownNow();
+        }
+        scheduledUpdateTimeFuture = scheduler.schedule(() -> {
+            if (CommonUtils.isThreadActive(uiExecutorFuture))
+            {
+                executor.shutdownNow();
+            }
+            CommonUtils.getClientThread().invokeLater(() -> replaceAllTradeRecords(tradeHistory));
+        }, TIME_RESTART_TRADE_RECORD_REFRESH, TimeUnit.SECONDS);
+
         clearAllTradeRecords();
         if (tradeHistory == null || tradeHistory.isEmpty())
         {
@@ -537,11 +543,18 @@ public class TradeTrackerPluginPanel extends PluginPanel
         updateEmptyHistoryMessages();
         CommonUtils.getClientThread().invoke(() ->
         {
-            for (final TradeData tradeData : tradeHistory)
+            try // handle getting item composition failing gracefully
             {
-                TradeUtils.fetchCompositionData(tradeData.givenItems);
-                TradeUtils.fetchCompositionData(tradeData.receivedItems);
-                tradeData.calculateAggregateValues();
+                for (final TradeData tradeData : tradeHistory)
+                {
+                    TradeUtils.fetchCompositionData(tradeData.givenItems);
+                    TradeUtils.fetchCompositionData(tradeData.receivedItems);
+                    tradeData.calculateAggregateValues();
+                }
+            }
+            catch (Exception e)
+            {
+                return;
             }
             uiExecutorFuture = executor.submit(() ->
             {
@@ -550,6 +563,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
                     tradeRecordPanel.paddingStrut = Box.createVerticalStrut(TRADE_RECORD_PADDING);
                     return tradeRecordPanel;
                 }).collect(Collectors.toList());
+                // NOTE: when initial loading fails, it seems to get stuck on the above line
                 for (final TradeRecordPanel panel : panels)
                 {
                     tradeHistoryPanel.add(panel.paddingStrut, 0);
@@ -558,6 +572,8 @@ public class TradeTrackerPluginPanel extends PluginPanel
                 panels.forEach(TradeRecordPanel::updatePreferredSize); // fix for mis-sized panels on reload all
                 tradeHistoryPanel.setVisible(true);
                 updateEmptyHistoryMessages();
+                scheduler.shutdownNow();
+                scheduledUpdateTimeFuture = null;
                 uiExecutorFuture = null;
             });
         });
@@ -638,5 +654,15 @@ public class TradeTrackerPluginPanel extends PluginPanel
     {
         filterText.setText("");
         clearFilterWrapper.setVisible(false);
+    }
+
+    // Schedule recurring update for time labels at midnight
+    private void scheduledTimeLabelUpdate()
+    {
+        scheduledUpdateTimeFuture = scheduler.scheduleAtFixedRate(
+                () -> getTradeRecordPanels().forEach(TradeRecordPanel::updateTimeDisplay),
+                TimeUtils.getTimeUntilMidnight() + 1000L,
+                TimeUtils.MILLISECONDS_IN_DAY,
+                TimeUnit.MILLISECONDS);
     }
 }
