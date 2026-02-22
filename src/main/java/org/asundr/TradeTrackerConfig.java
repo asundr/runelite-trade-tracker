@@ -111,6 +111,14 @@ public interface TradeTrackerConfig extends Config
 	default AutoFilterOnTrade getAutoFilterOnTrade() { return AutoFilterOnTrade.NEVER; }
 
 	@ConfigItem(
+			keyName = ConfigKey.AUTO_FILTER_OPENS_PANEL,
+			name = "Auto-filter trade",
+			description = "if auto-filter enabled, will open the side bar and switch to the Trade Tracker tab",
+			section = SECTION_GENERAL
+	)
+	default boolean autoFilterOpensPanel() { return true; }
+
+	@ConfigItem(
 			keyName = ConfigKey.SCREENSHOT_ON_TRADE,
 			name = "Screenshot on trade",
 			description = "If enabled, a screenshot of the trade is also saved as an image to disk",
