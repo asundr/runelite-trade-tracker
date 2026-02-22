@@ -106,15 +106,17 @@ public interface TradeTrackerConfig extends Config
 					"<br>- Empty: Only auto-filter if the filter text is empty" +
 					"<br>- Inactive: Only auto-filter if the filter is currently disabled" +
 					"<br>- Inactive Empty: Only auto-filter if the filter is both empty and disabled",
-			section = SECTION_GENERAL
+			section = SECTION_GENERAL,
+			position =  -10
 	)
 	default AutoFilterOnTrade getAutoFilterOnTrade() { return AutoFilterOnTrade.NEVER; }
 
 	@ConfigItem(
 			keyName = ConfigKey.AUTO_FILTER_OPENS_PANEL,
-			name = "Auto-filter trade",
-			description = "if auto-filter enabled, will open the side bar and switch to the Trade Tracker tab",
-			section = SECTION_GENERAL
+			name = "Auto-filter opens panel",
+			description = "If auto-filter enabled, will open the side bar and switch to the Trade Tracker panel tab",
+			section = SECTION_GENERAL,
+			position = -9
 	)
 	default boolean autoFilterOpensPanel() { return true; }
 
