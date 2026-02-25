@@ -44,7 +44,7 @@ import java.util.concurrent.ScheduledExecutorService;
 public class ScreenshotUtils
 {
     private static final String FOLDER_NAME = "Trades";
-    private static final String WARNING_RUNEWATCH = "[Trade Tracker] WARNING: Trade screenshot deferred to RuneWatch. Make sure you only have trade screenshots enabled on one plugin!";
+    private static final String WARNING_RUNEWATCH = "WARNING: Trade screenshot deferred to RuneWatch. Make sure you only have trade screenshots enabled on one plugin!";
     private static final String RUNEWATCH_PLUGIN_NAME = "RuneWatch";
     private static final String RUNEWATCH_CONFIG_GROUP = "runewatch";
     private static final String RUNEWATCH_CONFIG_KEY_SCREENSHOT = "screenshotTrades";
@@ -100,7 +100,7 @@ public class ScreenshotUtils
         if (runeWatchPlugin.isPresent() && pluginManager.isPluginEnabled(runeWatchPlugin.get())
                 && Boolean.TRUE.equals(SaveManager.restoreFromKey(RUNEWATCH_CONFIG_GROUP, RUNEWATCH_CONFIG_KEY_SCREENSHOT)))
         {
-            CommonUtils.chatMessage(WARNING_RUNEWATCH);
+            CommonUtils.chatMessage(WARNING_RUNEWATCH, true);
             return;
         }
         screenshotOverlay.queueForTimestamp(image -> tradeImage = image);

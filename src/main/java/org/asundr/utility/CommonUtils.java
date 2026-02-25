@@ -55,6 +55,8 @@ import java.util.regex.Pattern;
 @Slf4j
 public class CommonUtils
 {
+    private static final Color COLOR_PREFIX = new Color(0, 100, 0);
+    private static final String TEXT_PREFIX_CONTENT = "Trade Tracker";
     private static TradeTrackerConfig config;
     private static Client client;
     private static ClientThread clientThread;
@@ -134,10 +136,14 @@ public class CommonUtils
             }).build();
     }
 
-    public static void chatMessage(final String message)
+    public static void chatMessage(final String message, boolean prefix)
     {
-        final ChatMessageBuilder messageBuilder = new ChatMessageBuilder()
-                .append(message);
+        final ChatMessageBuilder messageBuilder = new ChatMessageBuilder();
+        if (prefix)
+        {
+            messageBuilder.append("[").append(COLOR_PREFIX, TEXT_PREFIX_CONTENT).append("] ");
+        }
+        messageBuilder.append(message);
         chatMessageManager.queue(QueuedMessage.builder()
                 .type(ChatMessageType.GAMEMESSAGE)
                 .runeLiteFormattedMessage(messageBuilder.build())
