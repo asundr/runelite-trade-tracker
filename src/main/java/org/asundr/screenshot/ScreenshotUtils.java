@@ -26,12 +26,14 @@
 package org.asundr.screenshot;
 
 import net.runelite.api.gameval.SpriteID;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.ui.DrawManager;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageCapture;
+import org.asundr.recovery.ConfigKey;
 import org.asundr.recovery.SaveManager;
 import org.asundr.utility.CommonUtils;
 
@@ -56,6 +58,7 @@ public class ScreenshotUtils
     private static ImageCapture imageCapture;
     private static OverlayManager overlayManager;
     private static PluginManager pluginManager;
+    private static ScreenshotConflictManager screenshotConflictManager;
 
     private static Image tradeImage;
 
@@ -69,11 +72,14 @@ public class ScreenshotUtils
         ScreenshotUtils.screenshotOverlay = new ScreenshotOverlay(drawManager);
         ScreenshotUtils.overlayManager.add(screenshotOverlay);
         ScreenshotUtils.pluginManager = pluginManager;
+        ScreenshotUtils.screenshotConflictManager = new ScreenshotConflictManager();
+        CommonUtils.registerForEvents(screenshotConflictManager);
         getReportButton();
     }
 
     public static void shutdown()
     {
+        CommonUtils.unregisterForEvents(screenshotConflictManager);
         overlayManager.remove(screenshotOverlay);
     }
 
@@ -91,21 +97,32 @@ public class ScreenshotUtils
         return reportButton;
     }
 
+    public static boolean isRunewatchScreenshotEnabled()
+    {
+        final Optional<Plugin> runeWatchPlugin = pluginManager.getPlugins().stream().filter(p -> p.getName().equals(RUNEWATCH_PLUGIN_NAME)).findFirst();
+        return runeWatchPlugin.isPresent() && pluginManager.isPluginEnabled(runeWatchPlugin.get())
+                && Boolean.TRUE.equals(SaveManager.restoreFromKey(RUNEWATCH_CONFIG_GROUP, RUNEWATCH_CONFIG_KEY_SCREENSHOT));
+    }
+
     public static void takeScreenshot()
     {
         if (!CommonUtils.getConfig().getScreenshotOnTrade())
         {
             return;
         }
-        final Optional<Plugin> runeWatchPlugin = pluginManager.getPlugins().stream().filter(p -> p.getName().equals(RUNEWATCH_PLUGIN_NAME)).findFirst();
-        if (runeWatchPlugin.isPresent() && pluginManager.isPluginEnabled(runeWatchPlugin.get())
-                && Boolean.TRUE.equals(SaveManager.restoreFromKey(RUNEWATCH_CONFIG_GROUP, RUNEWATCH_CONFIG_KEY_SCREENSHOT)))
+        if (isRunewatchScreenshotEnabled())
         {
             CommonUtils.chatMessage(WARNING_RUNEWATCH_1, true);
             CommonUtils.chatMessage(WARNING_RUNEWATCH_2, true);
             return;
         }
         screenshotOverlay.queueForTimestamp(image -> tradeImage = image);
+    }
+
+    public static boolean hasScreenshotConfigChanged(ConfigChanged event)
+    {
+        return event.getGroup().equals(RUNEWATCH_CONFIG_GROUP) && event.getKey().equals(RUNEWATCH_CONFIG_KEY_SCREENSHOT)
+                || event.getGroup().equals(SaveManager.SAVE_GROUP) && event.getKey().equals(ConfigKey.SCREENSHOT_ON_TRADE);
     }
 
     public static void saveScreenshot(final String tradeName)
