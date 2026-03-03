@@ -536,6 +536,11 @@ public class TradeTrackerPluginPanel extends PluginPanel
         if (tradeHistory == null || tradeHistory.isEmpty())
         {
             updateEmptyHistoryMessages();
+            if (scheduledUpdateTimeFuture != null)
+            {
+                scheduledUpdateTimeFuture.cancel(true);
+                scheduledUpdateTimeFuture = null;
+            }
             return;
         }
         btnFilter.setActive(false);
