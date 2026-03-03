@@ -522,12 +522,12 @@ public class TradeTrackerPluginPanel extends PluginPanel
     {
         if (CommonUtils.isThreadActive(scheduledUpdateTimeFuture))
         {
-            scheduler.shutdownNow();
+            scheduledUpdateTimeFuture.cancel(true);
         }
         scheduledUpdateTimeFuture = scheduler.schedule(() -> {
             if (CommonUtils.isThreadActive(uiExecutorFuture))
             {
-                executor.shutdownNow();
+                uiExecutorFuture.cancel(true);
             }
             CommonUtils.getClientThread().invokeLater(() -> replaceAllTradeRecords(tradeHistory));
         }, TIME_RESTART_TRADE_RECORD_REFRESH, TimeUnit.SECONDS);
@@ -572,8 +572,11 @@ public class TradeTrackerPluginPanel extends PluginPanel
                 panels.forEach(TradeRecordPanel::updatePreferredSize); // fix for mis-sized panels on reload all
                 tradeHistoryPanel.setVisible(true);
                 updateEmptyHistoryMessages();
-                scheduler.shutdownNow();
-                scheduledUpdateTimeFuture = null;
+                if (scheduledUpdateTimeFuture != null)
+                {
+                    scheduledUpdateTimeFuture.cancel(true);
+                    scheduledUpdateTimeFuture = null;
+                }
                 uiExecutorFuture = null;
                 scheduledTimeLabelUpdate();
             });
