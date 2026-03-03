@@ -127,16 +127,13 @@ public class SaveManager
 
     public static void shutdown()
     {
-        if (CommonUtils.isThreadActive(ioExecutorFuture))
+        if (hasFlag(tradeHistorySaveState, SaveState.ACTIVE))
         {
-            if (hasFlag(tradeHistorySaveState, SaveState.ACTIVE))
-            {
-                ioExecutor.shutdown();
-            }
-            else
-            {
-                ioExecutor.shutdownNow();
-            }
+            ioExecutor.shutdown();
+        }
+        else
+        {
+            ioExecutor.shutdownNow();
         }
     }
 
