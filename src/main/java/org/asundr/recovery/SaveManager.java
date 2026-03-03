@@ -68,7 +68,7 @@ public class SaveManager
     private static SaveData_Common saveDataCommon;
     private static final AtomicInteger tradeHistorySaveState = new AtomicInteger(SaveState.INACTIVE); // flags for trade history save operation
     private static final AtomicInteger tradeHistoryLoadState = new AtomicInteger(SaveState.INACTIVE); // flags for trade history load operation
-    private static final ExecutorService ioExecutor = Executors.newFixedThreadPool(1);
+    private static ExecutorService ioExecutor = null;
     private static Future<?> ioExecutorFuture  = null;
 
     @Subscribe
@@ -123,6 +123,11 @@ public class SaveManager
     public static void initialize(ConfigManager configManager)
     {
         SaveManager.configManager = configManager;
+
+        SaveManager.ioExecutor =  Executors.newFixedThreadPool(1);
+        SaveManager.ioExecutorFuture = null;
+        SaveManager.tradeHistorySaveState.set(SaveState.INACTIVE);
+        SaveManager.tradeHistoryLoadState.set(SaveState.INACTIVE);
     }
 
     public static void shutdown()
