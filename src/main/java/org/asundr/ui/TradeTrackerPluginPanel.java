@@ -138,14 +138,8 @@ public class TradeTrackerPluginPanel extends PluginPanel
 
     public void shutdown()
     {
-        if (CommonUtils.isThreadActive(scheduledUpdateTimeFuture))
-        {
-            scheduler.shutdownNow();
-        }
-        if (CommonUtils.isThreadActive(uiExecutorFuture))
-        {
-            executor.shutdownNow();
-        }
+        scheduler.shutdownNow();
+        executor.shutdownNow();
     }
 
     @Subscribe
