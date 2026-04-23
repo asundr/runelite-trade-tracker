@@ -30,6 +30,7 @@ import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.Player;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.RuneScapeProfileType;
@@ -88,7 +89,13 @@ public class SaveManager
         {
             return;
         }
-        final String playerName = client.getLocalPlayer().getName();
+        final Player localPlayer = client.getLocalPlayer();
+        if (localPlayer == null)
+        {
+            CommonUtils.getClientThread().invokeLater(this::attemptGetPlayer);
+            return;
+        }
+        final String playerName = localPlayer.getName();
         if (playerName == null)
         {
             CommonUtils.getClientThread().invokeLater(this::attemptGetPlayer);

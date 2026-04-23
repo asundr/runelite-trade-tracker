@@ -327,7 +327,7 @@ public class TradeManager
 	private void removeOverflowRecords(int extra)
 	{
 		final int maxRecords = MathUtils.clamp(CommonUtils.getConfig().maxHistoryCount(), 1, TradeManager.MAX_HISTORY_COUNT);
-		int overflow = Math.min(tradeHistory.size() - maxRecords + extra, Math.max(0, tradeHistory.size() - 1));
+		final int overflow = Math.min(tradeHistory.size() - maxRecords + extra, Math.max(0, tradeHistory.size() - 1));
 		removeOldestRecords(overflow);
 	}
 
