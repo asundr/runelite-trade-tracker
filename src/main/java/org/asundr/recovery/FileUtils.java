@@ -25,10 +25,13 @@
 
 package org.asundr.recovery;
 
+import lombok.extern.slf4j.Slf4j;
+
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.*;
 
+@Slf4j
 class FileUtils
 {
     final static String FILE_EXTENSION_PROFILE_HISTORY = "rtth";
@@ -48,8 +51,9 @@ class FileUtils
             {
                 writer.write(str);
             }
-            catch (Exception e) {
-                e.printStackTrace();
+            catch (Exception e)
+            {
+                log.warn("Failed to write string to file: {}", selectedFile.getPath());
             }
         }
     }
@@ -73,8 +77,9 @@ class FileUtils
                 }
                 return jsonString.toString();
             }
-            catch (Exception e) {
-                e.printStackTrace();
+            catch (Exception e)
+            {
+                log.warn("Failed to read string from file: {}", selectedFile.getPath());
             }
         }
         return null;
