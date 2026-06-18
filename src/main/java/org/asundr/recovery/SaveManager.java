@@ -25,6 +25,7 @@
 
 package org.asundr.recovery;
 
+import com.google.inject.Inject;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,7 @@ import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.Player;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.RuneScapeProfileType;
 import net.runelite.client.eventbus.Subscribe;
@@ -41,6 +43,7 @@ import org.asundr.trade.TradeManager;
 import org.asundr.utility.CommonUtils;
 import org.asundr.utility.StringUtils;
 
+import javax.swing.*;
 import java.lang.reflect.Type;
 import java.util.ArrayDeque;
 import java.util.concurrent.ExecutorService;
@@ -72,37 +75,35 @@ public class SaveManager
     private static ExecutorService ioExecutor = null;
     private static Future<?> ioExecutorFuture  = null;
 
+    private Player currentPlayer;
+    private String playerName;
+
+    @Inject
+    private ClientThread clientThread;
+    @Inject
+    private Client client;
+
     @Subscribe
     private void onGameStateChanged(GameStateChanged evt)
     {
         if (evt.getGameState() == GameState.LOGGED_IN)
         {
-            attemptGetPlayer();
-        }
-    }
-
-    // repeatedly tries to get the player, then sets the active profile
-    private void attemptGetPlayer()
-    {
-        final Client client = CommonUtils.getClient();
-        if (client.getGameState() != GameState.LOGGED_IN)
-        {
-            return;
-        }
-        final Player localPlayer = client.getLocalPlayer();
-        if (localPlayer == null)
-        {
-            CommonUtils.getClientThread().invokeLater(this::attemptGetPlayer);
-            return;
-        }
-        final String playerName = localPlayer.getName();
-        if (playerName == null)
-        {
-            CommonUtils.getClientThread().invokeLater(this::attemptGetPlayer);
-        }
-        else
-        {
-            setActiveHistoryProfile(new TradeHistoryProfile(client.getAccountHash(), playerName, RuneScapeProfileType.getCurrent(client)));
+            if (this.currentPlayer == null || this.playerName == null )
+            {
+                // Keep trying to set the current player until success.
+                // localPlayer is not set immediately after GameSate switches to LOGGED_IN.
+                clientThread.invokeLater(() ->
+                {
+                    this.currentPlayer = this.client.getLocalPlayer();
+                    if (this.currentPlayer != null) {
+                        this.playerName = this.currentPlayer.getName();
+                        if (playerName != null)
+                        {
+                            setActiveHistoryProfile(new TradeHistoryProfile(client.getAccountHash(), playerName, RuneScapeProfileType.getCurrent(client)));
+                        }
+                    }
+                });
+            }
         }
     }
 
