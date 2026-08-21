@@ -18,8 +18,8 @@ public class SaveUpgradeUtils
 			m = nodedIdPattern.matcher(converted);
 		}
 //        final Pattern quantityPattern = Pattern.compile("\"quantity\":");
-		converted = converted.replaceAll("\"quantity\":", "num:");
-		converted = converted.replaceAll("\"geValue\":", "ge:");
+		converted = converted.replace("\"quantity\":", "num:");
+		converted = converted.replace("\"geValue\":", "ge:");
 		return converted;
 	}
 }

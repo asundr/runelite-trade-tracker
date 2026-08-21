@@ -35,10 +35,10 @@ class CollapsiblePanel extends JPanel
 	protected final JButton toggleButton;
 	private boolean isExpanded = false;
 
-	CollapsiblePanel(String title)
+	CollapsiblePanel()
 	{
 		setLayout(new BorderLayout());
-		toggleButton = new JButton(title);
+		toggleButton = new JButton("");
 		contentPanel = new JPanel();
 		footerPanel = new JPanel();
 		toggleButton.addActionListener(e -> toggleCollapsed());

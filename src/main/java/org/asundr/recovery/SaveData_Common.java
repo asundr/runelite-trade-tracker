@@ -36,11 +36,11 @@ public class SaveData_Common
 	private int saveVersion;
 	private TradeHistoryProfile activeProfile;
 
-	SaveData_Common(final int version, final TradeHistoryProfile activeProfile)
+	SaveData_Common()
 	{
-		this.saveVersion = version;
-		this.activeProfile = activeProfile;
-		savedProfiles.add(activeProfile);
+		this.saveVersion = SaveManager.SAVE_VERSION;
+		this.activeProfile = null;
+		savedProfiles.add((TradeHistoryProfile) null);
 	}
 
 	public void updateSaveVersion(final int newSaveVersion)

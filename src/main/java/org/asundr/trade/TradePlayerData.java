@@ -43,6 +43,6 @@ public class TradePlayerData
 
 	public boolean isValid()
 	{
-		return tradeName != null && !tradeName.equals(NULL_NAME);
+		return tradeName == null || tradeName.equals(NULL_NAME);
 	}
 }

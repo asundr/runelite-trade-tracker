@@ -58,7 +58,6 @@ public class SimpleTradeData
 				break;
 			case Invalid:
 			default:
-				return;
 		}
 	}
 
@@ -134,6 +133,6 @@ public class SimpleTradeData
 		Bought_Item,    // A single type of item bought by the player for currency
 		Sold_Item,       // A single type of item sold by the player for currency
 		Gift_Giving,    // Giving single type of item or currency and receiving nothing
-		Gift_Receiving; // Giving nothing and receiving single type of item or currency
+		Gift_Receiving // Giving nothing and receiving single type of item or currency
 	}
 }

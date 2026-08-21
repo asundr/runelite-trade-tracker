@@ -194,7 +194,6 @@ public class TradeManager
 				ScreenshotUtils.clearScreenshot();
 				break;
 			default:
-				return;
 		}
 	}
 
@@ -257,9 +256,9 @@ public class TradeManager
 	// Repeatedly tries to find the name of the traded player in the trade window, then updates the current trade data
 	private void fetchTradedPlayerName()
 	{
-		if (tradeState != TradeState.NOT_TRADING && currentTrade != null && (currentTrade.tradedPlayer == null || !currentTrade.tradedPlayer.isValid()))
+		if (tradeState != TradeState.NOT_TRADING && currentTrade != null && (currentTrade.tradedPlayer == null || currentTrade.tradedPlayer.isValid()))
 		{
-			TradePlayerData tradePlayerData = null;
+			TradePlayerData tradePlayerData;
 			if (tradeState == TradeState.TRADING)
 			{
 				tradePlayerData = new TradePlayerData(CommonUtils.extractPatternFromWidget(TradeMenuId.TRADE_MENU, CHILD_TRADE_USERNAME, PATTERN_TRADE_USERNAME));
@@ -267,7 +266,7 @@ public class TradeManager
 			{
 				tradePlayerData = new TradePlayerData(CommonUtils.extractPatternFromWidget(TradeMenuId.TRADE_CONFIRMATION_MENU, CHILD_TRADE_CONFIRMATION_USERNAME, PATTERN_TRADE_USERNAME));
 			}
-			if (!tradePlayerData.isValid())
+			if (tradePlayerData.isValid())
 			{
 				CommonUtils.getClientThread().invokeLater(this::fetchTradedPlayerName);
 			} else

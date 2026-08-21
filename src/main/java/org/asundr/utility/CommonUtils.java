@@ -126,14 +126,14 @@ public class CommonUtils
 			LinkBrowser.browse(url);
 		} catch (Exception e)
 		{
-			log.error("Invalid url: " + url);
+			log.error("Invalid url: {}", url);
 		}
 	}
 
 	// Given the name of an item, opens the corresponding wiki page
 	public static void openItemWiki(String itemName)
 	{
-		String name = itemName.replace(" (Members)", "").trim().replaceAll(" ", "_");
+		String name = itemName.replace(" (Members)", "").trim().replace(" ", "_");
 		openURL(URL_PREFIX_WIKI + name);
 	}
 
@@ -188,10 +188,12 @@ public class CommonUtils
 		}
 		if (width == -1)
 		{
+			//noinspection SuspiciousNameCombination
 			width = height;
 		}
 		if (height == -1)
 		{
+			//noinspection SuspiciousNameCombination
 			height = width;
 		}
 		return new ImageIcon(iconImg.getScaledInstance(width, height, hints));
@@ -236,7 +238,7 @@ public class CommonUtils
 	// If plugin settings for auto-remove are invalid, return -1
 	public static long getRecordLifetime()
 	{
-		if (!isValidPurgeConfig())
+		if (isValidPurgeConfig())
 		{
 			return -1;
 		}
@@ -246,7 +248,7 @@ public class CommonUtils
 	// Returns true if the plugin config settings are valid values to schedule auto-removing
 	public static boolean isValidPurgeConfig()
 	{
-		return config.getPurgeHistoryType() != TradeTrackerConfig.PurgeHistoryType.NEVER && config.getPurgeHistoryMagnitude() > 0;
+		return config.getPurgeHistoryType() == TradeTrackerConfig.PurgeHistoryType.NEVER || config.getPurgeHistoryMagnitude() <= 0;
 	}
 
 	public static boolean isThreadActive(java.util.concurrent.Future<?> future)

@@ -214,7 +214,6 @@ public interface TradeTrackerConfig extends Config
 	}
 
 	@Range(
-			min = 0
 	)
 	@ConfigItem(
 			keyName = ConfigKey.PURGE_HISTORY_MAGNITUDE,
@@ -270,7 +269,7 @@ public interface TradeTrackerConfig extends Config
 		ALWAYS,
 		EMPTY,
 		INACTIVE,
-		INACTIVE_EMPTY; //
+		INACTIVE_EMPTY //
 	}
 
 	enum ItemPriceType
@@ -307,7 +306,7 @@ public interface TradeTrackerConfig extends Config
 	{
 		DISABLED,
 		ENABLED,
-		REQUIRE_SHIFT;
+		REQUIRE_SHIFT
 	}
 
 }

@@ -58,7 +58,6 @@ import org.asundr.utility.CommonUtils;
 import org.asundr.utility.StringUtils;
 
 import javax.inject.Inject;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -66,8 +65,7 @@ import java.util.Collection;
 @PluginDescriptor(
 		name = "Trade Tracker",
 		description = "Records a searchable history of past trades with players",
-		tags = {"trade", "history", "track", "item", "log", "logger", "memory", "lend"},
-		enabledByDefault = true
+		tags = {"trade", "history", "track", "item", "log", "logger", "memory", "lend"}
 )
 public class TradeTrackerPlugin extends Plugin
 {
@@ -141,7 +139,7 @@ public class TradeTrackerPlugin extends Plugin
 	}
 
 	@Override
-	protected void shutDown() throws Exception
+	protected void shutDown()
 	{
 		clientToolbar.removeNavigation(navigationButton);
 		eventSubscribers.forEach(e -> eventBus.unregister(e));
@@ -153,7 +151,7 @@ public class TradeTrackerPlugin extends Plugin
 		ScreenshotUtils.shutdown();
 	}
 
-	private void addNavigationButton(final TradeTrackerPluginPanel mainPanel) throws IOException
+	private void addNavigationButton(final TradeTrackerPluginPanel mainPanel)
 	{
 		navigationButton = NavigationButton.builder()
 				.tooltip("Trade Tracker")

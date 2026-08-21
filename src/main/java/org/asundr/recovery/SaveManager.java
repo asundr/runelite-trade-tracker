@@ -101,7 +101,7 @@ public class SaveManager
 	{
 		if (saveDataCommon == null)
 		{
-			saveDataCommon = new SaveData_Common(SAVE_VERSION, null);
+			saveDataCommon = new SaveData_Common();
 		}
 		return saveDataCommon;
 	}
@@ -140,7 +140,6 @@ public class SaveManager
 		String historyJson = gson.toJson(tradeHistory);
 		historyJson = historyJson.replaceAll(REGEX_EMPTY_NOTES, ""); // remove empty notes
 		final SaveData_Profile saveData = new SaveData_Profile(
-				SAVE_VERSION,
 				SaveManager.saveDataCommon.getActiveProfile().getKeyString(),
 				CompressionUtils.compressToEncode(historyJson));
 		return gson.toJson(saveData);
@@ -149,7 +148,7 @@ public class SaveManager
 	// Saves the current trade history to the config using the profile's hash and account type as a key
 	private static void saveTradeHistoryData()
 	{
-		toggleFlag(tradeHistorySaveState, SaveState.ACTIVE_REQUESTED); // removed requested, add enabled active
+		toggleFlag(tradeHistorySaveState); // removed requested, add enabled active
 		try
 		{
 			final String json = getTradeHistoryAsJson();
@@ -165,7 +164,7 @@ public class SaveManager
 			configManager.setConfiguration(SAVE_GROUP, SaveManager.saveDataCommon.getActiveProfile().getKeyString(), json);
 		} finally
 		{
-			clearFlag(tradeHistorySaveState, SaveState.ACTIVE);
+			clearFlag(tradeHistorySaveState);
 			ioExecutorFuture = null;
 		}
 	}
@@ -177,7 +176,7 @@ public class SaveManager
 		final String json = configManager.getConfiguration(SAVE_GROUP, ConfigKey.COMMON);
 		if (json == null || json.isBlank())
 		{
-			saveDataCommon = new SaveData_Common(SAVE_VERSION, null);
+			saveDataCommon = new SaveData_Common();
 			return;
 		}
 		saveDataCommon = gson.fromJson(json, SaveData_Common.class);
@@ -190,10 +189,10 @@ public class SaveManager
 		{
 			return;
 		}
-		toggleFlag(tradeHistoryLoadState, SaveState.ACTIVE_REQUESTED);
+		toggleFlag(tradeHistoryLoadState);
 		final String json = configManager.getConfiguration(SAVE_GROUP, saveDataCommon.getActiveProfile().getKeyString());
 		restoreTradeHistoryDataFromJson(json);
-		clearFlag(tradeHistoryLoadState, SaveState.ACTIVE);
+		clearFlag(tradeHistoryLoadState);
 		ioExecutorFuture = null;
 	}
 
@@ -201,7 +200,7 @@ public class SaveManager
 	private static void restoreTradeHistoryDataFromJson(final String json)
 	{
 		final String profileKey = getSaveDataCommon().getActiveProfile() == null ? null : saveDataCommon.getActiveProfile().getKeyString();
-		if (json == null || json.equals(""))
+		if (json == null || json.isEmpty())
 		{
 			CommonUtils.postEvent(new EventTradeHistoryProfileRestored(profileKey, new ArrayDeque<>()));
 			return;
@@ -254,7 +253,7 @@ public class SaveManager
 	// The public method that should be called to reload from the current trade history profile
 	public static void requestRestoreTradeHistory()
 	{
-		setFlag(tradeHistoryLoadState, SaveState.REQUESTED);
+		setFlag(tradeHistoryLoadState);
 		CommonUtils.getClientThread().invokeLater(SaveManager::scheduleRecoveryOperation);
 	}
 
@@ -265,7 +264,7 @@ public class SaveManager
 		{
 			return;
 		}
-		setFlag(tradeHistorySaveState, SaveState.REQUESTED);
+		setFlag(tradeHistorySaveState);
 		CommonUtils.getClientThread().invokeLater(SaveManager::scheduleRecoveryOperation);
 	}
 
@@ -323,19 +322,19 @@ public class SaveManager
 	}
 
 	// Operations for setting and queries flags set on an atomic integer
-	private static void toggleFlag(final AtomicInteger mask, final int flag)
+	private static void toggleFlag(final AtomicInteger mask)
 	{
-		mask.set(mask.get() ^ flag);
+		mask.set(mask.get() ^ SaveState.ACTIVE_REQUESTED);
 	}
 
-	private static void clearFlag(final AtomicInteger mask, final int flag)
+	private static void clearFlag(final AtomicInteger mask)
 	{
-		mask.set(mask.get() & ~flag);
+		mask.set(mask.get() & ~SaveState.ACTIVE);
 	}
 
-	private static void setFlag(final AtomicInteger mask, final int flag)
+	private static void setFlag(final AtomicInteger mask)
 	{
-		mask.set(mask.get() | flag);
+		mask.set(mask.get() | SaveState.REQUESTED);
 	}
 
 	private static boolean hasFlag(final AtomicInteger mask, final int flag)

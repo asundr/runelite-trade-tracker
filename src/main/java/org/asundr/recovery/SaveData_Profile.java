@@ -32,9 +32,9 @@ public class SaveData_Profile
 	public final String profileName;
 	public final String encodedTradeHistory;
 
-	SaveData_Profile(final int saveVersion, final String profile, String encodedTradeHistory)
+	SaveData_Profile(final String profile, String encodedTradeHistory)
 	{
-		this.saveVersion = saveVersion;
+		this.saveVersion = SaveManager.SAVE_VERSION;
 		profileName = profile;
 		this.encodedTradeHistory = encodedTradeHistory;
 	}

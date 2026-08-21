@@ -36,8 +36,8 @@ public class TradeData
 {
 	public long tradeTime = 0L;                                     // timestamp in seconds
 	public TradePlayerData tradedPlayer = new TradePlayerData();    // Data from the other player such as name at time of trade
-	public ArrayList<TradeItemData> givenItems = new ArrayList<>();
-	public ArrayList<TradeItemData> receivedItems = new ArrayList<>();
+	public final ArrayList<TradeItemData> givenItems = new ArrayList<>();
+	public final ArrayList<TradeItemData> receivedItems = new ArrayList<>();
 	transient public long givenTotalValue = 0L;                             // aggregate grand exchange value of given items in coins at the time of trade
 	transient public long receivedTotalValue = 0L;                          // aggregate grand exchange value of received items in coins at the time of trade
 	public String note = "";                                        // player-authored note
@@ -75,7 +75,7 @@ public class TradeData
 
 	public final boolean isExpired()
 	{
-		if (!CommonUtils.isValidPurgeConfig())
+		if (CommonUtils.isValidPurgeConfig())
 		{
 			return false;
 		}

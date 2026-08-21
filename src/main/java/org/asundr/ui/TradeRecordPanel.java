@@ -72,7 +72,7 @@ class TradeRecordPanel extends CollapsiblePanel
 
 	TradeRecordPanel(TradeData tradeData)
 	{
-		super("");
+		super();
 		this.tradeData = tradeData;
 		setBorder(BORDER_RECORD_PANEL);
 

@@ -634,7 +634,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
 		repaint();
 	}
 
-	final private boolean isRefreshingTradeHistory()
+	private boolean isRefreshingTradeHistory()
 	{
 		return !tradeHistoryPanel.isVisible();
 	}
