@@ -38,6 +38,7 @@ import net.runelite.client.game.chatbox.ChatboxPanelManager;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
+import net.runelite.client.util.LinkBrowser;
 import org.asundr.TradeTrackerConfig;
 import org.asundr.TradeTrackerPlugin;
 
@@ -99,7 +100,7 @@ public class CommonUtils
     {
         try
         {
-            Desktop.getDesktop().browse(new URI(url));
+            LinkBrowser.browse(url);
         }
         catch (Exception e)
         {
