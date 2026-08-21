@@ -40,6 +40,7 @@ tasks.register('run', JavaExec) {
     mainClass = pluginMainClass
 
     jvmArgs "-ea"
+    //noinspection GroovyAssignabilityCheck
     args "--developer-mode", "--debug"
 }
 

@@ -55,10 +55,10 @@ public class TradeLookupMenuManager
 			case ENABLED:
 				newEnabled = true;
 				break;
-			default:
 			case REQUIRE_SHIFT:
 				newEnabled = CommonUtils.getClient().isKeyPressed(KeyCode.KC_SHIFT);
 				break;
+			default:
 		}
 		setPlayerLookupEnabled(newEnabled);
 	}
