@@ -35,71 +35,77 @@ import java.awt.event.MouseEvent;
 
 class QuantityLabel extends JLabel
 {
-    private static final String TEXT_MENU_ITEM_COPY = "Copy";
-    private static final String PATTERN_REPLACE_PRICE_TYPE = "#P";
-    private static JPopupMenu menu = null;
-    private static long activeQuantity = 0L;
+	private static final String TEXT_MENU_ITEM_COPY = "Copy";
+	private static final String PATTERN_REPLACE_PRICE_TYPE = "#P";
+	private static JPopupMenu menu = null;
+	private static long activeQuantity = 0L;
+	private final String tooltipTemplate;
+	private final String textTemplate;
+	private long quantity;
 
+	QuantityLabel(long _quantity, final String template, final String tooltipFormat)
+	{
+		super();
+		this.textTemplate = template;
+		this.tooltipTemplate = tooltipFormat;
+		this.quantity = _quantity;
+		updateText();
 
-    private long quantity;
-    private final String tooltipTemplate;
-    private final String textTemplate;
+		addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(MouseEvent e)
+			{
+				super.mouseClicked(e);
+				if (e.getButton() == MouseEvent.BUTTON3)
+				{
+					if (menu == null)
+					{
+						menu = new JPopupMenu();
+						final JMenuItem copyValue = new JMenuItem(TEXT_MENU_ITEM_COPY);
+						copyValue.addActionListener(evt -> StringUtils.copyToClipboard(getActiveQuantityString()));
+						menu.add(copyValue);
+					}
+					activeQuantity = quantity;
+					menu.show(e.getComponent(), e.getX(), e.getY());
+				} else
+				{
+					super.mouseClicked(e);
+				}
+			}
 
-    private static String getActiveQuantityString() { return Long.toString(activeQuantity); }
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				super.mouseEntered(e);
+				setToolTipText(constructTooltipText());
+				getToolTipLocation(e);
+			}
+		});
+	}
 
-    QuantityLabel(long _quantity, final String template, final String tooltipFormat)
-    {
-        super();
-        this.textTemplate = template;
-        this.tooltipTemplate = tooltipFormat;
-        this.quantity = _quantity;
-        updateText();
+	private static String getActiveQuantityString()
+	{
+		return Long.toString(activeQuantity);
+	}
 
-        addMouseListener(new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e){
-                super.mouseClicked(e);
-                if (e.getButton() == MouseEvent.BUTTON3)
-                {
-                    if (menu == null)
-                    {
-                        menu = new JPopupMenu();
-                        final JMenuItem copyValue = new JMenuItem(TEXT_MENU_ITEM_COPY);
-                        copyValue.addActionListener(evt -> StringUtils.copyToClipboard(getActiveQuantityString()));
-                        menu.add(copyValue);
-                    }
-                    activeQuantity = quantity;
-                    menu.show(e.getComponent(), e.getX(), e.getY());
-                }
-                else
-                {
-                    super.mouseClicked(e);
-                }
-            }
-            @Override public void mouseEntered(MouseEvent e) {
-                super.mouseEntered(e);
-                setToolTipText(constructTooltipText());
-                getToolTipLocation(e);
-            }
-        });
-    }
+	protected String constructTooltipText()
+	{
+		return String.format(
+				tooltipTemplate.replaceFirst(PATTERN_REPLACE_PRICE_TYPE, CommonUtils.getConfig().getDefaultPriceType().fullName),
+				QuantityFormatter.formatNumber(quantity));
+	}
 
-    protected String constructTooltipText()
-    {
-        return String.format(
-                tooltipTemplate.replaceFirst(PATTERN_REPLACE_PRICE_TYPE, CommonUtils.getConfig().getDefaultPriceType().fullName),
-                QuantityFormatter.formatNumber(quantity));
-    }
+	protected void updateText()
+	{
+		setText(String.format(
+				textTemplate.replaceFirst(PATTERN_REPLACE_PRICE_TYPE, CommonUtils.getConfig().getDefaultPriceType().shortName),
+				StringUtils.quantityToRSDecimalStackLong(quantity, true)));
+	}
 
-    protected void updateText()
-    {
-        setText(String.format(
-                textTemplate.replaceFirst(PATTERN_REPLACE_PRICE_TYPE, CommonUtils.getConfig().getDefaultPriceType().shortName),
-                StringUtils.quantityToRSDecimalStackLong(quantity, true)));
-    }
-
-    public void update(final long newQuantity)
-    {
-        this.quantity = newQuantity;
-        updateText();
-    }
+	public void update(final long newQuantity)
+	{
+		this.quantity = newQuantity;
+		updateText();
+	}
 }

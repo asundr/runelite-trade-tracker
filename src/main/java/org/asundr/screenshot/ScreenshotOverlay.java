@@ -45,67 +45,67 @@ import java.util.function.Consumer;
 
 public class ScreenshotOverlay extends Overlay
 {
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("MMM. dd, yyyy");
-    private static final int REPORT_BUTTON_X_OFFSET = 404;
+	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("MMM. dd, yyyy");
+	private static final int REPORT_BUTTON_X_OFFSET = 404;
 
-    private final DrawManager drawManager;
+	private final DrawManager drawManager;
 
-    private final Queue<Consumer<Image>> consumers = new ConcurrentLinkedQueue<>();
+	private final Queue<Consumer<Image>> consumers = new ConcurrentLinkedQueue<>();
 
-    ScreenshotOverlay(DrawManager drawManager)
-    {
-        setPosition(OverlayPosition.DYNAMIC);
-        setPriority(PRIORITY_HIGH);
-        setLayer(OverlayLayer.ABOVE_WIDGETS);
-        this.drawManager = drawManager;
-    }
+	ScreenshotOverlay(DrawManager drawManager)
+	{
+		setPosition(OverlayPosition.DYNAMIC);
+		setPriority(PRIORITY_HIGH);
+		setLayer(OverlayLayer.ABOVE_WIDGETS);
+		this.drawManager = drawManager;
+	}
 
-    @Override
-    public Dimension render(Graphics2D graphics)
-    {
-        if (consumers.isEmpty())
-        {
-            return null;
-        }
+	@Override
+	public Dimension render(Graphics2D graphics)
+	{
+		if (consumers.isEmpty())
+		{
+			return null;
+		}
 
-        final MainBufferProvider bufferProvider = (MainBufferProvider) CommonUtils.getClient().getBufferProvider();
-        final int imageHeight = ((BufferedImage) bufferProvider.getImage()).getHeight();
-        final int y = imageHeight - ScreenshotUtils.getReportButton().getHeight() - 1;
+		final MainBufferProvider bufferProvider = (MainBufferProvider) CommonUtils.getClient().getBufferProvider();
+		final int imageHeight = ((BufferedImage) bufferProvider.getImage()).getHeight();
+		final int y = imageHeight - ScreenshotUtils.getReportButton().getHeight() - 1;
 
-        graphics.drawImage(ScreenshotUtils.getReportButton(), REPORT_BUTTON_X_OFFSET, y, null);
+		graphics.drawImage(ScreenshotUtils.getReportButton(), REPORT_BUTTON_X_OFFSET, y, null);
 
-        graphics.setFont(FontManager.getRunescapeSmallFont());
-        FontMetrics fontMetrics = graphics.getFontMetrics();
+		graphics.setFont(FontManager.getRunescapeSmallFont());
+		FontMetrics fontMetrics = graphics.getFontMetrics();
 
-        String date = DATE_FORMAT.format(new Date());
-        final int dateWidth = fontMetrics.stringWidth(date);
-        final int dateHeight = fontMetrics.getHeight();
+		String date = DATE_FORMAT.format(new Date());
+		final int dateWidth = fontMetrics.stringWidth(date);
+		final int dateHeight = fontMetrics.getHeight();
 
-        final int textX = REPORT_BUTTON_X_OFFSET + ScreenshotUtils.getReportButton().getWidth() / 2 - dateWidth / 2;
-        final int textY = y + ScreenshotUtils.getReportButton().getHeight() / 2 + dateHeight / 2;
+		final int textX = REPORT_BUTTON_X_OFFSET + ScreenshotUtils.getReportButton().getWidth() / 2 - dateWidth / 2;
+		final int textY = y + ScreenshotUtils.getReportButton().getHeight() / 2 + dateHeight / 2;
 
-        graphics.setColor(Color.BLACK);
-        graphics.drawString(date, textX + 1, textY + 1);
+		graphics.setColor(Color.BLACK);
+		graphics.drawString(date, textX + 1, textY + 1);
 
-        graphics.setColor(Color.WHITE);
-        graphics.drawString(date, textX, textY);
+		graphics.setColor(Color.WHITE);
+		graphics.drawString(date, textX, textY);
 
-        Consumer<Image> consumer;
-        while ((consumer = consumers.poll()) != null)
-        {
-            drawManager.requestNextFrameListener(consumer);
-        }
+		Consumer<Image> consumer;
+		while ((consumer = consumers.poll()) != null)
+		{
+			drawManager.requestNextFrameListener(consumer);
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    void queueForTimestamp(Consumer<Image> screenshotConsumer)
-    {
-        if (ScreenshotUtils.getReportButton() == null)
-        {
-            return;
-        }
-        consumers.add(screenshotConsumer);
-    }
+	void queueForTimestamp(Consumer<Image> screenshotConsumer)
+	{
+		if (ScreenshotUtils.getReportButton() == null)
+		{
+			return;
+		}
+		consumers.add(screenshotConsumer);
+	}
 
 }

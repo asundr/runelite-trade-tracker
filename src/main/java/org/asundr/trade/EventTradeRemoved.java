@@ -28,9 +28,10 @@ package org.asundr.trade;
 // Event fired when a trade is removed from the history. Listened to by the UI.
 final public class EventTradeRemoved
 {
-    public final TradeData tradeData;
-    EventTradeRemoved(final TradeData tradeData)
-    {
-        this.tradeData = tradeData;
-    }
+	public final TradeData tradeData;
+
+	EventTradeRemoved(final TradeData tradeData)
+	{
+		this.tradeData = tradeData;
+	}
 }

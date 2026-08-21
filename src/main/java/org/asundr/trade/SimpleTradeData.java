@@ -34,87 +34,106 @@ import java.util.Optional;
 // Contains additional data for trades of coins/platinum for a single type of items
 public class SimpleTradeData
 {
-    public enum Type
-    {
-        Invalid,        // This is not a simple trade
-        Bought_Item,    // A single type of item bought by the player for currency
-        Sold_Item,       // A single type of item sold by the player for currency
-        Gift_Giving,    // Giving single type of item or currency and receiving nothing
-        Gift_Receiving; // Giving nothing and receiving single type of item or currency
-    }
+	@Getter
+	private final Type tradeType;
+	private TradeItemData item = null;
+	private long quantity = 0;
+	private double pricePerItem = 0f;
+	public SimpleTradeData(final TradeData tradeData)
+	{
+		tradeType = determineTradeType(tradeData.givenItems, tradeData.receivedItems);
+		switch (tradeType)
+		{
+			case Bought_Item:
+				calculateTradeData(tradeData.receivedItems, tradeData.givenTotalValue);
+				break;
+			case Sold_Item:
+				calculateTradeData(tradeData.givenItems, tradeData.receivedTotalValue);
+				break;
+			case Gift_Giving:
+				calculateTradeData(tradeData.givenItems, 0);
+				break;
+			case Gift_Receiving:
+				calculateTradeData(tradeData.receivedItems, 0);
+				break;
+			case Invalid:
+			default:
+				return;
+		}
+	}
 
-    @Getter
-    private final Type tradeType;
-    private TradeItemData item = null;
-    private long quantity = 0;
-    private double pricePerItem = 0f;
+	private void calculateTradeData(Collection<TradeItemData> itemsTraded, final long currencyExchanged)
+	{
+		final Optional<TradeItemData> sampleItem = itemsTraded.stream().findFirst();
+		if (sampleItem.isEmpty())
+		{
+			return;
+		}
+		quantity = TradeUtils.getTotalItemQuantity(itemsTraded, sampleItem.get().getUnnotedID());
+		pricePerItem = (double) currencyExchanged / (double) quantity;
+		item = new TradeItemData(sampleItem.get().getUnnotedID(), (int) Math.min(quantity, Integer.MAX_VALUE), sampleItem.get().getGEValue());
+	}
 
-    public SimpleTradeData(final TradeData tradeData)
-    {
-        tradeType = determineTradeType(tradeData.givenItems, tradeData.receivedItems);
-        switch (tradeType)
-        {
-            case Bought_Item:
-                calculateTradeData(tradeData.receivedItems, tradeData.givenTotalValue);
-                break;
-            case Sold_Item:
-                calculateTradeData(tradeData.givenItems, tradeData.receivedTotalValue);
-                break;
-            case Gift_Giving:
-                calculateTradeData(tradeData.givenItems, 0);
-                break;
-            case Gift_Receiving:
-                calculateTradeData(tradeData.receivedItems, 0);
-                break;
-            case Invalid: default:
-                return;
-        }
-    }
+	private Type determineTradeType(final ArrayList<TradeItemData> given, final ArrayList<TradeItemData> received)
+	{
+		if (given.isEmpty() && received.isEmpty())
+		{
+			return Type.Invalid;
+		}
+		final boolean isReceivingOneTypeOfItem = TradeUtils.hasOnlyOneTypeOfItem(received);
+		if (given.isEmpty() && isReceivingOneTypeOfItem)
+		{
+			return Type.Gift_Receiving;
+		}
+		final boolean isGivingOneTypeOfItem = TradeUtils.hasOnlyOneTypeOfItem(given);
+		if (received.isEmpty() && isGivingOneTypeOfItem)
+		{
+			return Type.Gift_Giving;
+		}
+		final boolean isGivingCurrency = TradeUtils.isOnlyCurrency(given);
+		if (isGivingCurrency && isReceivingOneTypeOfItem)
+		{
+			return Type.Bought_Item;
+		}
+		final boolean isReceivingCurrency = TradeUtils.isOnlyCurrency(received);
+		if (isReceivingCurrency && isGivingOneTypeOfItem)
+		{
+			return Type.Sold_Item;
+		}
+		return Type.Invalid;
+	}
 
-    private void calculateTradeData(Collection<TradeItemData> itemsTraded, final long currencyExchanged)
-    {
-        final Optional<TradeItemData> sampleItem = itemsTraded.stream().findFirst();
-        if (sampleItem.isEmpty())
-        {
-            return;
-        }
-        quantity = TradeUtils.getTotalItemQuantity(itemsTraded, sampleItem.get().getUnnotedID());
-        pricePerItem = (double)currencyExchanged / (double)quantity;
-        item = new TradeItemData(sampleItem.get().getUnnotedID(), (int)Math.min(quantity, Integer.MAX_VALUE), sampleItem.get().getGEValue());
-    }
+	public final boolean isValid()
+	{
+		return tradeType != Type.Invalid;
+	}
 
-    private Type determineTradeType(final ArrayList<TradeItemData> given, final ArrayList<TradeItemData> received)
-    {
-        if (given.isEmpty() && received.isEmpty())
-        {
-            return Type.Invalid;
-        }
-        final boolean isReceivingOneTypeOfItem = TradeUtils.hasOnlyOneTypeOfItem(received);
-        if (given.isEmpty() && isReceivingOneTypeOfItem)
-        {
-            return Type.Gift_Receiving;
-        }
-        final boolean isGivingOneTypeOfItem = TradeUtils.hasOnlyOneTypeOfItem(given);
-        if (received.isEmpty() && isGivingOneTypeOfItem)
-        {
-            return Type.Gift_Giving;
-        }
-        final boolean isGivingCurrency = TradeUtils.isOnlyCurrency(given);
-        if (isGivingCurrency && isReceivingOneTypeOfItem)
-        {
-            return Type.Bought_Item;
-        }
-        final boolean isReceivingCurrency = TradeUtils.isOnlyCurrency(received);
-        if (isReceivingCurrency && isGivingOneTypeOfItem)
-        {
-            return Type.Sold_Item;
-        }
-        return Type.Invalid;
-    }
+	public final boolean isType(final Type type)
+	{
+		return tradeType == type;
+	}
 
-    public final boolean isValid() { return tradeType != Type.Invalid; }
-    public final boolean isType(final Type type) { return tradeType == type; }
-    public final long getQuantity() { return quantity; }
-    public final TradeItemData getItem() { return new TradeItemData(item); }
-    public final double getPricePerItem() { return pricePerItem; }
+	public final long getQuantity()
+	{
+		return quantity;
+	}
+
+	public final TradeItemData getItem()
+	{
+		return new TradeItemData(item);
+	}
+
+	public final double getPricePerItem()
+	{
+		return pricePerItem;
+	}
+
+	public enum Type
+	{
+		Invalid,        // This is not a simple trade
+		Bought_Item,    // A single type of item bought by the player for currency
+		Sold_Item,       // A single type of item sold by the player for currency
+		Gift_Giving,    // Giving single type of item or currency and receiving nothing
+		Gift_Receiving; // Giving nothing and receiving single type of item or currency
+	}
 }

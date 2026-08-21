@@ -30,10 +30,10 @@ import java.util.Collection;
 // Event fired when the trade history is completely replaced. Listened to by the UI.
 final public class EventTradeResetHistory
 {
-    public final Collection<TradeData> newTradeHistory;
+	public final Collection<TradeData> newTradeHistory;
 
-    EventTradeResetHistory(final Collection<TradeData> newTradeHistory)
-    {
-        this.newTradeHistory = newTradeHistory;
-    }
+	EventTradeResetHistory(final Collection<TradeData> newTradeHistory)
+	{
+		this.newTradeHistory = newTradeHistory;
+	}
 }

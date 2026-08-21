@@ -30,13 +30,13 @@ import org.asundr.TradeHistoryProfile;
 // Fires when the active player profile changes
 final public class EventTradeTrackerProfileChanged
 {
-    public final TradeHistoryProfile oldProfile;
-    public final TradeHistoryProfile newProfile;
+	public final TradeHistoryProfile oldProfile;
+	public final TradeHistoryProfile newProfile;
 
-    EventTradeTrackerProfileChanged(TradeHistoryProfile oldProfile, TradeHistoryProfile newProfile)
-    {
-        this.oldProfile = oldProfile;
-        this.newProfile = newProfile;
-    }
+	EventTradeTrackerProfileChanged(TradeHistoryProfile oldProfile, TradeHistoryProfile newProfile)
+	{
+		this.oldProfile = oldProfile;
+		this.newProfile = newProfile;
+	}
 
 }

@@ -28,14 +28,14 @@ package org.asundr.recovery;
 // Serializable data used to save and restore trade history. Save version should be used to determine how to decode the tradeHistory string.
 public class SaveData_Profile
 {
-    public final int saveVersion;
-    public final String profileName;
-    public final String encodedTradeHistory;
+	public final int saveVersion;
+	public final String profileName;
+	public final String encodedTradeHistory;
 
-    SaveData_Profile(final int saveVersion, final String profile, String encodedTradeHistory)
-    {
-        this.saveVersion = saveVersion;
-        profileName = profile;
-        this.encodedTradeHistory = encodedTradeHistory;
-    }
+	SaveData_Profile(final int saveVersion, final String profile, String encodedTradeHistory)
+	{
+		this.saveVersion = saveVersion;
+		profileName = profile;
+		this.encodedTradeHistory = encodedTradeHistory;
+	}
 }

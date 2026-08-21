@@ -28,6 +28,10 @@ package org.asundr.trade;
 // Fired when a trade is declined
 final public class EventTradeDeclined
 {
-    final public TradePlayerData tradePlayer;
-    EventTradeDeclined(final TradePlayerData tradePlayer) { this.tradePlayer = tradePlayer; }
+	final public TradePlayerData tradePlayer;
+
+	EventTradeDeclined(final TradePlayerData tradePlayer)
+	{
+		this.tradePlayer = tradePlayer;
+	}
 }

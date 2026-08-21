@@ -27,20 +27,20 @@ package org.asundr.trade;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
-import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.gameval.InventoryID;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import org.asundr.TradeTrackerConfig;
+import org.asundr.recovery.ConfigKey;
+import org.asundr.recovery.EventTradeHistoryProfileRestored;
+import org.asundr.recovery.SaveManager;
 import org.asundr.screenshot.ScreenshotUtils;
 import org.asundr.ui.GuiUtils;
 import org.asundr.utility.CommonUtils;
-import org.asundr.recovery.EventTradeHistoryProfileRestored;
-import org.asundr.recovery.ConfigKey;
-import org.asundr.recovery.SaveManager;
 import org.asundr.utility.MathUtils;
 
 import java.util.ArrayDeque;
@@ -60,34 +60,60 @@ public class TradeManager
 	private final static Pattern PATTERN_TRADE_USERNAME = Pattern.compile("^Trading [Ww]ith:\\s*(.*)$");
 	private final static int CHILD_TRADE_USERNAME = 31;
 	private final static int CHILD_TRADE_CONFIRMATION_USERNAME = 30;
-
-	private static final class TradeMenuId
-	{
-		public static final int TRADE_MENU = 335;
-		public static final int TRADE_CONFIRMATION_MENU = 334;
-	}
-
-	private static final class TradeContainerId
-	{
-		public static final int GIVEN = InventoryID.TRADEOFFER;
-		public static final int RECEIVED = InventoryID.TRADEOFFER | 0x8000;
-	}
-
-	public enum TradeState
-	{
-		NOT_TRADING,
-		TRADING,
-		TRADE_CONFIRMATION,
-		TRADE_ACCEPTED
-	}
-
 	private final static TradeManager instance = new TradeManager();
-
+	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 	private TradeData currentTrade = null;
 	private ArrayDeque<TradeData> tradeHistory = new ArrayDeque<>();
 	private TradeState tradeState = TradeState.NOT_TRADING;
-	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 	private ScheduledFuture<?> scheduledPurgeFuture = null;
+
+	public static TradeManager getInstance()
+	{
+		return instance;
+	}
+
+	// returns a copy of the current trade history
+	public static ArrayDeque<TradeData> getTradeHistory()
+	{
+		return new ArrayDeque<>(instance.tradeHistory);
+	}
+
+	// Overrides the current history
+	private void setTradeHistory(ArrayDeque<TradeData> tradeHistory)
+	{
+		this.tradeHistory = tradeHistory;
+		CommonUtils.postEvent(new EventTradeResetHistory(tradeHistory));
+	}
+
+	// get total number of recorded trades
+	public static int getTradeHistoryCount()
+	{
+		return instance.tradeHistory.size();
+	}
+
+	public static void requestRemoveTradeRecord(TradeData tradeData)
+	{
+		instance.removeTradeRecord(tradeData);
+	}
+
+	public static void requestClearAllTradeRecords()
+	{
+		instance.clearAllTradeRecords();
+	}
+
+	// Returns true if expired trades are set to be auto-removed after they expire
+	public static boolean isPurgingExpiredTrades()
+	{
+		Boolean isPurging = SaveManager.restoreFromKey(ConfigKey.SCHEDULED_PURGE);
+		return isPurging != null && isPurging;
+	}
+
+	// Sets the active state of the auto-remove for expired trades, potentially starting or cancelling the timer
+	public static void setPurgingExpiredTrades(boolean enabled)
+	{
+		SaveManager.saveWithKey(ConfigKey.SCHEDULED_PURGE, enabled);
+		instance.updateRemoveExpiredRecordTimer();
+	}
 
 	@Subscribe
 	private void onWidgetLoaded(final WidgetLoaded event)
@@ -101,8 +127,7 @@ public class TradeManager
 			}
 			setTradeState(TradeState.TRADING);
 			fetchTradedPlayerName();
-		}
-		else if (groupId == TradeMenuId.TRADE_CONFIRMATION_MENU)
+		} else if (groupId == TradeMenuId.TRADE_CONFIRMATION_MENU)
 		{
 			ScreenshotUtils.takeScreenshot();
 			setTradeState(TradeState.TRADE_CONFIRMATION);
@@ -115,14 +140,14 @@ public class TradeManager
 		final int groupId = event.getGroupId();
 		if (groupId == TradeMenuId.TRADE_MENU)
 		{
-			CommonUtils.getClientThread().invokeLater(() -> {
+			CommonUtils.getClientThread().invokeLater(() ->
+			{
 				if (tradeState != TradeState.TRADE_CONFIRMATION)
 				{
 					setTradeState(TradeState.NOT_TRADING);
 				}
 			});
-		}
-		else if (groupId == TradeMenuId.TRADE_CONFIRMATION_MENU)
+		} else if (groupId == TradeMenuId.TRADE_CONFIRMATION_MENU)
 		{
 			setTradeState(TradeState.NOT_TRADING);
 		}
@@ -139,8 +164,7 @@ public class TradeManager
 		if (inventoryId == TradeContainerId.GIVEN)
 		{
 			currentTrade.updateItems(true, CommonUtils.getItemContainer(inventoryId));
-		}
-		else if (inventoryId == TradeContainerId.RECEIVED)
+		} else if (inventoryId == TradeContainerId.RECEIVED)
 		{
 			currentTrade.updateItems(false, CommonUtils.getItemContainer(inventoryId));
 		}
@@ -199,17 +223,6 @@ public class TradeManager
 		scheduler.shutdown();
 	}
 
-	public static TradeManager getInstance()
-	{
-		return instance;
-	}
-
-	// returns a copy of the current trade history
-	public static ArrayDeque<TradeData> getTradeHistory() { return new ArrayDeque<>(instance.tradeHistory); }
-
-	// get total number of recorded trades
-	public static int getTradeHistoryCount() { return instance.tradeHistory.size(); }
-
 	// Updates what stage of a trade the player is in, and fires relevant events
 	private void setTradeState(TradeState newState)
 	{
@@ -219,23 +232,23 @@ public class TradeManager
 		}
 		switch (newState)
 		{
-		case TRADE_ACCEPTED:
-			CommonUtils.getClientThread().invokeLater(() -> setTradeState(TradeState.NOT_TRADING));
-			break;
-		case TRADING:
-			CommonUtils.postEvent(new EventTradeBegan(currentTrade == null ? null : currentTrade.tradedPlayer));
-			break;
-		case NOT_TRADING:
-			if (tradeState != TradeState.TRADE_ACCEPTED)
-			{
-				CommonUtils.postEvent(new EventTradeDeclined(currentTrade == null ? null : currentTrade.tradedPlayer));
-			}
-			currentTrade = null;
-			if (CommonUtils.getConfig().getAutoFilterOnTrade() != TradeTrackerConfig.AutoFilterOnTrade.NEVER)
-			{
-				GuiUtils.restoreFilterPostTrade();
-			}
-			break;
+			case TRADE_ACCEPTED:
+				CommonUtils.getClientThread().invokeLater(() -> setTradeState(TradeState.NOT_TRADING));
+				break;
+			case TRADING:
+				CommonUtils.postEvent(new EventTradeBegan(currentTrade == null ? null : currentTrade.tradedPlayer));
+				break;
+			case NOT_TRADING:
+				if (tradeState != TradeState.TRADE_ACCEPTED)
+				{
+					CommonUtils.postEvent(new EventTradeDeclined(currentTrade == null ? null : currentTrade.tradedPlayer));
+				}
+				currentTrade = null;
+				if (CommonUtils.getConfig().getAutoFilterOnTrade() != TradeTrackerConfig.AutoFilterOnTrade.NEVER)
+				{
+					GuiUtils.restoreFilterPostTrade();
+				}
+				break;
 		}
 		//log.debug(String.format("%s  --->  %s", tradeState, newState));
 		tradeState = newState;
@@ -249,17 +262,15 @@ public class TradeManager
 			TradePlayerData tradePlayerData = null;
 			if (tradeState == TradeState.TRADING)
 			{
-				tradePlayerData =  new TradePlayerData(CommonUtils.extractPatternFromWidget(TradeMenuId.TRADE_MENU, CHILD_TRADE_USERNAME, PATTERN_TRADE_USERNAME));
-			}
-			else
+				tradePlayerData = new TradePlayerData(CommonUtils.extractPatternFromWidget(TradeMenuId.TRADE_MENU, CHILD_TRADE_USERNAME, PATTERN_TRADE_USERNAME));
+			} else
 			{
-				tradePlayerData =  new TradePlayerData(CommonUtils.extractPatternFromWidget(TradeMenuId.TRADE_CONFIRMATION_MENU, CHILD_TRADE_CONFIRMATION_USERNAME, PATTERN_TRADE_USERNAME));
+				tradePlayerData = new TradePlayerData(CommonUtils.extractPatternFromWidget(TradeMenuId.TRADE_CONFIRMATION_MENU, CHILD_TRADE_CONFIRMATION_USERNAME, PATTERN_TRADE_USERNAME));
 			}
 			if (!tradePlayerData.isValid())
 			{
 				CommonUtils.getClientThread().invokeLater(this::fetchTradedPlayerName);
-			}
-			else
+			} else
 			{
 				currentTrade.tradedPlayer = tradePlayerData;
 				if (CommonUtils.getConfig().getAutoFilterOnTrade() != TradeTrackerConfig.AutoFilterOnTrade.NEVER)
@@ -276,7 +287,8 @@ public class TradeManager
 	{
 		removeOverflowRecords(1);
 		tradeHistory.addLast(tradeData);
-		CommonUtils.getClientThread().invokeLater(() -> {
+		CommonUtils.getClientThread().invokeLater(() ->
+		{
 			TradeUtils.fetchCompositionData(tradeData.givenItems);
 			TradeUtils.fetchCompositionData(tradeData.receivedItems);
 			TradeUtils.fetchGePrices(tradeData.givenItems);
@@ -303,23 +315,12 @@ public class TradeManager
 		}
 	}
 
-	public static void requestRemoveTradeRecord(TradeData tradeData) { instance.removeTradeRecord(tradeData); }
-
 	// Removes all trades from the current history
 	private void clearAllTradeRecords()
 	{
 		tradeHistory.clear();
 		CommonUtils.postEvent(new EventTradeResetHistory(tradeHistory));
 		SaveManager.requestTradeHistorySave();
-	}
-
-	public static void requestClearAllTradeRecords() { instance.clearAllTradeRecords();}
-
-	// Overrides the current history
-	private void setTradeHistory(ArrayDeque<TradeData> tradeHistory)
-	{
-		this.tradeHistory = tradeHistory;
-		CommonUtils.postEvent(new EventTradeResetHistory(tradeHistory));
 	}
 
 	// Removes the oldest trades in excess of the user-specified max history count
@@ -355,7 +356,7 @@ public class TradeManager
 			//log.debug("No trade set to expire.");
 			return;
 		}
-		final long expireTime = tradeHistory.getFirst().tradeTime*1000L + lifetime;
+		final long expireTime = tradeHistory.getFirst().tradeTime * 1000L + lifetime;
 		final long destroyDelay = Math.max(1000, expireTime - System.currentTimeMillis());
 		scheduledPurgeFuture = scheduler.schedule(this::removeExpiredRecords, destroyDelay, TimeUnit.MILLISECONDS);
 		//log.debug("Scheduled to remove expired trade at: " + TradeUtils.timeStampToString(expireTime/1000));
@@ -388,18 +389,24 @@ public class TradeManager
 		}
 	}
 
-	// Returns true if expired trades are set to be auto-removed after they expire
-	public static boolean isPurgingExpiredTrades()
+	public enum TradeState
 	{
-		Boolean isPurging = SaveManager.restoreFromKey(ConfigKey.SCHEDULED_PURGE);
-		return isPurging != null && isPurging;
+		NOT_TRADING,
+		TRADING,
+		TRADE_CONFIRMATION,
+		TRADE_ACCEPTED
 	}
 
-	// Sets the active state of the auto-remove for expired trades, potentially starting or cancelling the timer
-	public static void setPurgingExpiredTrades(boolean enabled)
+	private static final class TradeMenuId
 	{
-		SaveManager.saveWithKey(ConfigKey.SCHEDULED_PURGE, enabled);
-		instance.updateRemoveExpiredRecordTimer();
+		public static final int TRADE_MENU = 335;
+		public static final int TRADE_CONFIRMATION_MENU = 334;
+	}
+
+	private static final class TradeContainerId
+	{
+		public static final int GIVEN = InventoryID.TRADEOFFER;
+		public static final int RECEIVED = InventoryID.TRADEOFFER | 0x8000;
 	}
 
 }

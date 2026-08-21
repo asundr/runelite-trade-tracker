@@ -30,47 +30,52 @@ import java.awt.*;
 
 class CollapsiblePanel extends JPanel
 {
-    protected final JPanel contentPanel;
-    protected final JPanel footerPanel;
-    protected final JButton toggleButton;
-    private boolean isExpanded = false;
+	protected final JPanel contentPanel;
+	protected final JPanel footerPanel;
+	protected final JButton toggleButton;
+	private boolean isExpanded = false;
 
-    CollapsiblePanel(String title)
-    {
-        setLayout(new BorderLayout());
-        toggleButton = new JButton(title);
-        contentPanel = new JPanel();
-        footerPanel = new JPanel();
-        toggleButton.addActionListener(e -> toggleCollapsed());
-        add(toggleButton, BorderLayout.NORTH);
-        add(contentPanel, BorderLayout.CENTER);
-        add(footerPanel, BorderLayout.SOUTH);
-        contentPanel.setVisible(isExpanded);
-    }
+	CollapsiblePanel(String title)
+	{
+		setLayout(new BorderLayout());
+		toggleButton = new JButton(title);
+		contentPanel = new JPanel();
+		footerPanel = new JPanel();
+		toggleButton.addActionListener(e -> toggleCollapsed());
+		add(toggleButton, BorderLayout.NORTH);
+		add(contentPanel, BorderLayout.CENTER);
+		add(footerPanel, BorderLayout.SOUTH);
+		contentPanel.setVisible(isExpanded);
+	}
 
-    // Explicitly set the collapsed state. Does nothing if already in the passed state
-    public void setCollapsed(boolean newCollapsed)
-    {
-        if (newCollapsed == !isExpanded)
-        {
-            return;
-        }
-        toggleCollapsed();
-    }
+	// Changes the collapsed state of the panel to open if closed, and closed if open
+	public void toggleCollapsed()
+	{
+		isExpanded = !isExpanded;
+		onToggleCollapsed();
+		contentPanel.setVisible(isExpanded);
+		revalidate();
+		repaint();
+	}
 
-    // Changes the collapsed state of the panel to open if closed, and closed if open
-    public void toggleCollapsed()
-    {
-        isExpanded = !isExpanded;
-        onToggleCollapsed();
-        contentPanel.setVisible(isExpanded);
-        revalidate();
-        repaint();
-    }
+	// Overrideable function to respond to when the panel changes its collapsed state
+	protected void onToggleCollapsed()
+	{
+	}
 
-    // Overrideable function to respond to when the panel changes its collapsed state
-    protected void onToggleCollapsed(){}
+	public final boolean isCollapsed()
+	{
+		return !isExpanded;
+	}
 
-    public final boolean isCollapsed() { return !isExpanded; }
+	// Explicitly set the collapsed state. Does nothing if already in the passed state
+	public void setCollapsed(boolean newCollapsed)
+	{
+		if (newCollapsed == !isExpanded)
+		{
+			return;
+		}
+		toggleCollapsed();
+	}
 
 }

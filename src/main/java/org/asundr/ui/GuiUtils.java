@@ -35,105 +35,105 @@ import javax.swing.*;
 
 public class GuiUtils
 {
-    private static String preTradeFilterText = null;
-    private static boolean preTradeFilterActive = false;
+	private static String preTradeFilterText = null;
+	private static boolean preTradeFilterActive = false;
 
-    private static TradeTrackerPluginPanel mainPanel = null;
-    private static ClientToolbar clientToolbar = null;
-    private static NavigationButton pluginNavButton = null;
+	private static TradeTrackerPluginPanel mainPanel = null;
+	private static ClientToolbar clientToolbar = null;
+	private static NavigationButton pluginNavButton = null;
 
-    public static void initialize(TradeTrackerPluginPanel mainPanel, ClientToolbar clientToolbar, NavigationButton navButton)
-    {
-        GuiUtils.mainPanel = mainPanel;
-        GuiUtils.clientToolbar = clientToolbar;
-        GuiUtils.pluginNavButton = navButton;
-    }
+	public static void initialize(TradeTrackerPluginPanel mainPanel, ClientToolbar clientToolbar, NavigationButton navButton)
+	{
+		GuiUtils.mainPanel = mainPanel;
+		GuiUtils.clientToolbar = clientToolbar;
+		GuiUtils.pluginNavButton = navButton;
+	}
 
-    public static void setFilter(final String text)
-    {
-        if (mainPanel == null)
-        {
-            return;
-        }
-        mainPanel.setFilter(text);
-    }
+	public static void setFilter(final String text)
+	{
+		if (mainPanel == null)
+		{
+			return;
+		}
+		mainPanel.setFilter(text);
+	}
 
-    public static void setFilterAndEnabled(final String text)
-    {
-        SwingUtilities.invokeLater(()->
-        {
-            setFilter(text);
-            mainPanel.btnFilter.setActive(true);
-        });
-    }
+	public static void setFilterAndEnabled(final String text)
+	{
+		SwingUtilities.invokeLater(() ->
+		{
+			setFilter(text);
+			mainPanel.btnFilter.setActive(true);
+		});
+	}
 
-    // Note: Must be called inside a SwingUtilities.invokeLater
-    public static void clearFilter()
-    {
-        if (mainPanel == null)
-        {
-            return;
-        }
-        mainPanel.clearFilter();
-    }
+	// Note: Must be called inside a SwingUtilities.invokeLater
+	public static void clearFilter()
+	{
+		if (mainPanel == null)
+		{
+			return;
+		}
+		mainPanel.clearFilter();
+	}
 
-    public static void filterOnTrade(final TradeData tradeData)
-    {
-        switch (CommonUtils.getConfig().getAutoFilterOnTrade())
-        {
-            case NEVER:
-                return;
-            case ALWAYS:
-                break;
-            case EMPTY:
-                if (!mainPanel.filterText.getText().isBlank())
-                {
-                    return;
-                }
-                break;
-            case INACTIVE:
-                if (mainPanel.btnFilter.isActive())
-                {
-                    return;
-                }
-                break;
-            case INACTIVE_EMPTY:
-                if (!mainPanel.filterText.getText().isBlank() || mainPanel.btnFilter.isActive())
-                {
-                    return;
-                }
-                break;
-        }
-        if (TradeManager.getTradeHistory().stream().noneMatch(e -> e.tradedPlayer.tradeName.equalsIgnoreCase(tradeData.tradedPlayer.tradeName)))
-        {
-            return;
-        }
-        preTradeFilterText = mainPanel.filterText.getText();
-        preTradeFilterActive = mainPanel.btnFilter.isActive();
-        setFilterAndEnabled(tradeData.tradedPlayer.tradeName);
-        if (CommonUtils.getConfig().autoFilterOpensPanel())
-        {
-            SwingUtilities.invokeLater(GuiUtils::openPanel);
-        }
-    }
+	public static void filterOnTrade(final TradeData tradeData)
+	{
+		switch (CommonUtils.getConfig().getAutoFilterOnTrade())
+		{
+			case NEVER:
+				return;
+			case ALWAYS:
+				break;
+			case EMPTY:
+				if (!mainPanel.filterText.getText().isBlank())
+				{
+					return;
+				}
+				break;
+			case INACTIVE:
+				if (mainPanel.btnFilter.isActive())
+				{
+					return;
+				}
+				break;
+			case INACTIVE_EMPTY:
+				if (!mainPanel.filterText.getText().isBlank() || mainPanel.btnFilter.isActive())
+				{
+					return;
+				}
+				break;
+		}
+		if (TradeManager.getTradeHistory().stream().noneMatch(e -> e.tradedPlayer.tradeName.equalsIgnoreCase(tradeData.tradedPlayer.tradeName)))
+		{
+			return;
+		}
+		preTradeFilterText = mainPanel.filterText.getText();
+		preTradeFilterActive = mainPanel.btnFilter.isActive();
+		setFilterAndEnabled(tradeData.tradedPlayer.tradeName);
+		if (CommonUtils.getConfig().autoFilterOpensPanel())
+		{
+			SwingUtilities.invokeLater(GuiUtils::openPanel);
+		}
+	}
 
-    public static void restoreFilterPostTrade()
-    {
-        if (preTradeFilterText != null)
-        {
-            SwingUtilities.invokeLater(() ->
-            {
-                setFilter(preTradeFilterText);
-                mainPanel.btnFilter.setActive(preTradeFilterActive);
-                preTradeFilterText = null;
-                preTradeFilterActive = false;
-            });
-        }
-    }
+	public static void restoreFilterPostTrade()
+	{
+		if (preTradeFilterText != null)
+		{
+			SwingUtilities.invokeLater(() ->
+			{
+				setFilter(preTradeFilterText);
+				mainPanel.btnFilter.setActive(preTradeFilterActive);
+				preTradeFilterText = null;
+				preTradeFilterActive = false;
+			});
+		}
+	}
 
-    // Note: must be called inside SwingUtils.invokeLater()
-    public static void openPanel()
-    {
-        clientToolbar.openPanel(pluginNavButton);
-    }
+	// Note: must be called inside SwingUtils.invokeLater()
+	public static void openPanel()
+	{
+		clientToolbar.openPanel(pluginNavButton);
+	}
 }

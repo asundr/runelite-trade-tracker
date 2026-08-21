@@ -32,12 +32,12 @@ import java.util.ArrayDeque;
 // Fired when a fresh trade history is loaded from config
 final public class EventTradeHistoryProfileRestored
 {
-    public final String profileKey;
-    public final ArrayDeque<TradeData> tradeHistory;
+	public final String profileKey;
+	public final ArrayDeque<TradeData> tradeHistory;
 
-    EventTradeHistoryProfileRestored(final String profileKey, final ArrayDeque<TradeData> tradeHistory)
-    {
-        this.profileKey = profileKey;
-        this.tradeHistory = tradeHistory;
-    }
+	EventTradeHistoryProfileRestored(final String profileKey, final ArrayDeque<TradeData> tradeHistory)
+	{
+		this.profileKey = profileKey;
+		this.tradeHistory = tradeHistory;
+	}
 }

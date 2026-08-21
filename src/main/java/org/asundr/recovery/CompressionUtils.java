@@ -35,61 +35,59 @@ import java.util.zip.Inflater;
 @Slf4j
 public class CompressionUtils
 {
-    private final static int BUFFER_SIZE = 1024 * 32;
+	private final static int BUFFER_SIZE = 1024 * 32;
 
-    public static byte[] compress(final String str)
-    {
-        final byte[] input = str.getBytes();
-        final Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
-        deflater.setStrategy(Deflater.FILTERED);
-        deflater.setInput(input);
-        deflater.finish();
-        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(input.length);
-        final byte[] buffer = new byte[BUFFER_SIZE];
-        while (!deflater.finished())
-        {
-            final int len = deflater.deflate(buffer);
-            byteArrayOutputStream.write(buffer, 0, len);
-        }
-        deflater.end();
-        return byteArrayOutputStream.toByteArray();
-    }
+	public static byte[] compress(final String str)
+	{
+		final byte[] input = str.getBytes();
+		final Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
+		deflater.setStrategy(Deflater.FILTERED);
+		deflater.setInput(input);
+		deflater.finish();
+		final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(input.length);
+		final byte[] buffer = new byte[BUFFER_SIZE];
+		while (!deflater.finished())
+		{
+			final int len = deflater.deflate(buffer);
+			byteArrayOutputStream.write(buffer, 0, len);
+		}
+		deflater.end();
+		return byteArrayOutputStream.toByteArray();
+	}
 
-    public static String decompress(final byte[] compressed)
-    {
-        final Inflater inflater = new Inflater();
-        inflater.setInput(compressed);
-        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(compressed.length);
-        final byte[] buffer = new byte[BUFFER_SIZE];
-        try
-        {
-            while (!inflater.finished())
-            {
-                final int len = inflater.inflate(buffer);
-                byteArrayOutputStream.write(buffer, 0, len);
-            }
-        }
-        catch (Exception e)
-        {
-            log.error("failed to decompress trade history save data");
-        }
-        finally
-        {
-            inflater.end();
-        }
-        return byteArrayOutputStream.toString();
-    }
+	public static String decompress(final byte[] compressed)
+	{
+		final Inflater inflater = new Inflater();
+		inflater.setInput(compressed);
+		final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(compressed.length);
+		final byte[] buffer = new byte[BUFFER_SIZE];
+		try
+		{
+			while (!inflater.finished())
+			{
+				final int len = inflater.inflate(buffer);
+				byteArrayOutputStream.write(buffer, 0, len);
+			}
+		} catch (Exception e)
+		{
+			log.error("failed to decompress trade history save data");
+		} finally
+		{
+			inflater.end();
+		}
+		return byteArrayOutputStream.toString();
+	}
 
-    // Compresses the passed string, then encodes in Base64. ~16% of original size
-    public static String compressToEncode(final String str)
-    {
-        return Base64.getEncoder().encodeToString(compress(str));
-    }
+	// Compresses the passed string, then encodes in Base64. ~16% of original size
+	public static String compressToEncode(final String str)
+	{
+		return Base64.getEncoder().encodeToString(compress(str));
+	}
 
-    // Given a compressed string encoded in Base64, returns the original string
-    public static String decompressFromEncode(final String compressed)
-    {
-        return decompress(Base64.getDecoder().decode(compressed));
-    }
+	// Given a compressed string encoded in Base64, returns the original string
+	public static String decompressFromEncode(final String compressed)
+	{
+		return decompress(Base64.getDecoder().decode(compressed));
+	}
 
 }

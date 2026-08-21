@@ -32,51 +32,56 @@ import java.util.ArrayList;
 // Serializable data used to store and maintain data common to all profiles
 public class SaveData_Common
 {
-    private int saveVersion;
-    private TradeHistoryProfile activeProfile;
-    final private ArrayList<TradeHistoryProfile> savedProfiles = new ArrayList<>();
+	final private ArrayList<TradeHistoryProfile> savedProfiles = new ArrayList<>();
+	private int saveVersion;
+	private TradeHistoryProfile activeProfile;
 
-    SaveData_Common(final int version, final TradeHistoryProfile activeProfile)
-    {
-        this.saveVersion = version;
-        this.activeProfile = activeProfile;
-        savedProfiles.add(activeProfile);
-    }
+	SaveData_Common(final int version, final TradeHistoryProfile activeProfile)
+	{
+		this.saveVersion = version;
+		this.activeProfile = activeProfile;
+		savedProfiles.add(activeProfile);
+	}
 
-    public void updateSaveVersion(final int newSaveVersion)
-    {
-        assert(newSaveVersion > this.saveVersion);
-        this.saveVersion = newSaveVersion;
-    }
+	public void updateSaveVersion(final int newSaveVersion)
+	{
+		assert (newSaveVersion > this.saveVersion);
+		this.saveVersion = newSaveVersion;
+	}
 
-    public void setActiveProfile(final TradeHistoryProfile activeProfile)
-    {
-        if (this.activeProfile.equals(activeProfile))
-        {
-            return;
-        }
-        if (activeProfile != null)
-        {
-            final int existingIndex = savedProfiles.indexOf(activeProfile);
-            if (existingIndex == -1)
-            {
-                savedProfiles.add(activeProfile);
-            }
-            else
-            {
-                savedProfiles.set(existingIndex, activeProfile);
-            }
-        }
-        this.activeProfile = activeProfile;
-    }
+	public final TradeHistoryProfile getActiveProfile()
+	{
+		return activeProfile;
+	}
 
-    public final TradeHistoryProfile getActiveProfile() { return activeProfile; }
+	public void setActiveProfile(final TradeHistoryProfile activeProfile)
+	{
+		if (this.activeProfile.equals(activeProfile))
+		{
+			return;
+		}
+		if (activeProfile != null)
+		{
+			final int existingIndex = savedProfiles.indexOf(activeProfile);
+			if (existingIndex == -1)
+			{
+				savedProfiles.add(activeProfile);
+			} else
+			{
+				savedProfiles.set(existingIndex, activeProfile);
+			}
+		}
+		this.activeProfile = activeProfile;
+	}
 
-    public final ArrayList<TradeHistoryProfile> getSavedProfiles() { return new ArrayList<>(savedProfiles); }
+	public final ArrayList<TradeHistoryProfile> getSavedProfiles()
+	{
+		return new ArrayList<>(savedProfiles);
+	}
 
-    public void removeSavedProfile(final TradeHistoryProfile profile)
-    {
-        savedProfiles.removeIf(e -> e == profile);
-    }
+	public void removeSavedProfile(final TradeHistoryProfile profile)
+	{
+		savedProfiles.removeIf(e -> e == profile);
+	}
 
 }
