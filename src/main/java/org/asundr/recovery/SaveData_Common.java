@@ -40,7 +40,7 @@ public class SaveData_Common
 	{
 		this.saveVersion = SaveManager.SAVE_VERSION;
 		this.activeProfile = null;
-		savedProfiles.add((TradeHistoryProfile) null);
+		savedProfiles.add(null);
 	}
 
 	public void updateSaveVersion(final int newSaveVersion)
