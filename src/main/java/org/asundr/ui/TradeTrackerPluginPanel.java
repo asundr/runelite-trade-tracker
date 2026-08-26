@@ -38,16 +38,7 @@ import org.asundr.utility.CommonUtils;
 import org.asundr.utility.StringUtils;
 import org.asundr.utility.TimeUtils;
 import org.asundr.trade.TradeData;
-import org.asundr.recovery.SaveManager;
-import org.asundr.trade.SimpleTradeData;
-import org.asundr.trade.TradeData;
-import org.asundr.trade.TradeItemData;
 import org.asundr.trade.TradeUtils;
-import org.asundr.utility.CommonUtils;
-import org.asundr.utility.StringUtils;
-import org.asundr.utility.TimeUtils;
-import org.asundr.ui.TradeRecordPanel;
-import org.asundr.ui.*;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -60,8 +51,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 
 public class TradeTrackerPluginPanel extends PluginPanel
 {

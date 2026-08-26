@@ -78,7 +78,7 @@ public interface TradeTrackerConfig extends Config
 	String SECTION_DEBUG = "Debug";
 
 
-	/// ////////////////////////////
+///////////////////////////////
 
 	@ConfigItem(
 			keyName = ConfigKey.AUTOLOAD_LAST_PROFILE,

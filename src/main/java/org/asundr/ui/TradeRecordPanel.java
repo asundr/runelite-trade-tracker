@@ -49,8 +49,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import static java.lang.System.currentTimeMillis;
-
 class TradeRecordPanel extends CollapsiblePanel
 {
 	private static final ImageIcon ICON_NOTE = CommonUtils.getIconFromName("note_icon.png", 14, 14, Image.SCALE_SMOOTH);
