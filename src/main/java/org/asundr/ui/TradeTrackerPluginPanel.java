@@ -37,6 +37,17 @@ import org.asundr.trade.*;
 import org.asundr.utility.CommonUtils;
 import org.asundr.utility.StringUtils;
 import org.asundr.utility.TimeUtils;
+import org.asundr.trade.TradeData;
+import org.asundr.recovery.SaveManager;
+import org.asundr.trade.SimpleTradeData;
+import org.asundr.trade.TradeData;
+import org.asundr.trade.TradeItemData;
+import org.asundr.trade.TradeUtils;
+import org.asundr.utility.CommonUtils;
+import org.asundr.utility.StringUtils;
+import org.asundr.utility.TimeUtils;
+import org.asundr.ui.TradeRecordPanel;
+import org.asundr.ui.*;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -49,6 +60,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 public class TradeTrackerPluginPanel extends PluginPanel
 {
@@ -58,7 +71,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
 	private static final int HEADER_FILTER_ENTRY_HEIGHT = 25;
 	private static final int HEADER_HEIGHT_DEFAULT = 100;
 	private static final int SIZE_FILTER_BUTTON_X = 15;
-	private static final int HEADER_HEIGHT_FILTERING = HEADER_HEIGHT_DEFAULT + HEADER_FILTER_ENTRY_HEIGHT + 4;
+	private static final int HEADER_HEIGHT_FILTERING = HEADER_HEIGHT_DEFAULT + (HEADER_FILTER_ENTRY_HEIGHT * 2 ) + 4;
 	private static final Dimension DIMENSION_FILTER_WRAPPER = new Dimension(PANEL_WIDTH, HEADER_FILTER_ENTRY_HEIGHT);
 	private static final Dimension DIMENSION_FILTER_TEXT = new Dimension(PANEL_WIDTH - SIZE_FILTER_BUTTON_X, HEADER_FILTER_ENTRY_HEIGHT);
 	private static final Dimension DIMENSION_CLEAR_FILTER_WRAPPER = new Dimension(SIZE_FILTER_BUTTON_X, HEADER_FILTER_ENTRY_HEIGHT);
@@ -68,6 +81,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
 	private final static Color COLOR_FILTER_TEXT_BACKGROUND = new Color(10, 10, 10);
 	private final static Color COLOR_TOOLBAR_BACKGROUND = new Color(40, 40, 0);
 	private final static Color COLOR_CLEAR_FILTER_BACKGROUND = new Color(80, 0, 0);
+	private static final Color COLOR_BUTTON_BACKGROUND = new Color(20, 20, 30);
 	private final static String TEMPLATE_EMPTY_LIST = "<html><body style='text-align:center'><span style='font-size:12px;color:white'>%s</span><br><span style='font-size:10px;color:#939393'>%s</span></body></html>";
 	private final static String TEMPLATE_SUBTITLE = "<html><span style='font-size:13;color:white'><nobr>%s <span style='color:#909090'>%s</span></nobr></span><html>";
 	private final static String TEMPLATE_PURGE_TOOLTIP = "<html><span>%s auto-remove old trades</span></html>";
@@ -80,6 +94,8 @@ public class TradeTrackerPluginPanel extends PluginPanel
 	private final static Border BORDER_PADDING_CLEAR_FILTER_WRAPPER = BorderFactory.createEmptyBorder(6, 3, 6, 5);
 	private final static Border BORDER_PADDING_CLEAR_FILTER_BUTTON = BorderFactory.createEmptyBorder(0, 0, 0, 0);
 	final JPanel filterTextWrapper = new JPanel();
+	final JPanel filterTotal = new JPanel();
+	JLabel filterTotalLabel = new JLabel(String.format(TEMPLATE_EMPTY_LIST, "Trade History", "No trades have been recorded"));
 	final JTextField filterText = new JTextField();
 	final JPanel clearFilterWrapper = new JPanel();
 	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -370,14 +386,25 @@ public class TradeTrackerPluginPanel extends PluginPanel
 		// Setting up text entry field for filtering trades
 		filterTextWrapper.setPreferredSize(DIMENSION_FILTER_WRAPPER);
 		filterTextWrapper.setMinimumSize(DIMENSION_FILTER_WRAPPER);
+		filterTextWrapper.setMaximumSize(DIMENSION_FILTER_WRAPPER);
 		filterTextWrapper.setLayout(new BoxLayout(filterTextWrapper, BoxLayout.X_AXIS));
 		filterTextWrapper.setBorder(BORDER_FILTER_TEXT_WRAPPER);
 		filterTextWrapper.setBackground(COLOR_FILTER_TEXT_BACKGROUND);
 		filterTextWrapper.add(filterText);
 
+		// Setting up text entry field filtering trades totals
+		filterTotal.setPreferredSize(DIMENSION_FILTER_WRAPPER);
+		filterTotal.setMinimumSize(DIMENSION_FILTER_WRAPPER);
+		filterTotal.setMaximumSize(DIMENSION_FILTER_WRAPPER);
+		filterTotal.setLayout(new BorderLayout());
+		filterTotal.setBorder(BorderFactory.createLineBorder(COLOR_BUTTON_BACKGROUND, 4));
+		filterTotal.setBackground(COLOR_FILTER_TEXT_BACKGROUND);
+		filterTotal.add(filterTotalLabel);
+
 		clearFilterWrapper.setLayout(new BorderLayout());
 		clearFilterWrapper.setPreferredSize(DIMENSION_CLEAR_FILTER_WRAPPER);
 		clearFilterWrapper.setMinimumSize(DIMENSION_CLEAR_FILTER_WRAPPER);
+		clearFilterWrapper.setMaximumSize(DIMENSION_CLEAR_FILTER_WRAPPER);
 		clearFilterWrapper.setBorder(BORDER_PADDING_CLEAR_FILTER_WRAPPER);
 		clearFilterWrapper.setBackground(COLOR_TRANSPARENT);
 
@@ -385,6 +412,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
 		clearFilterButton.addActionListener(e -> SwingUtilities.invokeLater(this::clearFilter));
 		clearFilterButton.setPreferredSize(DIMENSION_CLEAR_FILTER_BUTTON);
 		clearFilterButton.setMinimumSize(DIMENSION_CLEAR_FILTER_BUTTON);
+		clearFilterButton.setMaximumSize(DIMENSION_CLEAR_FILTER_BUTTON);
 		clearFilterButton.setBackground(COLOR_CLEAR_FILTER_BACKGROUND);
 		clearFilterButton.setBorder(BORDER_PADDING_CLEAR_FILTER_BUTTON);
 		clearFilterButton.setToolTipText("Clear");
@@ -393,6 +421,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
 		filterTextWrapper.add(clearFilterWrapper);
 
 		headerPanel.add(filterTextWrapper);
+		headerPanel.add(filterTotal);
 		headerPanel.add(Box.createVerticalStrut(HEADER_PADDING / 2));
 		filterText.getDocument().addDocumentListener(new DocumentListener()
 		{
@@ -453,7 +482,12 @@ public class TradeTrackerPluginPanel extends PluginPanel
 		filterText.setBorder(BORDER_FILTER_TEXT);
 		filterText.setPreferredSize(DIMENSION_FILTER_TEXT);
 		filterText.setMinimumSize(DIMENSION_FILTER_TEXT);
+		filterText.setMaximumSize(DIMENSION_FILTER_TEXT);
 		filterTextWrapper.setVisible(false);
+
+		filterTotal.setPreferredSize(DIMENSION_FILTER_TEXT);
+		filterTotal.setMinimumSize(DIMENSION_FILTER_TEXT);
+		filterTotal.setVisible(true);
 
 
 		// Setting up button for toggling the filter
@@ -479,9 +513,11 @@ public class TradeTrackerPluginPanel extends PluginPanel
 	private void toggleFilter(boolean active)
 	{
 		filterTextWrapper.setVisible(active);
+		filterTotal.setVisible(active);
 		final int headerHeight = active ? HEADER_HEIGHT_FILTERING : HEADER_HEIGHT_DEFAULT;
 		headerPanel.setPreferredSize(new Dimension(PANEL_WIDTH, headerHeight));
 		headerPanel.setMinimumSize(new Dimension(PANEL_WIDTH, headerHeight));
+		headerPanel.setMaximumSize(new Dimension(PANEL_WIDTH, headerHeight));
 		updateFilter(active ? filterText.getText() : "");
 		revalidate();
 		repaint();
@@ -634,6 +670,22 @@ public class TradeTrackerPluginPanel extends PluginPanel
 		repaint();
 	}
 
+	private void updateTotalPanel()
+	{
+
+		long sum = getTradeRecordPanels().stream()
+				.filter(TradeRecordPanel::isVisible)
+				.mapToLong(TradeRecordPanel::getPanelValue)
+				.sum();
+
+		final String footerPrefix = sum < 0 ? "you lost" : "you gained";
+		filterTotalLabel = new QuantityLabel(sum, "<html>" + "In total " + footerPrefix + ": %s  <span style='color:#909090'>[#P]</span></html>", "%s");
+		filterTotal.removeAll();
+		filterTotal.add(filterTotalLabel);
+
+		//System.out.println("Array data: " + sum);
+	}
+
 	private boolean isRefreshingTradeHistory()
 	{
 		return !tradeHistoryPanel.isVisible();
@@ -670,6 +722,7 @@ public class TradeTrackerPluginPanel extends PluginPanel
 				emptyHistoryPanel.setVisible(true);
 			}
 		}
+		updateTotalPanel();
 	}
 
 	// Note: Must be called inside a SwingUtilities.invokeLater

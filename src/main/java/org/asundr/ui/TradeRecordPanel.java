@@ -40,9 +40,16 @@ import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+
+import static java.lang.System.currentTimeMillis;
 
 class TradeRecordPanel extends CollapsiblePanel
 {
@@ -62,7 +69,7 @@ class TradeRecordPanel extends CollapsiblePanel
 
 	private static TradeRecordPopUpMenu buttonPopup = null;
 
-	private final TradeData tradeData;
+	public final TradeData tradeData;
 	private final SimpleTradeData simpleData;
 	private final JLabel tradeTimeLabel = new JLabel();
 	private final QuantityLabel givenTotalLabel;
@@ -342,6 +349,12 @@ class TradeRecordPanel extends CollapsiblePanel
 		tradeTimeLabel.setText(String.format(TRADE_TIME_TEMPLATE, TimeUtils.timestampToStringTime(tradeData.tradeTime)));
 	}
 
+	// Get panel value.
+	public long getPanelValue()
+	{
+		return tradeData.receivedTotalValue - tradeData.givenTotalValue;
+	}
+
 	// Updates the aggregate item prices after changing price type
 	public void updateItemPriceType()
 	{
@@ -365,6 +378,66 @@ class TradeRecordPanel extends CollapsiblePanel
 		// check if traded player's name contains query
 		if (tradeData.tradedPlayer.tradeName.toLowerCase().contains(query.toLowerCase()))
 			return true;
+
+		// check for - for day/week/month
+		if (query != null && !query.isEmpty())
+		{
+			char firstChar = query.charAt(0);
+			if (firstChar == '-')
+			{
+				String digits = query.replaceAll("[^0-9]", "");
+				long number = 0;
+				if (digits != null && !digits.isEmpty())
+				{
+					number = Integer.parseInt(digits);
+				} else {
+					number = 0;
+				}
+				if (number > 0)
+				{
+					char lastChar = query.charAt(query.length() - 1);
+					if (lastChar == 'd')
+					{
+						//System.out.println("Query numb: " + number);
+						//System.out.println("Query date: " + (Instant.now().getEpochSecond() - (1000*60*60*24*number)));
+						//System.out.println("now date  : " + Instant.now().getEpochSecond());
+						//System.out.println("trade date: " + tradeData.tradeTime);
+						//System.out.println("ofset date: " + (1000*60*60*24*number));
+						if ((Instant.now().getEpochSecond() - (60*60*24*number)) <= tradeData.tradeTime)
+						{
+							return true;
+						}
+					} else if (lastChar == 'w') {
+						if ((Instant.now().getEpochSecond() - (60*60*24*number*7)) <= tradeData.tradeTime)
+						{
+							return true;
+						}
+					} else if (lastChar == 'm') {
+						if ((Instant.now().getEpochSecond() - (60*60*24*number*30)) <= tradeData.tradeTime)
+						{
+							return true;
+						}
+					}
+				}
+			}
+		}
+		// check if string is a date
+		try {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/uuuu")
+					.withResolverStyle(ResolverStyle.STRICT);
+			LocalDate parsedDate = LocalDate.parse(query, formatter);
+			TimeUtils.timestampToString(tradeData.tradeTime, "MM/dd/uuuu");
+			//System.out.println("Query date: " + query);
+			//System.out.println("Trade date: " + TimeUtils.timestampToString(tradeData.tradeTime, "MM/dd/uuuu"));
+			if (query.equals(TimeUtils.timestampToString(tradeData.tradeTime, "MM/dd/uuuu")))
+			{
+				return true;
+			}
+			//System.out.println("Valid date: " + parsedDate);
+		} catch (DateTimeParseException e) {
+			//System.out.println("Invalid date format or value: " + query);
+		}
+
 		// check if any words in notes start with query
 		if (tradeData.note != null && !tradeData.note.isBlank())
 		{
