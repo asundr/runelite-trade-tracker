@@ -28,12 +28,13 @@ package org.asundr.recovery;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.Player;
 import net.runelite.api.events.GameStateChanged;
-import net.runelite.client.callback.ClientThread;
+import net.runelite.api.events.GameTick;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.RuneScapeProfileType;
 import net.runelite.client.eventbus.Subscribe;
@@ -66,9 +67,10 @@ public class SaveManager
 	private Player currentPlayer;
 	private String playerName;
 	@Inject
-	private ClientThread clientThread;
-	@Inject
+	@Getter
 	private Client client;
+
+	private boolean LoggedIn = false;
 
 	// Sets the active profile to null without updating the UI or saving
 	public static void forgetActiveHistoryProfile()
@@ -343,28 +345,73 @@ public class SaveManager
 	}
 
 	@Subscribe
-	private void onGameStateChanged(GameStateChanged evt)
-	{
-		if (evt.getGameState() == GameState.LOGGED_IN)
-		{
-			if (this.currentPlayer == null || this.playerName == null)
-			{
-				// Keep trying to set the current player until success.
-				// localPlayer is not set immediately after GameSate switches to LOGGED_IN.
-				clientThread.invokeLater(() ->
-				{
-					this.currentPlayer = this.client.getLocalPlayer();
-					if (this.currentPlayer != null)
-					{
-						this.playerName = this.currentPlayer.getName();
-						if (playerName != null)
-						{
-							setActiveHistoryProfile(new TradeHistoryProfile(client.getAccountHash(), playerName, RuneScapeProfileType.getCurrent(client)));
-						}
-					}
-				});
+	public void onGameTick(GameTick event) {
+		if (!LoggedIn) {
+			onLoggedInGameState();
+		}
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event) {
+		if (event.getGameState() == GameState.LOGGED_IN) {
+			onLoggedInGameState();
+		} else if (event.getGameState() == GameState.LOGIN_SCREEN && LoggedIn) {
+			//this randomly fired at night hours after i had logged off...so i'm adding this guard here.
+			if (this.currentPlayer != null && client.getGameState() != GameState.LOGGED_IN) {
+				handleLogout();
 			}
 		}
+	}
+
+	private void onLoggedInGameState() {
+		//keep scheduling this task until it returns true (when we have access to a display name)
+		CommonUtils.getClientThread().invokeLater(() ->
+		{
+			//we return true in this case as something went wrong and somehow the state isn't logged in, so we don't
+			//want to keep scheduling this task.
+			client = CommonUtils.getClient();
+			if (client == null) {
+				return true;
+			}
+			if (client.getGameState() != GameState.LOGGED_IN) {
+				return true;
+			}
+
+			final Player player = client.getLocalPlayer();
+
+			//player is null, so we can't get the display name so, return false, which will schedule
+			//the task on the client thread again.
+			if (player == null) {
+				return false;
+			}
+
+			final String name = player.getName();
+
+			if (name == null) {
+				return false;
+			}
+
+			if (name.isEmpty()) {
+				return false;
+			}
+
+			handleLogin(name);
+			//stops scheduling this task
+			return true;
+		});
+	}
+
+	public void handleLogin(String displayName) {
+		this.currentPlayer = this.client.getLocalPlayer();
+		this.playerName = this.currentPlayer.getName();
+		log.debug("{} is logging in", this.playerName);
+		LoggedIn = true;
+		setActiveHistoryProfile(new TradeHistoryProfile(client.getAccountHash(), playerName, RuneScapeProfileType.getCurrent(client)));
+	}
+
+	public void handleLogout() {
+		log.debug("{} is logging out", this.playerName);
+		//
 	}
 
 	// Sets the history associated with the passed profile
