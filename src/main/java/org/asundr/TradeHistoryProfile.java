@@ -34,58 +34,67 @@ import org.apache.commons.lang3.StringUtils;
 @Slf4j
 public class TradeHistoryProfile
 {
-    private final long hash;
-    private final String playerName;
-    private final RuneScapeProfileType type;
+	private final long hash;
+	private final String playerName;
+	private final RuneScapeProfileType type;
 
-    public TradeHistoryProfile(final Long hash, final String playerName, final RuneScapeProfileType type)
-    {
-        this.hash = hash;
-        this.playerName = playerName;
-        this.type = type;
-    }
+	public TradeHistoryProfile(final Long hash, final String playerName, final RuneScapeProfileType type)
+	{
+		this.hash = hash;
+		this.playerName = playerName;
+		this.type = type;
+	}
 
-    public final String getPlayerName() { return playerName; }
+	public static TradeHistoryProfile parse(final String s)
+	{
+		final String[] parts = s.split("\\+");
+		if (s.length() != 2)
+		{
+			log.error("Parsed TradeHistoryProfile is missing name or type");
+			return null;
+		}
+		return new TradeHistoryProfile(Long.valueOf(parts[0], 16), null, RuneScapeProfileType.valueOf(parts[1]));
+	}
 
-    public final String toString() { return getKeyString(); }
+	public final String getPlayerName()
+	{
+		return playerName;
+	}
 
-    // Returns the string in the form "HASH+TYPE" which is used as a key for data recovery
-    public final String getKeyString() { return Long.toHexString(hash) + "+" + type.toString(); }
+	public final String toString()
+	{
+		return getKeyString();
+	}
 
-    // Returns the type as a capitalized space-separated string
-    public String getTypeString()
-    {
-        if (type == null || type == RuneScapeProfileType.STANDARD)
-        {
-            return "";
-        }
-        return "(" + StringUtils.capitalize(type.toString().replace("_"," ").toLowerCase()) + ")";
-    }
+	// Returns the string in the form "HASH+TYPE" which is used as a key for data recovery
+	public final String getKeyString()
+	{
+		return Long.toHexString(hash) + "+" + type.toString();
+	}
 
-    @Override
-    public boolean equals(Object o)
-    {
-        if (o == this)
-        {
-            return true;
-        }
-        if (!(o instanceof TradeHistoryProfile))
-        {
-            return false;
-        }
-        final TradeHistoryProfile other = (TradeHistoryProfile) o;
-        return this.hash == other.hash && this.type == other.type;
-    }
+	// Returns the type as a capitalized space-separated string
+	public String getTypeString()
+	{
+		if (type == null || type == RuneScapeProfileType.STANDARD)
+		{
+			return "";
+		}
+		return "(" + StringUtils.capitalize(type.toString().replace("_", " ").toLowerCase()) + ")";
+	}
 
-    public static TradeHistoryProfile parse(final String s)
-    {
-        final String[] parts = s.split("\\+");
-        if (s.length() != 2)
-        {
-            log.error("Parsed TradeHistoryProfile is missing name or type");
-            return null;
-        }
-        return new TradeHistoryProfile(Long.valueOf(parts[0], 16), null, RuneScapeProfileType.valueOf(parts[1]));
-    }
+	@Override
+	public boolean equals(Object o)
+	{
+		if (o == this)
+		{
+			return true;
+		}
+		if (!(o instanceof TradeHistoryProfile))
+		{
+			return false;
+		}
+		final TradeHistoryProfile other = (TradeHistoryProfile) o;
+		return this.hash == other.hash && this.type == other.type;
+	}
 
 }

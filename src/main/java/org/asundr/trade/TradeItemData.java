@@ -28,62 +28,91 @@ package org.asundr.trade;
 // contains data used to describe an item stack at the time of a trade
 public class TradeItemData
 {
-    private final int id;                   // original id (may be noted)
-    private transient int unnotedId = 0;    // Optional unnoted id if this.id is noted. Dwarf remains (id=0) can never be noted so this should be ok
-    private final int num;                  // the item quantity
-    private int ge = -1;                    // this is the GE value at the time of the trade and should not be updated
+	private final int id;                   // original id (may be noted)
+	private final int num;                  // the item quantity
+	private transient int unnotedId = 0;    // Optional unnoted id if this.id is noted. Dwarf remains (id=0) can never be noted so this should be ok
+	private int ge;                    // this is the GE value at the time of the trade and should not be updated
 
-    TradeItemData(int id, int quantity, int value)
-    {
-        this.id = id;
-        this.num = quantity;
-        this.ge = value;
-    }
+	TradeItemData(int id, int quantity, int value)
+	{
+		this.id = id;
+		this.num = quantity;
+		this.ge = value;
+	}
 
-    public TradeItemData(int id, int quantity)
-    {
-        this(id, quantity, -1);
-    }
+	public TradeItemData(int id, int quantity)
+	{
+		this(id, quantity, -1);
+	}
 
-    public TradeItemData(TradeItemData other)
-    {
-        this.id = other.id;
-        this.num = other.num;
-        this.ge = other.ge;
-        this.unnotedId = other.unnotedId;
-    }
+	public TradeItemData(TradeItemData other)
+	{
+		this.id = other.id;
+		this.num = other.num;
+		this.ge = other.ge;
+		this.unnotedId = other.unnotedId;
+	}
 
-    public final boolean isNoted() { return unnotedId > 0; }
+	public final boolean isNoted()
+	{
+		return unnotedId > 0;
+	}
 
-    public final int getID() { return id; }
+	public final int getID()
+	{
+		return id;
+	}
 
-    public final int getUnnotedID() { return isNoted() ? unnotedId : id; }
+	public final int getUnnotedID()
+	{
+		return isNoted() ? unnotedId : id;
+	}
 
-    public final int getQuantity() { return num; }
+	public final int getQuantity()
+	{
+		return num;
+	}
 
-    public final int getGEValue() { return ge; }
+	public final int getGEValue()
+	{
+		return ge;
+	}
 
-    public final int getHaValue() { return TradeUtils.getHaPrice(getUnnotedID()); }
-    public final int getLaValue() { return TradeUtils.getLaPrice(getUnnotedID()); }
+	public void setGEValue(final int value)
+	{
+		setGEValue(value, false);
+	}
 
-    public final int getConfiguredValue() { return TradeUtils.getConfiguredPrice(this); }
+	public final int getHaValue()
+	{
+		return TradeUtils.getHaPrice(getUnnotedID());
+	}
 
-    private void setGEValue(final int value, final boolean override)
-    {
-        if (ge == -1 || override)
-        {
-            ge = value;
-        }
-    }
-    public void setGEValue(final int value) { setGEValue(value, false); }
+	public final int getLaValue()
+	{
+		return TradeUtils.getLaPrice(getUnnotedID());
+	}
 
-    public void setUnnotedId(final int unnotedId)
-    {
-        if (isNoted())
-        {
-            return;
-        }
-        this.unnotedId = unnotedId;
-    }
+	public final int getConfiguredValue()
+	{
+		return TradeUtils.getConfiguredPrice(this);
+	}
+
+	private void setGEValue(final int value, final boolean override)
+	{
+		if (ge == -1 || override)
+		{
+			ge = value;
+		}
+	}
+
+	public void setUnnotedId(final int unnotedId)
+	{
+		if (isNoted())
+		{
+			return;
+		}
+		this.unnotedId = unnotedId;
+	}
 
 }

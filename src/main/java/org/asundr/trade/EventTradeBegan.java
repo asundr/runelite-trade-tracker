@@ -28,6 +28,10 @@ package org.asundr.trade;
 // Event fired when a trade begins
 final public class EventTradeBegan
 {
-    final public TradePlayerData tradePlayer;
-    EventTradeBegan(final TradePlayerData tradePlayer) { this.tradePlayer = tradePlayer; }
+	final public TradePlayerData tradePlayer;
+
+	EventTradeBegan(final TradePlayerData tradePlayer)
+	{
+		this.tradePlayer = tradePlayer;
+	}
 }

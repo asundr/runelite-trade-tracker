@@ -28,8 +28,8 @@ package org.asundr;
 import net.runelite.client.config.*;
 import org.asundr.recovery.ConfigKey;
 
-import static org.asundr.trade.TradeManager.MAX_HISTORY_COUNT;
 import static org.asundr.recovery.SaveManager.SAVE_GROUP;
+import static org.asundr.trade.TradeManager.MAX_HISTORY_COUNT;
 
 @ConfigGroup(SAVE_GROUP)
 public interface TradeTrackerConfig extends Config
@@ -86,15 +86,9 @@ public interface TradeTrackerConfig extends Config
 			description = "If enabled, the last trade profile will be visible on the login screen when RuneLite is launched",
 			section = SECTION_GENERAL
 	)
-	default boolean getAutoLoadLastProfile() { return true; }
-
-	enum AutoFilterOnTrade
+	default boolean getAutoLoadLastProfile()
 	{
-		NEVER, //
-		ALWAYS,
-		EMPTY,
-		INACTIVE,
-		INACTIVE_EMPTY; //
+		return true;
 	}
 
 	@ConfigItem(
@@ -107,9 +101,12 @@ public interface TradeTrackerConfig extends Config
 					"<br>- Inactive: Only auto-filter if the filter is currently disabled" +
 					"<br>- Inactive Empty: Only auto-filter if the filter is both empty and disabled",
 			section = SECTION_GENERAL,
-			position =  -10
+			position = -10
 	)
-	default AutoFilterOnTrade getAutoFilterOnTrade() { return AutoFilterOnTrade.NEVER; }
+	default AutoFilterOnTrade getAutoFilterOnTrade()
+	{
+		return AutoFilterOnTrade.NEVER;
+	}
 
 	@ConfigItem(
 			keyName = ConfigKey.AUTO_FILTER_OPENS_PANEL,
@@ -118,7 +115,10 @@ public interface TradeTrackerConfig extends Config
 			section = SECTION_GENERAL,
 			position = -9
 	)
-	default boolean autoFilterOpensPanel() { return true; }
+	default boolean autoFilterOpensPanel()
+	{
+		return true;
+	}
 
 	@ConfigItem(
 			keyName = ConfigKey.SCREENSHOT_ON_TRADE,
@@ -126,7 +126,10 @@ public interface TradeTrackerConfig extends Config
 			description = "If enabled, a screenshot of the trade is also saved as an image to disk",
 			section = SECTION_GENERAL
 	)
-	default boolean getScreenshotOnTrade() { return false; }
+	default boolean getScreenshotOnTrade()
+	{
+		return false;
+	}
 
 	@ConfigItem(
 			keyName = ConfigKey.USE_24_HOUR_TIME,
@@ -134,16 +137,9 @@ public interface TradeTrackerConfig extends Config
 			description = "If enabled, displays 13:00 instead of 1:00 pm",
 			section = SECTION_DISPLAY
 	)
-	default boolean use24HourTime() { return false; }
-
-	enum ItemPriceType
+	default boolean use24HourTime()
 	{
-		LOW_ALCHEMY("LA", "Low Alchemy"),
-		HIGH_ALCHEMY("HA", "High Alchemy"),
-		GRAND_EXCHANGE("GE", "Grand Exchange");
-		ItemPriceType(final String shortName, final String fullName) { this.shortName = shortName; this.fullName = fullName; }
-		public final String shortName;
-		public final String fullName;
+		return false;
 	}
 
 	@ConfigItem(
@@ -152,7 +148,10 @@ public interface TradeTrackerConfig extends Config
 			description = "Uses the set price source to calculate aggregate values",
 			section = SECTION_DISPLAY
 	)
-	default ItemPriceType getDefaultPriceType() { return ItemPriceType.GRAND_EXCHANGE; }
+	default ItemPriceType getDefaultPriceType()
+	{
+		return ItemPriceType.GRAND_EXCHANGE;
+	}
 
 	@ConfigItem(
 			keyName = ConfigKey.IGNORE_EMPTY_TRADES,
@@ -160,7 +159,10 @@ public interface TradeTrackerConfig extends Config
 			description = "<html><span>If enabled, accepted trades with no items given or received are not tracked.</span><br><span>Setting to false does not clear exiting empty trades.</span>",
 			section = SECTION_GENERAL
 	)
-	default boolean ignoreEmptyTrades() { return false; }
+	default boolean ignoreEmptyTrades()
+	{
+		return false;
+	}
 
 	@ConfigItem(
 			keyName = ConfigKey.FILTER_ITEM_ID,
@@ -168,7 +170,10 @@ public interface TradeTrackerConfig extends Config
 			description = "When filtering the trade history, item IDs will also be checked for a match",
 			section = SECTION_DEBUG
 	)
-	default boolean filterMatchItemId() { return false; }
+	default boolean filterMatchItemId()
+	{
+		return false;
+	}
 
 	@ConfigItem(
 			keyName = ConfigKey.COPY_TRADE_DATE_MENU,
@@ -176,28 +181,24 @@ public interface TradeTrackerConfig extends Config
 			description = "<html><span>Adds ability to copy trade data by right clicking on trade record</span><br><span>May require restarting RuneLite</span>",
 			section = SECTION_DEBUG
 	)
-	default boolean canCopyTradeData() { return false; }
+	default boolean canCopyTradeData()
+	{
+		return false;
+	}
 
-	@Range (
+	@Range(
 			min = 1, max = MAX_HISTORY_COUNT
 	)
 	@ConfigItem(
 			keyName = ConfigKey.MAX_HISTORY,
 			name = "Maximum trade history",
-			description = "<html><span>Maximum number of trade records before the oldest is deleted</span><br><span>Valid range: [1, " + MAX_HISTORY_COUNT+ "]",
+			description = "<html><span>Maximum number of trade records before the oldest is deleted</span><br><span>Valid range: [1, " + MAX_HISTORY_COUNT + "]",
 			section = SECTION_HISTORY_LIMITS,
 			position = 1
 	)
-	default int maxHistoryCount() { return 256; }
-
-	enum PurgeHistoryType {
-		NEVER (Long.MAX_VALUE),
-		MINUTE(60000L),
-		HOUR (MINUTE.ms*60L),
-		DAY (HOUR.ms * 24L),
-		YEAR (DAY.ms * 365L);
-		public final long ms;
-		PurgeHistoryType(long ms) { this.ms = ms; }
+	default int maxHistoryCount()
+	{
+		return 1024;
 	}
 
 	@ConfigItem(
@@ -207,25 +208,23 @@ public interface TradeTrackerConfig extends Config
 			section = SECTION_HISTORY_LIMITS,
 			position = 2
 	)
-	default PurgeHistoryType getPurgeHistoryType() { return PurgeHistoryType.YEAR; }
+	default PurgeHistoryType getPurgeHistoryType()
+	{
+		return PurgeHistoryType.YEAR;
+	}
 
-	@Range (
-			min = 0
+	@Range(
 	)
 	@ConfigItem(
 			keyName = ConfigKey.PURGE_HISTORY_MAGNITUDE,
 			name = "Auto-remove length",
 			description = "After how many of the 'Auto-remove type' should old trades be removed?",
-			section =  SECTION_HISTORY_LIMITS,
+			section = SECTION_HISTORY_LIMITS,
 			position = 3
 	)
-	default int getPurgeHistoryMagnitude() { return 1; }
-
-	enum LookupType
+	default int getPurgeHistoryMagnitude()
 	{
-		DISABLED,
-		ENABLED,
-		REQUIRE_SHIFT;
+		return 1;
 	}
 
 	@ConfigItem(
@@ -235,7 +234,10 @@ public interface TradeTrackerConfig extends Config
 			section = SECTION_PLAYER_LOOKUP,
 			position = 1
 	)
-	default LookupType getPlayerLookupMenu() { return LookupType.REQUIRE_SHIFT; }
+	default LookupType getPlayerLookupMenu()
+	{
+		return LookupType.REQUIRE_SHIFT;
+	}
 
 	@ConfigItem(
 			keyName = ConfigKey.PLAYER_LOOKUP_CHARACTER,
@@ -244,7 +246,10 @@ public interface TradeTrackerConfig extends Config
 			section = SECTION_PLAYER_LOOKUP,
 			position = 0
 	)
-	default LookupType getPlayerLookupCharacter() { return LookupType.REQUIRE_SHIFT; }
+	default LookupType getPlayerLookupCharacter()
+	{
+		return LookupType.REQUIRE_SHIFT;
+	}
 
 	@ConfigItem(
 			keyName = ConfigKey.ADD_NAME_TO_TRADE_OFFER,
@@ -253,6 +258,55 @@ public interface TradeTrackerConfig extends Config
 			section = SECTION_MISCELLANEOUS,
 			position = 0
 	)
-	default boolean addNameToTradeOfferChat() { return true; }
+	default boolean addNameToTradeOfferChat()
+	{
+		return true;
+	}
+
+	enum AutoFilterOnTrade
+	{
+		NEVER, //
+		ALWAYS,
+		EMPTY,
+		INACTIVE,
+		INACTIVE_EMPTY //
+	}
+
+	enum ItemPriceType
+	{
+		LOW_ALCHEMY("LA", "Low Alchemy"),
+		HIGH_ALCHEMY("HA", "High Alchemy"),
+		GRAND_EXCHANGE("GE", "Grand Exchange");
+
+		public final String shortName;
+		public final String fullName;
+		ItemPriceType(final String shortName, final String fullName)
+		{
+			this.shortName = shortName;
+			this.fullName = fullName;
+		}
+	}
+
+	enum PurgeHistoryType
+	{
+		NEVER(Long.MAX_VALUE),
+		MINUTE(60000L),
+		HOUR(MINUTE.ms * 60L),
+		DAY(HOUR.ms * 24L),
+		YEAR(DAY.ms * 365L);
+		public final long ms;
+
+		PurgeHistoryType(long ms)
+		{
+			this.ms = ms;
+		}
+	}
+
+	enum LookupType
+	{
+		DISABLED,
+		ENABLED,
+		REQUIRE_SHIFT
+	}
 
 }

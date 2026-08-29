@@ -34,54 +34,53 @@ import java.io.*;
 @Slf4j
 class FileUtils
 {
-    final static String FILE_EXTENSION_PROFILE_HISTORY = "rtth";
-    final static String FILE_DESCRIPTION_PROFILE_HISTORY = "RuneLite Trade Tracker history";
+	final static String FILE_EXTENSION_PROFILE_HISTORY = "rtth";
+	final static String FILE_DESCRIPTION_PROFILE_HISTORY = "RuneLite Trade Tracker history";
 
-    public static void writeStringToFile(final String defaultFileName, final String str)
-    {
-        final JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setSelectedFile(new File(defaultFileName + "." + FILE_EXTENSION_PROFILE_HISTORY));
-        final FileNameExtensionFilter filter = new FileNameExtensionFilter(FILE_DESCRIPTION_PROFILE_HISTORY, FILE_EXTENSION_PROFILE_HISTORY);
-        fileChooser.setFileFilter(filter);
-        final int returnValue = fileChooser.showSaveDialog(null);
-        if (returnValue == JFileChooser.APPROVE_OPTION)
-        {
-            final File selectedFile = fileChooser.getSelectedFile();
-            try (final BufferedWriter writer = new BufferedWriter(new FileWriter(selectedFile)))
-            {
-                writer.write(str);
-            }
-            catch (Exception e)
-            {
-                log.warn("Failed to write string to file: {}", selectedFile.getPath());
-            }
-        }
-    }
+	public static void writeStringToFile(final String defaultFileName, final String str)
+	{
+		final JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setSelectedFile(new File(defaultFileName + "." + FILE_EXTENSION_PROFILE_HISTORY));
+		final FileNameExtensionFilter filter = new FileNameExtensionFilter(FILE_DESCRIPTION_PROFILE_HISTORY, FILE_EXTENSION_PROFILE_HISTORY);
+		fileChooser.setFileFilter(filter);
+		final int returnValue = fileChooser.showSaveDialog(null);
+		if (returnValue == JFileChooser.APPROVE_OPTION)
+		{
+			final File selectedFile = fileChooser.getSelectedFile();
+			try (final BufferedWriter writer = new BufferedWriter(new FileWriter(selectedFile)))
+			{
+				writer.write(str);
+			} catch (Exception e)
+			{
+				log.warn("Failed to write string to file: {}", selectedFile.getPath());
+			}
+		}
+	}
 
-    public static String readStringFromFile(final String defaultFileName)
-    {
-        final JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setSelectedFile(new File(defaultFileName + "." + FILE_EXTENSION_PROFILE_HISTORY));
-        final FileNameExtensionFilter filter = new FileNameExtensionFilter(FILE_DESCRIPTION_PROFILE_HISTORY, FILE_EXTENSION_PROFILE_HISTORY);
-        fileChooser.setFileFilter(filter);
-        final int returnValue = fileChooser.showOpenDialog(null);
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
-            final File selectedFile = fileChooser.getSelectedFile();
-            final StringBuilder jsonString = new StringBuilder();
-            try (final BufferedReader reader = new BufferedReader(new FileReader(selectedFile)))
-            {
-                String line;
-                while ((line = reader.readLine()) != null)
-                {
-                    jsonString.append(line);
-                }
-                return jsonString.toString();
-            }
-            catch (Exception e)
-            {
-                log.warn("Failed to read string from file: {}", selectedFile.getPath());
-            }
-        }
-        return null;
-    }
+	public static String readStringFromFile(final String defaultFileName)
+	{
+		final JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setSelectedFile(new File(defaultFileName + "." + FILE_EXTENSION_PROFILE_HISTORY));
+		final FileNameExtensionFilter filter = new FileNameExtensionFilter(FILE_DESCRIPTION_PROFILE_HISTORY, FILE_EXTENSION_PROFILE_HISTORY);
+		fileChooser.setFileFilter(filter);
+		final int returnValue = fileChooser.showOpenDialog(null);
+		if (returnValue == JFileChooser.APPROVE_OPTION)
+		{
+			final File selectedFile = fileChooser.getSelectedFile();
+			final StringBuilder jsonString = new StringBuilder();
+			try (final BufferedReader reader = new BufferedReader(new FileReader(selectedFile)))
+			{
+				String line;
+				while ((line = reader.readLine()) != null)
+				{
+					jsonString.append(line);
+				}
+				return jsonString.toString();
+			} catch (Exception e)
+			{
+				log.warn("Failed to read string from file: {}", selectedFile.getPath());
+			}
+		}
+		return null;
+	}
 }

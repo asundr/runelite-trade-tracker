@@ -37,71 +37,74 @@ import java.util.function.Predicate;
 // Button used for the main panel toolbar that toggles its state when clicked
 class ToolbarButton extends JButton
 {
-    private final ImageIcon iconEnabled, iconDisabled;
-    private final static int HEADER_ICON_SIZE = 32;
-    private final static Border BORDER_TOOLBAR_BUTTON = BorderFactory.createLineBorder(new Color(30,30,35), 1, true);
-    private final static Color COLOR_TOOLBAR_BUTTON_BACKGROUND = new Color(15, 15, 35);
+	private final static int HEADER_ICON_SIZE = 32;
+	private final static Border BORDER_TOOLBAR_BUTTON = BorderFactory.createLineBorder(new Color(30, 30, 35), 1, true);
+	private final static Color COLOR_TOOLBAR_BUTTON_BACKGROUND = new Color(15, 15, 35);
+	private final ImageIcon iconEnabled, iconDisabled;
+	private final String enabledToolTipText;
+	private final String disabledToolTipText;
+	private Consumer<Boolean> onToggledActive;      // Called whenever the active state is toggled
+	private Predicate<Boolean> onToggledValidate;   // Called to check if a click should toggle the state
+	private boolean active;
 
-    private final String enabledToolTipText;
-    private final String disabledToolTipText;
-    private Consumer<Boolean> onToggledActive;      // Called whenever the active state is toggled
-    private Predicate<Boolean> onToggledValidate;   // Called to check if a click should toggle the state
-    private boolean active;
+	public ToolbarButton(final String enabledIconPath, final String disabledIconPath, final String enabledToolTipText, final String disabledToolTipText, final boolean startActive, Consumer<Boolean> onToggledActive)
+	{
+		super();
+		this.active = startActive;
+		this.onToggledActive = onToggledActive;
+		this.iconEnabled = CommonUtils.getIconFromName(enabledIconPath, HEADER_ICON_SIZE, HEADER_ICON_SIZE, Image.SCALE_SMOOTH);
+		this.iconDisabled = disabledIconPath == null ? this.iconEnabled : CommonUtils.getIconFromName(disabledIconPath, HEADER_ICON_SIZE, HEADER_ICON_SIZE, Image.SCALE_SMOOTH);
+		setBackground(COLOR_TOOLBAR_BUTTON_BACKGROUND);
+		setBorder(BORDER_TOOLBAR_BUTTON);
+		setIcon(active ? iconEnabled : iconDisabled);
+		this.enabledToolTipText = enabledToolTipText;
+		this.disabledToolTipText = disabledToolTipText == null ? this.enabledToolTipText : disabledToolTipText;
+		setToolTipText(active ? enabledToolTipText : disabledToolTipText);
+		addActionListener(this::actionListenerCallback);
+	}
 
-    public ToolbarButton(final String enabledIconPath, final String disabledIconPath, final String enabledToolTipText, final String disabledToolTipText, final boolean startActive, Consumer<Boolean> onToggledActive)
-    {
-        super();
-        this.active = startActive;
-        this.onToggledActive = onToggledActive;
-        this.iconEnabled = CommonUtils.getIconFromName(enabledIconPath, HEADER_ICON_SIZE, HEADER_ICON_SIZE, Image.SCALE_SMOOTH);
-        this.iconDisabled = disabledIconPath == null ? this.iconEnabled : CommonUtils.getIconFromName(disabledIconPath, HEADER_ICON_SIZE, HEADER_ICON_SIZE, Image.SCALE_SMOOTH);
-        setBackground(COLOR_TOOLBAR_BUTTON_BACKGROUND);
-        setBorder(BORDER_TOOLBAR_BUTTON);
-        setIcon(active ? iconEnabled : iconDisabled);
-        this.enabledToolTipText = enabledToolTipText;
-        this.disabledToolTipText = disabledToolTipText == null ? this.enabledToolTipText : disabledToolTipText;
-        setToolTipText(active ? enabledToolTipText : disabledToolTipText);
-        addActionListener(this::actionListenerCallback);
-    }
+	// Flips the state of the button conditional on onToggledValidate if set
+	public void toggleActive()
+	{
+		setActive(!active);
+	}
 
-    // Sets the state of the button conditional on onToggledValidate if set
-    public void setActive(final boolean newActive)
-    {
-        if (active == newActive || onToggledValidate != null && !onToggledValidate.test(newActive))
-        {
-            return;
-        }
-        active = newActive;
-        setIcon(active ? iconEnabled : iconDisabled);
-        setToolTipText(active ? enabledToolTipText : disabledToolTipText);
-        if (onToggledActive != null)
-        {
-            onToggledActive.accept(active);
-        }
-    }
-    // Flips the state of the button conditional on onToggledValidate if set
-    public void toggleActive()
-    {
-        setActive(!active);
-    }
+	public final boolean isActive()
+	{
+		return active;
+	}
 
-    public final boolean isActive() { return active; }
+	// Sets the state of the button conditional on onToggledValidate if set
+	public void setActive(final boolean newActive)
+	{
+		if (active == newActive || onToggledValidate != null && !onToggledValidate.test(newActive))
+		{
+			return;
+		}
+		active = newActive;
+		setIcon(active ? iconEnabled : iconDisabled);
+		setToolTipText(active ? enabledToolTipText : disabledToolTipText);
+		if (onToggledActive != null)
+		{
+			onToggledActive.accept(active);
+		}
+	}
 
-    // Sets the callback for when the active state changes
-    public void setOnToggledActive(final Consumer<Boolean> onToggledActive)
-    {
-        this.onToggledActive = onToggledActive;
-    }
+	// Sets the callback for when the active state changes
+	public void setOnToggledActive(final Consumer<Boolean> onToggledActive)
+	{
+		this.onToggledActive = onToggledActive;
+	}
 
-    // Sets the predicate for determine if changing the active state if valid
-    public void setOnToggledValidate(final Predicate<Boolean> onToggledValidate)
-    {
-        this.onToggledValidate = onToggledValidate;
-    }
+	// Sets the predicate for determine if changing the active state if valid
+	public void setOnToggledValidate(final Predicate<Boolean> onToggledValidate)
+	{
+		this.onToggledValidate = onToggledValidate;
+	}
 
-    protected void actionListenerCallback(ActionEvent e)
-    {
-        toggleActive();
-    }
+	protected void actionListenerCallback(ActionEvent e)
+	{
+		toggleActive();
+	}
 
 }

@@ -45,100 +45,98 @@ import java.util.concurrent.ScheduledExecutorService;
 
 public class ScreenshotUtils
 {
-    private static final String FOLDER_NAME = "Trades";
-    private static final String WARNING_RUNEWATCH_1 = "WARNING: Trade screenshot deferred to RuneWatch!";
-    private static final String WARNING_RUNEWATCH_2 = "Make sure you only have trade screenshots enabled on one plugin.";
-    private static final String RUNEWATCH_PLUGIN_NAME = "RuneWatch";
-    private static final String RUNEWATCH_CONFIG_GROUP = "runewatch";
-    private static final String RUNEWATCH_CONFIG_KEY_SCREENSHOT = "screenshotTrades";
+	private static final String FOLDER_NAME = "Trades";
+	private static final String WARNING_RUNEWATCH_1 = "WARNING: Trade screenshot deferred to RuneWatch!";
+	private static final String WARNING_RUNEWATCH_2 = "Make sure you only have trade screenshots enabled on one plugin.";
+	private static final String RUNEWATCH_PLUGIN_NAME = "RuneWatch";
+	private static final String RUNEWATCH_CONFIG_GROUP = "runewatch";
+	private static final String RUNEWATCH_CONFIG_KEY_SCREENSHOT = "screenshotTrades";
+	private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+	private static BufferedImage reportButton;
+	private static SpriteManager spriteManager;
+	private static ScreenshotOverlay screenshotOverlay;
+	private static ImageCapture imageCapture;
+	private static OverlayManager overlayManager;
+	private static PluginManager pluginManager;
+	private static ScreenshotConflictManager screenshotConflictManager;
+	private static Image tradeImage;
 
-    private static BufferedImage reportButton;
-    private static SpriteManager spriteManager;
-    private static ScreenshotOverlay screenshotOverlay;
-    private static ImageCapture imageCapture;
-    private static OverlayManager overlayManager;
-    private static PluginManager pluginManager;
-    private static ScreenshotConflictManager screenshotConflictManager;
+	public static void initialize(SpriteManager spriteManager, ImageCapture imageCapture, DrawManager drawManager, OverlayManager overlayManager, PluginManager pluginManager)
+	{
+		ScreenshotUtils.spriteManager = spriteManager;
+		ScreenshotUtils.imageCapture = imageCapture;
+		ScreenshotUtils.overlayManager = overlayManager;
+		ScreenshotUtils.screenshotOverlay = new ScreenshotOverlay(drawManager);
+		ScreenshotUtils.overlayManager.add(screenshotOverlay);
+		ScreenshotUtils.pluginManager = pluginManager;
+		ScreenshotUtils.screenshotConflictManager = new ScreenshotConflictManager();
+		CommonUtils.registerForEvents(screenshotConflictManager);
+		getReportButton();
+	}
 
-    private static Image tradeImage;
+	public static void shutdown()
+	{
+		CommonUtils.unregisterForEvents(screenshotConflictManager);
+		overlayManager.remove(screenshotOverlay);
+	}
 
-    private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+	public static void clearScreenshot()
+	{
+		tradeImage = null;
+	}
 
-    public static void initialize(SpriteManager spriteManager, ImageCapture imageCapture, DrawManager drawManager, OverlayManager overlayManager, PluginManager pluginManager)
-    {
-        ScreenshotUtils.spriteManager = spriteManager;
-        ScreenshotUtils.imageCapture = imageCapture;
-        ScreenshotUtils.overlayManager = overlayManager;
-        ScreenshotUtils.screenshotOverlay = new ScreenshotOverlay(drawManager);
-        ScreenshotUtils.overlayManager.add(screenshotOverlay);
-        ScreenshotUtils.pluginManager = pluginManager;
-        ScreenshotUtils.screenshotConflictManager = new ScreenshotConflictManager();
-        CommonUtils.registerForEvents(screenshotConflictManager);
-        getReportButton();
-    }
+	public static BufferedImage getReportButton()
+	{
+		if (reportButton == null)
+		{
+			spriteManager.getSpriteAsync(SpriteID.ReportButton._0, 0, s -> reportButton = s);
+		}
+		return reportButton;
+	}
 
-    public static void shutdown()
-    {
-        CommonUtils.unregisterForEvents(screenshotConflictManager);
-        overlayManager.remove(screenshotOverlay);
-    }
+	public static boolean isRunewatchScreenshotEnabled()
+	{
+		final Optional<Plugin> runeWatchPlugin = pluginManager.getPlugins().stream().filter(p -> p.getName().equals(RUNEWATCH_PLUGIN_NAME)).findFirst();
+		return runeWatchPlugin.isPresent() && pluginManager.isPluginEnabled(runeWatchPlugin.get())
+				&& Boolean.TRUE.equals(SaveManager.restoreFromKey(RUNEWATCH_CONFIG_GROUP, RUNEWATCH_CONFIG_KEY_SCREENSHOT));
+	}
 
-    public static void clearScreenshot()
-    {
-        tradeImage = null;
-    }
+	public static void takeScreenshot()
+	{
+		if (!CommonUtils.getConfig().getScreenshotOnTrade())
+		{
+			return;
+		}
+		if (isRunewatchScreenshotEnabled())
+		{
+			CommonUtils.chatMessage(WARNING_RUNEWATCH_1, true);
+			CommonUtils.chatMessage(WARNING_RUNEWATCH_2, true);
+			return;
+		}
+		screenshotOverlay.queueForTimestamp(image -> tradeImage = image);
+	}
 
-    public static BufferedImage getReportButton()
-    {
-        if (reportButton == null)
-        {
-            spriteManager.getSpriteAsync(SpriteID.ReportButton._0, 0, s -> reportButton = s);
-        }
-        return reportButton;
-    }
+	public static boolean hasScreenshotConfigChanged(ConfigChanged event)
+	{
+		return event.getGroup().equals(RUNEWATCH_CONFIG_GROUP) && event.getKey().equals(RUNEWATCH_CONFIG_KEY_SCREENSHOT)
+				|| event.getGroup().equals(SaveManager.SAVE_GROUP) && event.getKey().equals(ConfigKey.SCREENSHOT_ON_TRADE);
+	}
 
-    public static boolean isRunewatchScreenshotEnabled()
-    {
-        final Optional<Plugin> runeWatchPlugin = pluginManager.getPlugins().stream().filter(p -> p.getName().equals(RUNEWATCH_PLUGIN_NAME)).findFirst();
-        return runeWatchPlugin.isPresent() && pluginManager.isPluginEnabled(runeWatchPlugin.get())
-                && Boolean.TRUE.equals(SaveManager.restoreFromKey(RUNEWATCH_CONFIG_GROUP, RUNEWATCH_CONFIG_KEY_SCREENSHOT));
-    }
-
-    public static void takeScreenshot()
-    {
-        if (!CommonUtils.getConfig().getScreenshotOnTrade())
-        {
-            return;
-        }
-        if (isRunewatchScreenshotEnabled())
-        {
-            CommonUtils.chatMessage(WARNING_RUNEWATCH_1, true);
-            CommonUtils.chatMessage(WARNING_RUNEWATCH_2, true);
-            return;
-        }
-        screenshotOverlay.queueForTimestamp(image -> tradeImage = image);
-    }
-
-    public static boolean hasScreenshotConfigChanged(ConfigChanged event)
-    {
-        return event.getGroup().equals(RUNEWATCH_CONFIG_GROUP) && event.getKey().equals(RUNEWATCH_CONFIG_KEY_SCREENSHOT)
-                || event.getGroup().equals(SaveManager.SAVE_GROUP) && event.getKey().equals(ConfigKey.SCREENSHOT_ON_TRADE);
-    }
-
-    public static void saveScreenshot(final String tradeName)
-    {
-        if (!CommonUtils.getConfig().getScreenshotOnTrade() || tradeImage == null || tradeName == null)
-        {
-            clearScreenshot();
-            return;
-        }
-        // Draw the game onto the screenshot off of the game thread
-        executor.submit(() -> {
-            final BufferedImage screenshot = new BufferedImage(tradeImage.getWidth(null), tradeImage.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-            final Graphics graphics = screenshot.getGraphics();
-            graphics.drawImage(tradeImage, 0, 0, null);
-            imageCapture.saveScreenshot(screenshot, tradeName, FOLDER_NAME, false, false);
-            clearScreenshot();
-        });
-    }
+	public static void saveScreenshot(final String tradeName)
+	{
+		if (!CommonUtils.getConfig().getScreenshotOnTrade() || tradeImage == null || tradeName == null)
+		{
+			clearScreenshot();
+			return;
+		}
+		// Draw the game onto the screenshot off of the game thread
+		executor.submit(() ->
+		{
+			final BufferedImage screenshot = new BufferedImage(tradeImage.getWidth(null), tradeImage.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+			final Graphics graphics = screenshot.getGraphics();
+			graphics.drawImage(tradeImage, 0, 0, null);
+			imageCapture.saveScreenshot(screenshot, tradeName, FOLDER_NAME, false, false);
+			clearScreenshot();
+		});
+	}
 }

@@ -11,77 +11,80 @@ import java.util.function.Consumer;
 // Registers and dispatches events for key presses and releases
 public class TradeInputManager implements KeyListener
 {
-    private static final TradeInputManager instance = new TradeInputManager();
-    private static final HashMap<Integer, ArrayList<Consumer<Boolean>>> keyPressedListeners = new HashMap<>();
-    private static final HashMap<Integer, ArrayList<Consumer<Boolean>>> keyReleasedListeners = new HashMap<>();
+	private static final TradeInputManager instance = new TradeInputManager();
+	private static final HashMap<Integer, ArrayList<Consumer<Boolean>>> keyPressedListeners = new HashMap<>();
+	private static final HashMap<Integer, ArrayList<Consumer<Boolean>>> keyReleasedListeners = new HashMap<>();
 
-    public static void initialize(KeyManager keyManager)
-    {
-        keyManager.registerKeyListener(instance);
-    }
+	public static void initialize(KeyManager keyManager)
+	{
+		keyManager.registerKeyListener(instance);
+	}
 
-    public static void shutdown(KeyManager keyManager)
-    {
-        keyManager.unregisterKeyListener(instance);
-    }
+	public static void shutdown(KeyManager keyManager)
+	{
+		keyManager.unregisterKeyListener(instance);
+	}
 
-    @Override
-    public void keyPressed(KeyEvent e)
-    {
-        if (keyPressedListeners.containsKey(e.getKeyCode()))
-        {
-            keyPressedListeners.get(e.getKeyCode()).forEach(l -> l.accept(true));
-        }
-    }
+	/// //
 
-    @Override
-    public void keyReleased(KeyEvent e)
-    {
-        if (keyPressedListeners.containsKey(e.getKeyCode()))
-        {
-            keyPressedListeners.get(e.getKeyCode()).forEach(l -> l.accept(false));
-        }
-    }
+	public static void registerReleasedListener(final int virtualKey, final Consumer<Boolean> callback)
+	{
+		registerListener(keyReleasedListeners, virtualKey, callback);
+	}
 
-    @Override public void keyTyped(KeyEvent e) { }
+	public static void unregisterReleasedListener(final int virtualKey, final Consumer<Boolean> callback)
+	{
+		unregisterListener(keyReleasedListeners, virtualKey, callback);
+	}
 
-    /////
+	public static void registerPressedListener(final int virtualKey, final Consumer<Boolean> callback)
+	{
+		registerListener(keyPressedListeners, virtualKey, callback);
+	}
 
-    public static void registerReleasedListener(final int virtualKey, final Consumer<Boolean> callback)
-    {
-        registerListener(keyReleasedListeners, virtualKey, callback);
-    }
+	public static void unregisterPressedListener(final int virtualKey, final Consumer<Boolean> callback)
+	{
+		unregisterListener(keyPressedListeners, virtualKey, callback);
+	}
 
-    public static void unregisterReleasedListener(final int virtualKey, final Consumer<Boolean> callback)
-    {
-        unregisterListener(keyReleasedListeners, virtualKey, callback);
-    }
+	private static void registerListener(final HashMap<Integer, ArrayList<Consumer<Boolean>>> map, final int keyCode, final Consumer<Boolean> callback)
+	{
+		if (!map.containsKey(keyCode))
+		{
+			map.putIfAbsent(keyCode, new ArrayList<>());
+		}
+		map.get(keyCode).add(callback);
+	}
 
-    public static void registerPressedListener(final int virtualKey, final Consumer<Boolean> callback)
-    {
-        registerListener(keyPressedListeners, virtualKey, callback);
-    }
+	private static void unregisterListener(final HashMap<Integer, ArrayList<Consumer<Boolean>>> map, final int virtualKey, final Consumer<Boolean> callback)
+	{
+		if (!map.containsKey(virtualKey))
+		{
+			return;
+		}
+		map.get(virtualKey).remove(callback);
+	}
 
-    public static void unregisterPressedListener(final int virtualKey, final Consumer<Boolean> callback)
-    {
-        unregisterListener(keyPressedListeners, virtualKey, callback);
-    }
+	@Override
+	public void keyPressed(KeyEvent e)
+	{
+		if (keyPressedListeners.containsKey(e.getKeyCode()))
+		{
+			keyPressedListeners.get(e.getKeyCode()).forEach(l -> l.accept(true));
+		}
+	}
 
-    private static void registerListener(final HashMap<Integer,ArrayList<Consumer<Boolean>>> map, final int keyCode, final Consumer<Boolean> callback)
-    {
-        if (!map.containsKey(keyCode))
-        {
-            map.putIfAbsent(keyCode, new ArrayList<>());
-        }
-        map.get(keyCode).add(callback);
-    }
+	@Override
+	public void keyReleased(KeyEvent e)
+	{
+		if (keyPressedListeners.containsKey(e.getKeyCode()))
+		{
+			keyPressedListeners.get(e.getKeyCode()).forEach(l -> l.accept(false));
+		}
+	}
 
-    private static void unregisterListener(final HashMap<Integer,ArrayList<Consumer<Boolean>>> map, final int virtualKey, final Consumer<Boolean> callback)
-    {
-        if (!map.containsKey(virtualKey))
-        {
-            return;
-        }
-        map.get(virtualKey).remove(callback);
-    }
+	@Override
+	public void keyTyped(KeyEvent e)
+	{
+	}
 }

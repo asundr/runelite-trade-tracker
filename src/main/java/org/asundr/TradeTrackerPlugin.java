@@ -27,9 +27,8 @@ package org.asundr;
 
 import com.google.gson.Gson;
 import com.google.inject.Provides;
-import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.*;
+import net.runelite.api.Client;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ConfigManager;
@@ -52,25 +51,25 @@ import org.asundr.menu.TradeLookupMenuManager;
 import org.asundr.recovery.SaveManager;
 import org.asundr.screenshot.ScreenshotUtils;
 import org.asundr.trade.TradeManager;
+import org.asundr.trade.TradeUtils;
 import org.asundr.ui.GuiUtils;
 import org.asundr.ui.TradeTrackerPluginPanel;
-import org.asundr.trade.TradeUtils;
 import org.asundr.utility.CommonUtils;
 import org.asundr.utility.StringUtils;
 
-import java.io.IOException;
+import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.Collection;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Trade Tracker",
-	description = "Records a searchable history of past trades with players",
-	tags = {"trade", "history", "track", "item", "log", "logger", "memory", "lend"},
-	enabledByDefault = true
+		name = "Trade Tracker",
+		description = "Records a searchable history of past trades with players",
+		tags = {"trade", "history", "track", "item", "log", "logger", "memory", "lend"}
 )
 public class TradeTrackerPlugin extends Plugin
 {
+	private final SaveManager saveManager = new SaveManager();
 	@Inject
 	private Client client;
 	@Inject
@@ -105,17 +104,19 @@ public class TradeTrackerPlugin extends Plugin
 	private PluginManager pluginManager;
 	@Inject
 	private KeyManager keyManager;
-
-	private final SaveManager saveManager = new SaveManager();
 	private TradeTrackerPluginPanel mainPanel;
 	private NavigationButton navigationButton;
 	private TradeLookupMenuManager tradeLookupMenuManager;
 	private Collection<Object> eventSubscribers;
 
-	@Provides TradeTrackerConfig provideConfig(ConfigManager configManager) { return configManager.getConfig(TradeTrackerConfig.class); }
+	@Provides
+	TradeTrackerConfig provideConfig(ConfigManager configManager)
+	{
+		return configManager.getConfig(TradeTrackerConfig.class);
+	}
 
 	@Override
-	protected void startUp() throws Exception
+	protected void startUp()
 	{
 		CommonUtils.initialize(config, client, clientThread, this, chatboxPanelManager, eventBus, overlayManager, chatMessageManager);
 		StringUtils.initialize(gson);
@@ -138,7 +139,7 @@ public class TradeTrackerPlugin extends Plugin
 	}
 
 	@Override
-	protected void shutDown() throws Exception
+	protected void shutDown()
 	{
 		clientToolbar.removeNavigation(navigationButton);
 		eventSubscribers.forEach(e -> eventBus.unregister(e));
@@ -150,7 +151,7 @@ public class TradeTrackerPlugin extends Plugin
 		ScreenshotUtils.shutdown();
 	}
 
-	private void addNavigationButton(final TradeTrackerPluginPanel mainPanel) throws IOException
+	private void addNavigationButton(final TradeTrackerPluginPanel mainPanel)
 	{
 		navigationButton = NavigationButton.builder()
 				.tooltip("Trade Tracker")

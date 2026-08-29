@@ -27,22 +27,22 @@ package org.asundr.recovery;
 
 public final class ConfigKey
 {
-    public static final String COMMON = "Common";
-    public static final String AUTOLOAD_LAST_PROFILE = "autoLoadLastProfile";
-    public static final String AUTO_FILTER_ON_TRADE = "autoFilterOnTrade";
-    public static final String AUTO_FILTER_OPENS_PANEL = "autoFilterOpensPanel";
-    public static final String SCREENSHOT_ON_TRADE = "screenshotOnTrade";
-    public static final String MAX_HISTORY = "maxHistoryCount";
-    public static final String USE_24_HOUR_TIME = "use24HourTime";
-    public static final String DEFAULT_PRICE_TYPE = "defaultPriceType";
-    public static final String IGNORE_EMPTY_TRADES = "ignoreEmptyTrades";
-    public static final String FILTER_ITEM_ID = "filterItemID";
-    public static final String COPY_TRADE_DATE_MENU = "debugCopyTradeData";
-    public static final String PURGE_HISTORY_TYPE = "purgeHistoryType";
-    public static final String PURGE_HISTORY_MAGNITUDE = "purgeHistoryMagnitude";
-    public static final String SCHEDULED_PURGE = "SchedulePurge";
-    public static final String PLAYER_LOOKUP_MENU = "playerLookupMenu";
-    public static final String PLAYER_LOOKUP_CHARACTER = "playerLookupCharacter";
-    public static final String ADD_NAME_TO_TRADE_OFFER = "addNameToTradeOffer";
+	public static final String COMMON = "Common";
+	public static final String AUTOLOAD_LAST_PROFILE = "autoLoadLastProfile";
+	public static final String AUTO_FILTER_ON_TRADE = "autoFilterOnTrade";
+	public static final String AUTO_FILTER_OPENS_PANEL = "autoFilterOpensPanel";
+	public static final String SCREENSHOT_ON_TRADE = "screenshotOnTrade";
+	public static final String MAX_HISTORY = "maxHistoryCount";
+	public static final String USE_24_HOUR_TIME = "use24HourTime";
+	public static final String DEFAULT_PRICE_TYPE = "defaultPriceType";
+	public static final String IGNORE_EMPTY_TRADES = "ignoreEmptyTrades";
+	public static final String FILTER_ITEM_ID = "filterItemID";
+	public static final String COPY_TRADE_DATE_MENU = "debugCopyTradeData";
+	public static final String PURGE_HISTORY_TYPE = "purgeHistoryType";
+	public static final String PURGE_HISTORY_MAGNITUDE = "purgeHistoryMagnitude";
+	public static final String SCHEDULED_PURGE = "SchedulePurge";
+	public static final String PLAYER_LOOKUP_MENU = "playerLookupMenu";
+	public static final String PLAYER_LOOKUP_CHARACTER = "playerLookupCharacter";
+	public static final String ADD_NAME_TO_TRADE_OFFER = "addNameToTradeOffer";
 
 }

@@ -27,7 +27,10 @@ package org.asundr.utility;
 
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.*;
+import net.runelite.api.ChatMessageType;
+import net.runelite.api.Client;
+import net.runelite.api.ItemContainer;
+import net.runelite.api.WorldType;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatMessageBuilder;
@@ -37,6 +40,7 @@ import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.game.chatbox.ChatboxPanelManager;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
+import net.runelite.client.util.LinkBrowser;
 import net.runelite.client.util.Text;
 import org.asundr.TradeTrackerConfig;
 import org.asundr.TradeTrackerPlugin;
@@ -45,8 +49,7 @@ import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.net.URI;
-import java.util.*;
+import java.util.EnumSet;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,179 +58,201 @@ import java.util.regex.Pattern;
 @Slf4j
 public class CommonUtils
 {
-    private static final Color COLOR_PREFIX = new Color(0, 100, 0);
-    private static final String TEXT_PREFIX_CONTENT = "Trade Tracker";
-    private static TradeTrackerConfig config;
-    private static Client client;
-    private static ClientThread clientThread;
-    private static ChatboxPanelManager chatboxPanelManager;
-    private static ChatMessageManager chatMessageManager;
-    private static EventBus eventBus;
-    private static OverlayManager overlayManager;
+	public static final String URL_PREFIX_WIKI = "https://oldschool.runescape.wiki/w/";
+	public static final String URL_PREFIX_WIKI_PRICE_HISTORY = "https://prices.runescape.wiki/osrs/item/";
+	private static final Color COLOR_PREFIX = new Color(0, 100, 0);
+	private static final String TEXT_PREFIX_CONTENT = "Trade Tracker";
+	private static TradeTrackerConfig config;
+	private static Client client;
+	private static ClientThread clientThread;
+	private static ChatboxPanelManager chatboxPanelManager;
+	private static ChatMessageManager chatMessageManager;
+	private static EventBus eventBus;
+	private static OverlayManager overlayManager;
 
-    public static TradeTrackerConfig getConfig() { return config; }
-    public static ClientThread getClientThread() { return clientThread; }
-    public static Client getClient() { return client; }
-    public static OverlayManager getOverlayManager() { return overlayManager;}
+	public static TradeTrackerConfig getConfig()
+	{
+		return config;
+	}
 
+	public static ClientThread getClientThread()
+	{
+		return clientThread;
+	}
 
-    // Prepares the utility class with the various query class instances it needs to function
-    public static void initialize(TradeTrackerConfig config, Client client, ClientThread clientThread, TradeTrackerPlugin plugin, ChatboxPanelManager chatboxPanelManager, EventBus eventBus, OverlayManager overlayManager, ChatMessageManager chatMessageManager)
-    {
-        CommonUtils.config = config;
-        CommonUtils.client = client;
-        CommonUtils.clientThread = clientThread;
-        CommonUtils.chatboxPanelManager = chatboxPanelManager;
-        CommonUtils.chatMessageManager = chatMessageManager;
-        CommonUtils.eventBus = eventBus;
-        CommonUtils.overlayManager = overlayManager;
-    }
+	public static Client getClient()
+	{
+		return client;
+	}
 
-    // Forwards the passed event to the event bus
-    public static void postEvent(@Nonnull Object event)
-    {
-        eventBus.post(event);
-    }
-    public static void registerForEvents(@Nonnull Object object) { eventBus.register(object);}
-    public static void unregisterForEvents(@Nonnull Object object) { eventBus.unregister(object);}
+	public static OverlayManager getOverlayManager()
+	{
+		return overlayManager;
+	}
 
-    public static final String URL_PREFIX_WIKI = "https://oldschool.runescape.wiki/w/";
-    public static final String URL_PREFIX_WIKI_PRICE_HISTORY = "https://prices.runescape.wiki/osrs/item/";
+	// Prepares the utility class with the various query class instances it needs to function
+	public static void initialize(TradeTrackerConfig config, Client client, ClientThread clientThread, TradeTrackerPlugin plugin, ChatboxPanelManager chatboxPanelManager, EventBus eventBus, OverlayManager overlayManager, ChatMessageManager chatMessageManager)
+	{
+		CommonUtils.config = config;
+		CommonUtils.client = client;
+		CommonUtils.clientThread = clientThread;
+		CommonUtils.chatboxPanelManager = chatboxPanelManager;
+		CommonUtils.chatMessageManager = chatMessageManager;
+		CommonUtils.eventBus = eventBus;
+		CommonUtils.overlayManager = overlayManager;
+	}
 
-    // opens the passed url in the default OS browser
-    private static void openURL(final String url)
-    {
-        try
-        {
-            Desktop.getDesktop().browse(new URI(url));
-        }
-        catch (Exception e)
-        {
-            log.error("Invalid url: " + url);
-        }
-    }
+	// Forwards the passed event to the event bus
+	public static void postEvent(@Nonnull Object event)
+	{
+		eventBus.post(event);
+	}
 
-    // Given the name of an item, opens the corresponding wiki page
-    public static void openItemWiki(String itemName)
-    {
-        String name = itemName.replace(" (Members)", "").trim().replaceAll(" ", "_");
-        openURL(URL_PREFIX_WIKI + name);
-    }
+	public static void registerForEvents(@Nonnull Object object)
+	{
+		eventBus.register(object);
+	}
 
-    // Given the unnoted id of an item, opens the corresponding wiki price history page
-    public static void openItemPriceHistory(int itemID)
-    {
-        openURL(URL_PREFIX_WIKI_PRICE_HISTORY + itemID);
-    }
+	public static void unregisterForEvents(@Nonnull Object object)
+	{
+		eventBus.unregister(object);
+	}
 
-    // Prompts the player to enter text using the in-game message box and sends the input to the response
-    public static void promptTextEntry(final String prompt, final String initialText, final Consumer<String> response)
-    {
-        chatboxPanelManager.openTextInput(prompt)
-            .value(Strings.nullToEmpty(initialText))
-            .onDone((content) ->
-            {
-                if (content == null)
-                {
-                    return;
-                }
-                content = Text.removeTags(content).trim();
-                response.accept(content);
-            }).build();
-    }
+	// opens the passed url in the default OS browser
+	private static void openURL(final String url)
+	{
+		try
+		{
+			LinkBrowser.browse(url);
+		} catch (Exception e)
+		{
+			log.error("Invalid url: {}", url);
+		}
+	}
 
-    public static void chatMessage(final String message, boolean prefix)
-    {
-        final ChatMessageBuilder messageBuilder = new ChatMessageBuilder();
-        if (prefix)
-        {
-            messageBuilder.append("[").append(COLOR_PREFIX, TEXT_PREFIX_CONTENT).append("] ");
-        }
-        messageBuilder.append(message);
-        chatMessageManager.queue(QueuedMessage.builder()
-                .type(ChatMessageType.GAMEMESSAGE)
-                .runeLiteFormattedMessage(messageBuilder.build())
-                .build());
-    }
+	// Given the name of an item, opens the corresponding wiki page
+	public static void openItemWiki(String itemName)
+	{
+		String name = itemName.replace(" (Members)", "").trim().replace(" ", "_");
+		openURL(URL_PREFIX_WIKI + name);
+	}
 
-    // Returns an Icon given a filepath to an image, or null if no such image exists.
-    // Image will be resized to the specified dimensions using the passed hint as the algorithm.
-    public static ImageIcon getIconFromName(final String filename, int width, int height, final int hints)
-    {
-        BufferedImage iconImg = getImageFromName(filename);
-        if (iconImg == null)
-        {
-            return null;
-        }
-        if (width == -1 && height == -1)
-        {
-            return new ImageIcon(iconImg);
-        }
-        if (width == -1)
-        {
-            width = height;
-        }
-        if (height == -1)
-        {
-            height = width;
-        }
-        return new ImageIcon(iconImg.getScaledInstance(width, height, hints));
-    }
+	// Given the unnoted id of an item, opens the corresponding wiki price history page
+	public static void openItemPriceHistory(int itemID)
+	{
+		openURL(URL_PREFIX_WIKI_PRICE_HISTORY + itemID);
+	}
 
-    // Returns an Icon given a filepath to an image, or null if no such image exists
-    public static BufferedImage getImageFromName(final String filename)
-    {
-        return ImageUtil.loadImageResource(TradeTrackerPlugin.class, "/" + filename);
-    }
+	// Prompts the player to enter text using the in-game message box and sends the input to the response
+	public static void promptTextEntry(final String prompt, final String initialText, final Consumer<String> response)
+	{
+		chatboxPanelManager.openTextInput(prompt)
+				.value(Strings.nullToEmpty(initialText))
+				.onDone((content) ->
+				{
+					if (content == null)
+					{
+						return;
+					}
+					content = Text.removeTags(content).trim();
+					response.accept(content);
+				}).build();
+	}
 
-    // Returns all enums that describe the current world
-    public static EnumSet<WorldType> getWorldType()
-    {
-        return client.getWorldType();
-    }
+	public static void chatMessage(final String message, boolean prefix)
+	{
+		final ChatMessageBuilder messageBuilder = new ChatMessageBuilder();
+		if (prefix)
+		{
+			messageBuilder.append("[").append(COLOR_PREFIX, TEXT_PREFIX_CONTENT).append("] ");
+		}
+		messageBuilder.append(message);
+		chatMessageManager.queue(QueuedMessage.builder()
+				.type(ChatMessageType.GAMEMESSAGE)
+				.runeLiteFormattedMessage(messageBuilder.build())
+				.build());
+	}
 
-    // Returns a string matching the passed pattern if that pattern finds a match in the widget represented by the group and child IDs
-    public static String extractPatternFromWidget(int groupId, int childId, final Pattern p)
-    {
-        final Widget tradingWithWidget = client.getWidget(groupId, childId);
-        if (tradingWithWidget == null)
-        {
-            return null;
-        }
-        final String widgetText = StringUtils.sanitizeWidgetText(tradingWithWidget.getText());
-        final Matcher m = p.matcher(widgetText);
-        if (m.find())
-        {
-            return m.group(1);
-        }
-        return null;
-    }
+	// Returns an Icon given a filepath to an image, or null if no such image exists.
+	// Image will be resized to the specified dimensions using the passed hint as the algorithm.
+	public static ImageIcon getIconFromName(final String filename, int width, int height, final int hints)
+	{
+		BufferedImage iconImg = getImageFromName(filename);
+		if (iconImg == null)
+		{
+			return null;
+		}
+		if (width == -1 && height == -1)
+		{
+			return new ImageIcon(iconImg);
+		}
+		if (width == -1)
+		{
+			//noinspection SuspiciousNameCombination
+			width = height;
+		}
+		if (height == -1)
+		{
+			//noinspection SuspiciousNameCombination
+			height = width;
+		}
+		return new ImageIcon(iconImg.getScaledInstance(width, height, hints));
+	}
 
-    // Returns the items container with the passed id from the client
-    public static ItemContainer getItemContainer(final int containerId)
-    {
-        return client.getItemContainer(containerId);
-    }
+	// Returns an Icon given a filepath to an image, or null if no such image exists
+	public static BufferedImage getImageFromName(final String filename)
+	{
+		return ImageUtil.loadImageResource(TradeTrackerPlugin.class, "/" + filename);
+	}
 
-    // Returns the lifetime in milliseconds of a trade before it is auto-removed
-    // If plugin settings for auto-remove are invalid, return -1
-    public static long getRecordLifetime()
-    {
-        if (!isValidPurgeConfig())
-        {
-            return -1;
-        }
-        return config.getPurgeHistoryMagnitude() * config.getPurgeHistoryType().ms;
-    }
+	// Returns all enums that describe the current world
+	public static EnumSet<WorldType> getWorldType()
+	{
+		return client.getWorldType();
+	}
 
-    // Returns true if the plugin config settings are valid values to schedule auto-removing
-    public static boolean isValidPurgeConfig()
-    {
-        return config.getPurgeHistoryType() != TradeTrackerConfig.PurgeHistoryType.NEVER && config.getPurgeHistoryMagnitude() > 0;
-    }
+	// Returns a string matching the passed pattern if that pattern finds a match in the widget represented by the group and child IDs
+	public static String extractPatternFromWidget(int groupId, int childId, final Pattern p)
+	{
+		final Widget tradingWithWidget = client.getWidget(groupId, childId);
+		if (tradingWithWidget == null)
+		{
+			return null;
+		}
+		final String widgetText = StringUtils.sanitizeWidgetText(tradingWithWidget.getText());
+		final Matcher m = p.matcher(widgetText);
+		if (m.find())
+		{
+			return m.group(1);
+		}
+		return null;
+	}
 
-    public static boolean isThreadActive(java.util.concurrent.Future<?> future)
-    {
-        return future != null && !future.isCancelled() && !future.isDone();
-    }
+	// Returns the items container with the passed id from the client
+	public static ItemContainer getItemContainer(final int containerId)
+	{
+		return client.getItemContainer(containerId);
+	}
+
+	// Returns the lifetime in milliseconds of a trade before it is auto-removed
+	// If plugin settings for auto-remove are invalid, return -1
+	public static long getRecordLifetime()
+	{
+		if (isValidPurgeConfig())
+		{
+			return -1;
+		}
+		return config.getPurgeHistoryMagnitude() * config.getPurgeHistoryType().ms;
+	}
+
+	// Returns true if the plugin config settings are valid values to schedule auto-removing
+	public static boolean isValidPurgeConfig()
+	{
+		return config.getPurgeHistoryType() == TradeTrackerConfig.PurgeHistoryType.NEVER || config.getPurgeHistoryMagnitude() <= 0;
+	}
+
+	public static boolean isThreadActive(java.util.concurrent.Future<?> future)
+	{
+		return future != null && !future.isCancelled() && !future.isDone();
+	}
 }

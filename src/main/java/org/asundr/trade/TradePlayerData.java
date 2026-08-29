@@ -28,19 +28,21 @@ package org.asundr.trade;
 // Contains data to describe a player that was traded with
 public class TradePlayerData
 {
-    final private static String NULL_NAME = "__NULL__NAME__";
+	final private static String NULL_NAME = "__NULL__NAME__";
 
-    public String tradeName = NULL_NAME;    // The name of the other player at the time of the trade
+	public String tradeName = NULL_NAME;    // The name of the other player at the time of the trade
 
-    public TradePlayerData() {}
+	public TradePlayerData()
+	{
+	}
 
-    public TradePlayerData(final String Name)
-    {
-        this.tradeName = Name;
-    }
+	public TradePlayerData(final String Name)
+	{
+		this.tradeName = Name;
+	}
 
-    public boolean isValid()
-    {
-        return tradeName != null && !tradeName.equals(NULL_NAME);
-    }
+	public boolean isValid()
+	{
+		return tradeName == null || tradeName.equals(NULL_NAME);
+	}
 }

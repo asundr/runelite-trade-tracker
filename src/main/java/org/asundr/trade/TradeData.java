@@ -25,61 +25,61 @@
 
 package org.asundr.trade;
 
-import java.util.ArrayList;
-
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import org.asundr.utility.CommonUtils;
 
+import java.util.ArrayList;
+
 // Contains all data to describe a trade between players
 public class TradeData
 {
-    public long tradeTime = 0L;                                     // timestamp in seconds
-    public TradePlayerData tradedPlayer = new TradePlayerData();    // Data from the other player such as name at time of trade
-    public ArrayList<TradeItemData> givenItems =  new ArrayList<>();
-    public ArrayList<TradeItemData> receivedItems = new ArrayList<>();
-    transient public long givenTotalValue = 0L;                             // aggregate grand exchange value of given items in coins at the time of trade
-    transient public long receivedTotalValue = 0L;                          // aggregate grand exchange value of received items in coins at the time of trade
-    public String note = "";                                        // player-authored note
+	public long tradeTime = 0L;                                     // timestamp in seconds
+	public TradePlayerData tradedPlayer = new TradePlayerData();    // Data from the other player such as name at time of trade
+	public final ArrayList<TradeItemData> givenItems = new ArrayList<>();
+	public final ArrayList<TradeItemData> receivedItems = new ArrayList<>();
+	transient public long givenTotalValue = 0L;                             // aggregate grand exchange value of given items in coins at the time of trade
+	transient public long receivedTotalValue = 0L;                          // aggregate grand exchange value of received items in coins at the time of trade
+	public String note = "";                                        // player-authored note
 
-    // Refreshes the tracked items of this player, or the traded player by querying their respective trade container
-    public void updateItems(boolean isCurrentPlayer, ItemContainer itemContainer)
-    {
-        final ArrayList<TradeItemData> updatedItems = isCurrentPlayer ? givenItems : receivedItems;
-        updatedItems.clear();
-        if (itemContainer == null)
-        {
-            return;
-        }
-        for (Item item : itemContainer.getItems())
-        {
-            if (item == null || item.getId() == -1)
-            {
-                continue;
-            }
-            updatedItems.add(new TradeItemData(item.getId(), item.getQuantity()));
-        }
-    }
+	// Refreshes the tracked items of this player, or the traded player by querying their respective trade container
+	public void updateItems(boolean isCurrentPlayer, ItemContainer itemContainer)
+	{
+		final ArrayList<TradeItemData> updatedItems = isCurrentPlayer ? givenItems : receivedItems;
+		updatedItems.clear();
+		if (itemContainer == null)
+		{
+			return;
+		}
+		for (Item item : itemContainer.getItems())
+		{
+			if (item == null || item.getId() == -1)
+			{
+				continue;
+			}
+			updatedItems.add(new TradeItemData(item.getId(), item.getQuantity()));
+		}
+	}
 
-    // Calculates the total value of items given and received. Should only be called after ge prices for all items have been fetched.
-    public void calculateAggregateValues()
-    {
-        givenTotalValue = TradeUtils.totalConfiguredValue(givenItems);
-        receivedTotalValue = TradeUtils.totalConfiguredValue(receivedItems);
-    }
+	// Calculates the total value of items given and received. Should only be called after ge prices for all items have been fetched.
+	public void calculateAggregateValues()
+	{
+		givenTotalValue = TradeUtils.totalConfiguredValue(givenItems);
+		receivedTotalValue = TradeUtils.totalConfiguredValue(receivedItems);
+	}
 
-    public final boolean isEmpty()
-    {
-        return givenItems.isEmpty() && receivedItems.isEmpty();
-    }
+	public final boolean isEmpty()
+	{
+		return givenItems.isEmpty() && receivedItems.isEmpty();
+	}
 
-    public final boolean isExpired()
-    {
-        if (!CommonUtils.isValidPurgeConfig())
-        {
-            return false;
-        }
-        return tradeTime*1000L + CommonUtils.getRecordLifetime() < System.currentTimeMillis();
-    }
+	public final boolean isExpired()
+	{
+		if (CommonUtils.isValidPurgeConfig())
+		{
+			return false;
+		}
+		return tradeTime * 1000L + CommonUtils.getRecordLifetime() < System.currentTimeMillis();
+	}
 
 }

@@ -28,10 +28,10 @@ package org.asundr.trade;
 // Event fired when a new trade is added (typically as a result of accepting a trade). Listened to by the UI.
 final public class EventTradeAdded
 {
-    public final TradeData tradeData;
+	public final TradeData tradeData;
 
-    EventTradeAdded(final TradeData tradeData)
-    {
-        this.tradeData = tradeData;
-    }
+	EventTradeAdded(final TradeData tradeData)
+	{
+		this.tradeData = tradeData;
+	}
 }

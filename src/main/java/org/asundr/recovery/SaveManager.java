@@ -27,16 +27,19 @@ package org.asundr.recovery;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.google.inject.Inject;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.Player;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.RuneScapeProfileType;
 import net.runelite.client.eventbus.Subscribe;
-import org.asundr.trade.TradeData;
 import org.asundr.TradeHistoryProfile;
+import org.asundr.trade.TradeData;
 import org.asundr.trade.TradeManager;
 import org.asundr.utility.CommonUtils;
 import org.asundr.utility.StringUtils;
@@ -51,327 +54,388 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class SaveManager
 {
-    public static final String REGEX_EMPTY_NOTES = ",\"note\":(?:null|\"\")";
+	public static final String REGEX_EMPTY_NOTES = ",\"note\":(?:null|\"\")";
+	public static final int SAVE_VERSION = 2; // This should increase whenever save data or method changes
+	public static final String SAVE_GROUP = "TradeTracker";
+	private static final String DEFAULT_SAVE_FILENAME = "profile";
+	private static final AtomicInteger tradeHistorySaveState = new AtomicInteger(SaveState.INACTIVE); // flags for trade history save operation
+	private static final AtomicInteger tradeHistoryLoadState = new AtomicInteger(SaveState.INACTIVE); // flags for trade history load operation
+	private static ConfigManager configManager;
+	private static SaveData_Common saveDataCommon;
+	private static ExecutorService ioExecutor = null;
+	private static Future<?> ioExecutorFuture = null;
+	private Player currentPlayer;
+	private String playerName;
+	@Inject
+	@Getter
+	private Client client;
 
-    // used to schedule saves and prevent save operations from being interrupted
-    private static final class SaveState
-    {
-        static final int INACTIVE = 0;
-        static final int REQUESTED = 1;
-        static final int ACTIVE = 1 << 1;
-        static final int ACTIVE_REQUESTED = REQUESTED | ACTIVE;
+	private boolean LoggedIn = false;
 
-    }
-    public static final int SAVE_VERSION = 2; // This should increase whenever save data or method changes
-    public static final String SAVE_GROUP = "TradeTracker";
-    private static final String DEFAULT_SAVE_FILENAME = "profile";
-    private static ConfigManager configManager;
-    private static SaveData_Common saveDataCommon;
-    private static final AtomicInteger tradeHistorySaveState = new AtomicInteger(SaveState.INACTIVE); // flags for trade history save operation
-    private static final AtomicInteger tradeHistoryLoadState = new AtomicInteger(SaveState.INACTIVE); // flags for trade history load operation
-    private static ExecutorService ioExecutor = null;
-    private static Future<?> ioExecutorFuture  = null;
+	// Sets the active profile to null without updating the UI or saving
+	public static void forgetActiveHistoryProfile()
+	{
+		saveDataCommon.setActiveProfile(null);
+	}
 
-    @Subscribe
-    private void onGameStateChanged(GameStateChanged evt)
-    {
-        if (evt.getGameState() == GameState.LOGGED_IN)
-        {
-            attemptGetPlayer();
-        }
-    }
+	public static void initialize(ConfigManager configManager)
+	{
+		SaveManager.configManager = configManager;
 
-    // repeatedly tries to get the player, then sets the active profile
-    private void attemptGetPlayer()
-    {
-        final Client client = CommonUtils.getClient();
-        if (client.getGameState() != GameState.LOGGED_IN)
-        {
-            return;
-        }
-        final Player localPlayer = client.getLocalPlayer();
-        if (localPlayer == null)
-        {
-            CommonUtils.getClientThread().invokeLater(this::attemptGetPlayer);
-            return;
-        }
-        final String playerName = localPlayer.getName();
-        if (playerName == null)
-        {
-            CommonUtils.getClientThread().invokeLater(this::attemptGetPlayer);
-        }
-        else
-        {
-            setActiveHistoryProfile(new TradeHistoryProfile(client.getAccountHash(), playerName, RuneScapeProfileType.getCurrent(client)));
-        }
-    }
+		SaveManager.ioExecutor = Executors.newFixedThreadPool(1);
+		SaveManager.ioExecutorFuture = null;
+		SaveManager.tradeHistorySaveState.set(SaveState.INACTIVE);
+		SaveManager.tradeHistoryLoadState.set(SaveState.INACTIVE);
+	}
 
-    // Sets the history associated with the passed profile
-    private void setActiveHistoryProfile(final TradeHistoryProfile profile)
-    {
-        if (profile == null || profile.equals(getActiveProfile()))
-        {
-            return;
-        }
-        final SaveData_Common saveData = getSaveDataCommon();
-        final TradeHistoryProfile oldProfile = saveData.getActiveProfile();
-        saveData.setActiveProfile(profile);
-        CommonUtils.postEvent(new EventTradeTrackerProfileChanged(oldProfile, profile));
-        SaveManager.saveCommonData();
-        SaveManager.requestRestoreTradeHistory();
-    }
+	public static void shutdown()
+	{
+		if (hasFlag(tradeHistorySaveState, SaveState.ACTIVE))
+		{
+			ioExecutor.shutdown();
+		} else
+		{
+			ioExecutor.shutdownNow();
+		}
+	}
 
-    // Sets the active profile to null without updating the UI or saving
-    public static void forgetActiveHistoryProfile()
-    {
-        saveDataCommon.setActiveProfile(null);
-    }
+	private static SaveData_Common getSaveDataCommon()
+	{
+		if (saveDataCommon == null)
+		{
+			saveDataCommon = new SaveData_Common();
+		}
+		return saveDataCommon;
+	}
 
-    public static void initialize(ConfigManager configManager)
-    {
-        SaveManager.configManager = configManager;
+	public static TradeHistoryProfile getActiveProfile()
+	{
+		return saveDataCommon == null ? null : saveDataCommon.getActiveProfile();
+	}
 
-        SaveManager.ioExecutor =  Executors.newFixedThreadPool(1);
-        SaveManager.ioExecutorFuture = null;
-        SaveManager.tradeHistorySaveState.set(SaveState.INACTIVE);
-        SaveManager.tradeHistoryLoadState.set(SaveState.INACTIVE);
-    }
+	public static boolean isSaving()
+	{
+		return tradeHistorySaveState.get() != 0;
+	}
 
-    public static void shutdown()
-    {
-        if (hasFlag(tradeHistorySaveState, SaveState.ACTIVE))
-        {
-            ioExecutor.shutdown();
-        }
-        else
-        {
-            ioExecutor.shutdownNow();
-        }
-    }
+	// serializes and saves common data
+	private static void saveCommonData()
+	{
+		Gson gson = StringUtils.getGsonBuilder();
+		String json = gson.toJson(getSaveDataCommon());
+		configManager.setConfiguration(SAVE_GROUP, ConfigKey.COMMON, json);
+	}
 
-    private static SaveData_Common getSaveDataCommon()
-    {
-        if (saveDataCommon == null)
-        {
-            saveDataCommon = new SaveData_Common(SAVE_VERSION, null);
-        }
-        return saveDataCommon;
-    }
+	// Converts the active profile's trade history to a json string, or null if there is not a populated history
+	public static String getTradeHistoryAsJson()
+	{
+		if (saveDataCommon == null || saveDataCommon.getActiveProfile() == null)
+		{
+			return null;
+		}
+		final ArrayDeque<TradeData> tradeHistory = TradeManager.getTradeHistory();
+		if (tradeHistory.isEmpty())
+		{
+			return null;
+		}
+		final Gson gson = StringUtils.getGsonBuilder();
+		String historyJson = gson.toJson(tradeHistory);
+		historyJson = historyJson.replaceAll(REGEX_EMPTY_NOTES, ""); // remove empty notes
+		final SaveData_Profile saveData = new SaveData_Profile(
+				SaveManager.saveDataCommon.getActiveProfile().getKeyString(),
+				CompressionUtils.compressToEncode(historyJson));
+		return gson.toJson(saveData);
+	}
 
-    public static TradeHistoryProfile getActiveProfile() { return saveDataCommon == null ? null : saveDataCommon.getActiveProfile(); }
+	// Saves the current trade history to the config using the profile's hash and account type as a key
+	private static void saveTradeHistoryData()
+	{
+		toggleFlag(tradeHistorySaveState); // removed requested, add enabled active
+		try
+		{
+			final String json = getTradeHistoryAsJson();
+			if (saveDataCommon == null || saveDataCommon.getActiveProfile() == null)
+			{
+				return;
+			}
+			if (json == null)
+			{
+				configManager.unsetConfiguration(SAVE_GROUP, saveDataCommon.getActiveProfile().getKeyString());
+				return;
+			}
+			configManager.setConfiguration(SAVE_GROUP, SaveManager.saveDataCommon.getActiveProfile().getKeyString(), json);
+		} finally
+		{
+			clearFlag(tradeHistorySaveState);
+			ioExecutorFuture = null;
+		}
+	}
 
-    public static boolean isSaving() { return tradeHistorySaveState.get() != 0; }
+	// Reads the common save data from config and sets that as the active save data
+	public static void restoreCommonData()
+	{
+		final Gson gson = StringUtils.getGsonBuilder();
+		final String json = configManager.getConfiguration(SAVE_GROUP, ConfigKey.COMMON);
+		if (json == null || json.isBlank())
+		{
+			saveDataCommon = new SaveData_Common();
+			return;
+		}
+		saveDataCommon = gson.fromJson(json, SaveData_Common.class);
+	}
 
-    // serializes and saves common data
-    private static void saveCommonData()
-    {
-        Gson gson = StringUtils.getGsonBuilder();
-        String json = gson.toJson(getSaveDataCommon());
-        configManager.setConfiguration(SAVE_GROUP, ConfigKey.COMMON, json);
-    }
+	// Restores the history of trades from the config entry associated with the currently active account
+	private static void restoreTradeHistoryData()
+	{
+		if (saveDataCommon == null || saveDataCommon.getActiveProfile() == null)
+		{
+			return;
+		}
+		toggleFlag(tradeHistoryLoadState);
+		final String json = configManager.getConfiguration(SAVE_GROUP, saveDataCommon.getActiveProfile().getKeyString());
+		restoreTradeHistoryDataFromJson(json);
+		clearFlag(tradeHistoryLoadState);
+		ioExecutorFuture = null;
+	}
 
-    // Converts the active profile's trade history to a json string, or null if there is not a populated history
-    public static String getTradeHistoryAsJson()
-    {
-        if (saveDataCommon == null || saveDataCommon.getActiveProfile() == null)
-        {
-            return null;
-        }
-        final ArrayDeque<TradeData> tradeHistory = TradeManager.getTradeHistory();
-        if (tradeHistory.isEmpty())
-        {
-            return null;
-        }
-        final Gson gson = StringUtils.getGsonBuilder();
-        String historyJson = gson.toJson(tradeHistory);
-        historyJson = historyJson.replaceAll(REGEX_EMPTY_NOTES, ""); // remove empty notes
-        final SaveData_Profile saveData = new SaveData_Profile(
-                SAVE_VERSION,
-                SaveManager.saveDataCommon.getActiveProfile().getKeyString(),
-                CompressionUtils.compressToEncode(historyJson));
-        return gson.toJson(saveData);
-    }
+	// Restores the trade history using a json string serialized from SaveData_Profile
+	private static void restoreTradeHistoryDataFromJson(final String json)
+	{
+		final String profileKey = getSaveDataCommon().getActiveProfile() == null ? null : saveDataCommon.getActiveProfile().getKeyString();
+		if (json == null || json.isEmpty())
+		{
+			CommonUtils.postEvent(new EventTradeHistoryProfileRestored(profileKey, new ArrayDeque<>()));
+			return;
+		}
+		final Type dequeType = new TypeToken<ArrayDeque<TradeData>>()
+		{
+		}.getType();
+		try
+		{
+			final Gson gson = StringUtils.getGsonBuilder();
+			final SaveData_Profile saveData = gson.fromJson(json, SaveData_Profile.class);
+			if (saveData == null)
+			{
+				log.error("Failed to parse trade history json");
+				return;
+			}
+			String decompressedHistory = CompressionUtils.decompressFromEncode(saveData.encodedTradeHistory);
+			if (saveData.saveVersion == 1)
+			{
+				decompressedHistory = SaveUpgradeUtils.version1to2json(decompressedHistory);
+			}
+			CommonUtils.postEvent(new EventTradeHistoryProfileRestored(
+					profileKey,
+					gson.fromJson(decompressedHistory, dequeType)
+			));
+		} catch (Exception e)
+		{
+			log.error("Failed to parse trade history json");
+		}
+	}
 
-    // Saves the current trade history to the config using the profile's hash and account type as a key
-    private static void saveTradeHistoryData()
-    {
-        toggleFlag(tradeHistorySaveState, SaveState.ACTIVE_REQUESTED); // removed requested, add enabled active
-        try
-        {
-            final String json = getTradeHistoryAsJson();
-            if (saveDataCommon == null || saveDataCommon.getActiveProfile() == null)
-            {
-                return;
-            }
-            if (json == null)
-            {
-                configManager.unsetConfiguration(SAVE_GROUP, saveDataCommon.getActiveProfile().getKeyString());
-                return;
-            }
-            configManager.setConfiguration(SAVE_GROUP, SaveManager.saveDataCommon.getActiveProfile().getKeyString(), json);
-        }
-        finally
-        {
-            clearFlag(tradeHistorySaveState, SaveState.ACTIVE);
-            ioExecutorFuture = null;
-        }
-    }
+	// Repeatedly attempts to start a new save or load thread while a queued save or load is pending
+	private static void scheduleRecoveryOperation()
+	{
+		if (!CommonUtils.isThreadActive(ioExecutorFuture) && !hasFlag(tradeHistorySaveState, SaveState.ACTIVE) && !hasFlag(tradeHistoryLoadState, SaveState.ACTIVE))
+		{
+			if (tradeHistorySaveState.get() == SaveState.REQUESTED)
+			{
+				ioExecutorFuture = ioExecutor.submit(SaveManager::saveTradeHistoryData);
+			} else if (tradeHistoryLoadState.get() == SaveState.REQUESTED)
+			{
+				ioExecutorFuture = ioExecutor.submit(SaveManager::restoreTradeHistoryData);
+			}
+		} else if (hasFlag(tradeHistorySaveState, SaveState.REQUESTED) || hasFlag(tradeHistoryLoadState, SaveState.REQUESTED))
+		{
+			CommonUtils.getClientThread().invokeLater(SaveManager::scheduleRecoveryOperation);
+		}
+	}
 
-    // Reads the common save data from config and sets that as the active save data
-    public static void restoreCommonData()
-    {
-        final Gson gson = StringUtils.getGsonBuilder();
-        final String json = configManager.getConfiguration(SAVE_GROUP, ConfigKey.COMMON);
-        if (json == null || json.isBlank())
-        {
-            saveDataCommon = new SaveData_Common(SAVE_VERSION, null);
-            return;
-        }
-        saveDataCommon = gson.fromJson(json, SaveData_Common.class);
-    }
+	// The public method that should be called to reload from the current trade history profile
+	public static void requestRestoreTradeHistory()
+	{
+		setFlag(tradeHistoryLoadState);
+		CommonUtils.getClientThread().invokeLater(SaveManager::scheduleRecoveryOperation);
+	}
 
-    // Restores the history of trades from the config entry associated with the currently active account
-    private static void restoreTradeHistoryData()
-    {
-        if (saveDataCommon == null || saveDataCommon.getActiveProfile() == null)
-        {
-            return;
-        }
-        toggleFlag(tradeHistoryLoadState, SaveState.ACTIVE_REQUESTED);
-        final String json = configManager.getConfiguration(SAVE_GROUP, saveDataCommon.getActiveProfile().getKeyString());
-        restoreTradeHistoryDataFromJson(json);
-        clearFlag(tradeHistoryLoadState, SaveState.ACTIVE);
-        ioExecutorFuture = null;
-    }
+	// The public method that should be called to save the current trade history
+	public static void requestTradeHistorySave()
+	{
+		if (tradeHistoryLoadState.get() > 0)
+		{
+			return;
+		}
+		setFlag(tradeHistorySaveState);
+		CommonUtils.getClientThread().invokeLater(SaveManager::scheduleRecoveryOperation);
+	}
 
-    // Restores the trade history using a json string serialized from SaveData_Profile
-    private static void restoreTradeHistoryDataFromJson(final String json)
-    {
-        final String profileKey = getSaveDataCommon().getActiveProfile() == null ? null : saveDataCommon.getActiveProfile().getKeyString();
-        if (json == null || json.equals(""))
-        {
-            CommonUtils.postEvent(new EventTradeHistoryProfileRestored(profileKey, new ArrayDeque<>()));
-            return;
-        }
-        final Type dequeType = new TypeToken<ArrayDeque<TradeData>>(){}.getType();
-        try
-        {
-            final Gson gson = StringUtils.getGsonBuilder();
-            final SaveData_Profile saveData = gson.fromJson(json, SaveData_Profile.class);
-            if (saveData == null)
-            {
-                log.error("Failed to parse trade history json");
-                return;
-            }
-            String decompressedHistory = CompressionUtils.decompressFromEncode(saveData.encodedTradeHistory);
-            if (saveData.saveVersion == 1)
-            {
-                decompressedHistory = SaveUpgradeUtils.version1to2json(decompressedHistory);
-            }
-            CommonUtils.postEvent(new EventTradeHistoryProfileRestored(
-                    profileKey,
-                    gson.fromJson(decompressedHistory, dequeType)
-            ));
-        }
-        catch (Exception e)
-        {
-            log.error("Failed to parse trade history json");
-        }
-    }
+	// Saves to the plugin's default group with the passed key
+	public static void saveWithKey(final String key, Object data)
+	{
+		final Gson gson = StringUtils.getGsonBuilder();
+		configManager.setConfiguration(SAVE_GROUP, key, gson.toJson(data));
+	}
 
-    // Repeatedly attempts to start a new save or load thread while a queued save or load is pending
-    private static void scheduleRecoveryOperation()
-    {
-        if (!CommonUtils.isThreadActive(ioExecutorFuture) && !hasFlag(tradeHistorySaveState, SaveState.ACTIVE) && !hasFlag(tradeHistoryLoadState, SaveState.ACTIVE))
-        {
-            if (tradeHistorySaveState.get() == SaveState.REQUESTED)
-            {
-                ioExecutorFuture = ioExecutor.submit(SaveManager::saveTradeHistoryData);
-            }
-            else if (tradeHistoryLoadState.get() == SaveState.REQUESTED)
-            {
-                ioExecutorFuture = ioExecutor.submit(SaveManager::restoreTradeHistoryData);
-            }
-        }
-        else if (hasFlag(tradeHistorySaveState, SaveState.REQUESTED) || hasFlag(tradeHistoryLoadState, SaveState.REQUESTED))
-        {
-            CommonUtils.getClientThread().invokeLater(SaveManager::scheduleRecoveryOperation);
-        }
-    }
+	// Restores from the plugin's default group with the passed key.
+	// Return type matches that of the variable this function output is assigned to.
+	public static <T> T restoreFromKey(final String key)
+	{
+		return restoreFromKey(SAVE_GROUP, key);
+	}
 
-    // The public method that should be called to reload from the current trade history profile
-    public static void requestRestoreTradeHistory()
-    {
-        setFlag(tradeHistoryLoadState, SaveState.REQUESTED);
-        CommonUtils.getClientThread().invokeLater(SaveManager::scheduleRecoveryOperation);
-    }
+	public static <T> T restoreFromKey(final String group, final String key)
+	{
+		final Gson gson = StringUtils.getGsonBuilder();
+		final String value = configManager.getConfiguration(group, key);
+		if (value == null)
+		{
+			return null;
+		}
+		return gson.fromJson(value, new TypeToken<T>()
+		{
+		}.getType());
+	}
 
-    // The public method that should be called to save the current trade history
-    public static void requestTradeHistorySave()
-    {
-        if (tradeHistoryLoadState.get() > 0)
-        {
-            return;
-        }
-        setFlag(tradeHistorySaveState, SaveState.REQUESTED);
-        CommonUtils.getClientThread().invokeLater(SaveManager::scheduleRecoveryOperation);
-    }
+	// Exports the active profile's trade history profile as json to the file specified by the user
+	public static void saveTradeHistoryToFile()
+	{
+		final String json = getTradeHistoryAsJson();
+		if (json != null)
+		{
+			FileUtils.writeStringToFile(saveDataCommon.getActiveProfile().getKeyString(), json);
+		}
+	}
 
-    // Saves to the plugin's default group with the passed key
-    public static void saveWithKey(final String key, Object data)
-    {
-        final Gson gson = StringUtils.getGsonBuilder();
-        configManager.setConfiguration(SAVE_GROUP, key, gson.toJson(data));
-    }
+	// Imports a trade history profile to the active profile from a file specified by the user
+	public static void loadTradeHistoryFromFile()
+	{
+		String filename = DEFAULT_SAVE_FILENAME;
+		if (saveDataCommon != null && saveDataCommon.getActiveProfile() != null)
+		{
+			filename = saveDataCommon.getActiveProfile().getKeyString();
+		}
+		final String json = FileUtils.readStringFromFile(filename);
+		if (json == null || json.isBlank())
+		{
+			return;
+		}
+		restoreTradeHistoryDataFromJson(json);
+	}
 
-    // Restores from the plugin's default group with the passed key.
-    // Return type matches that of the variable this function output is assigned to.
-    public static <T> T restoreFromKey(final String key)
-    {
-        return restoreFromKey(SAVE_GROUP, key);
-    }
+	// Operations for setting and queries flags set on an atomic integer
+	private static void toggleFlag(final AtomicInteger mask)
+	{
+		mask.set(mask.get() ^ SaveState.ACTIVE_REQUESTED);
+	}
 
-    public static <T> T restoreFromKey(final String group, final String key)
-    {
-        final Gson gson = StringUtils.getGsonBuilder();
-        final String value = configManager.getConfiguration(group, key);
-        if (value == null)
-        {
-            return null;
-        }
-        return gson.fromJson(value, new TypeToken<T>(){}.getType());
-    }
+	private static void clearFlag(final AtomicInteger mask)
+	{
+		mask.set(mask.get() & ~SaveState.ACTIVE);
+	}
 
-    // Exports the active profile's trade history profile as json to the file specified by the user
-    public static void saveTradeHistoryToFile()
-    {
-        final String json = getTradeHistoryAsJson();
-        if (json != null)
-        {
-            FileUtils.writeStringToFile(saveDataCommon.getActiveProfile().getKeyString(), json);
-        }
-    }
+	private static void setFlag(final AtomicInteger mask)
+	{
+		mask.set(mask.get() | SaveState.REQUESTED);
+	}
 
-    // Imports a trade history profile to the active profile from a file specified by the user
-    public static void loadTradeHistoryFromFile()
-    {
-        String filename = DEFAULT_SAVE_FILENAME;
-        if (saveDataCommon != null && saveDataCommon.getActiveProfile() != null)
-        {
-            filename = saveDataCommon.getActiveProfile().getKeyString();
-        }
-        final String json = FileUtils.readStringFromFile(filename);
-        if (json == null || json.isBlank())
-        {
-            return;
-        }
-        restoreTradeHistoryDataFromJson(json);
-    }
+	private static boolean hasFlag(final AtomicInteger mask, final int flag)
+	{
+		return (mask.get() & flag) > 0;
+	}
 
+	@Subscribe
+	public void onGameTick(GameTick event) {
+		if (!LoggedIn) {
+			onLoggedInGameState();
+		}
+	}
 
-    // Operations for setting and queries flags set on an atomic integer
-    private static void toggleFlag(final AtomicInteger mask, final int flag) { mask.set(mask.get() ^ flag);}
-    private static void clearFlag(final AtomicInteger mask, final int flag) { mask.set(mask.get() & ~flag); }
-    private static void setFlag(final AtomicInteger mask, final int flag) { mask.set(mask.get() | flag); }
-    private static boolean hasFlag(final AtomicInteger mask, final int flag) { return (mask.get() & flag) > 0; }
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event) {
+		if (event.getGameState() == GameState.LOGGED_IN) {
+			onLoggedInGameState();
+		} else if (event.getGameState() == GameState.LOGIN_SCREEN && LoggedIn) {
+			//this randomly fired at night hours after i had logged off...so i'm adding this guard here.
+			if (this.currentPlayer != null && client.getGameState() != GameState.LOGGED_IN) {
+				handleLogout();
+			}
+		}
+	}
+
+	private void onLoggedInGameState() {
+		//keep scheduling this task until it returns true (when we have access to a display name)
+		CommonUtils.getClientThread().invokeLater(() ->
+		{
+			//we return true in this case as something went wrong and somehow the state isn't logged in, so we don't
+			//want to keep scheduling this task.
+			client = CommonUtils.getClient();
+			if (client == null) {
+				return true;
+			}
+			if (client.getGameState() != GameState.LOGGED_IN) {
+				return true;
+			}
+
+			final Player player = client.getLocalPlayer();
+
+			//player is null, so we can't get the display name so, return false, which will schedule
+			//the task on the client thread again.
+			if (player == null) {
+				return false;
+			}
+
+			final String name = player.getName();
+
+			if (name == null) {
+				return false;
+			}
+
+			if (name.isEmpty()) {
+				return false;
+			}
+
+			handleLogin(name);
+			//stops scheduling this task
+			return true;
+		});
+	}
+
+	public void handleLogin(String displayName) {
+		this.currentPlayer = this.client.getLocalPlayer();
+		this.playerName = this.currentPlayer.getName();
+		log.debug("{} is logging in", this.playerName);
+		LoggedIn = true;
+		setActiveHistoryProfile(new TradeHistoryProfile(client.getAccountHash(), playerName, RuneScapeProfileType.getCurrent(client)));
+	}
+
+	public void handleLogout() {
+		log.debug("{} is logging out", this.playerName);
+		//
+	}
+
+	// Sets the history associated with the passed profile
+	private void setActiveHistoryProfile(final TradeHistoryProfile profile)
+	{
+		if (profile == null || profile.equals(getActiveProfile()))
+		{
+			return;
+		}
+		final SaveData_Common saveData = getSaveDataCommon();
+		final TradeHistoryProfile oldProfile = saveData.getActiveProfile();
+		saveData.setActiveProfile(profile);
+		CommonUtils.postEvent(new EventTradeTrackerProfileChanged(oldProfile, profile));
+		SaveManager.saveCommonData();
+		SaveManager.requestRestoreTradeHistory();
+	}
+
+	// used to schedule saves and prevent save operations from being interrupted
+	private static final class SaveState
+	{
+		static final int INACTIVE = 0;
+		static final int REQUESTED = 1;
+		static final int ACTIVE = 1 << 1;
+		static final int ACTIVE_REQUESTED = REQUESTED | ACTIVE;
+
+	}
 }
